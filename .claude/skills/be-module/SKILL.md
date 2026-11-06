@@ -5,7 +5,7 @@ description: Cum se adaugă sau se extinde un feature în backend-ul AradEx-Back
 
 # Feature nou / extindere în `AradEx-Backend`
 
-Căile de cod sunt relative la rădăcina repo-ului `AradEx-Backend` (sau a worktree-ului tău `../_wt/AradEx-Backend-Txx`); documentele sunt în `AradEx-Plan/docs/`. Citește `AradEx-Backend/CLAUDE.md`, secțiunea feature-ului din `AradEx-Plan/docs/API.md`, tabelul din `AradEx-Plan/docs/DATA-MODEL.md` și `AradEx-Plan/docs/TEAM.md` (lucrezi doar în feature-urile culoarului tău). Un feature `<f>` (ex. `events`) atinge:
+Căile de cod sunt relative la rădăcina repo-ului `AradEx-Backend` (sau a worktree-ului tău `../_wt/AradEx-Backend-Txx`); documentele sunt în `AradEx-Plan/docs/`. Citește `AradEx-Backend/CLAUDE.md`, secțiunea feature-ului din `AradEx-Plan/docs/API.md`, tabelul din `AradEx-Plan/docs/DATA-MODEL.md` (lucrezi doar în feature-urile story-ului tău). Un feature `<f>` (ex. `events`) atinge:
 `api/src/main/java/aradexperience/{api/<F>Api, dto/<f>/*, enums/*}` și `app/src/main/java/aradexperience/{entity,repository,service,mapper,controller}/<f>/` + migrarea + testele.
 
 ## Ordinea
