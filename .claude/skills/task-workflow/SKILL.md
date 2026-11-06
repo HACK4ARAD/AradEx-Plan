@@ -1,6 +1,6 @@
 ---
 name: task-workflow
-description: Cum se începe, se implementează, se verifică și se închide un task Txx din docs/PLAN.md, peste repo-urile AradEx-Plan (docs/status), AradEx-Backend, AradEx-Frontend. Folosește-l la orice „ia task-ul T07”, „începe T05”, „termină/verifică task-ul”, „fă review la ce am făcut”.
+description: Cum se începe, se implementează, se verifică și se închide un story Txx din docs/PLAN.md, peste repo-urile AradEx-Plan (docs), AradEx-Backend, AradEx-Frontend. Folosește-l la orice „ia task-ul T07”, „începe T05”, „termină/verifică task-ul”, „fă review la ce am făcut”.
 ---
 
 # Task workflow (AradExperience)
