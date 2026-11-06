@@ -3,10 +3,12 @@
 Document de referință pentru implementare: fiecare funcționalitate are **cine** o folosește, **unde** (mobil / web), **ce poate face**, **regulile** și **ecranele**. Task-urile din `docs/PLAN.md` implementează exact ce e aici; `docs/API.md` dă contractul.
 
 ## 0. Principii de produs
-- **O singură aplicație, patru roluri.** Vizitator și Localnic folosesc în principal **mobilul** (PWA, în oraș, pe teren). Firma, Primăria și Adminul folosesc în principal **web-ul** (panouri cu tabele, formulare, statistici) și mobilul doar pentru operațiuni pe teren (scanare QR, validare cod).
+- **O singură aplicație, cinci roluri.** Vizitator și Localnic folosesc în principal **mobilul** (PWA, în oraș, pe teren). Firma, Primăria și Adminul folosesc **web-ul** (panouri cu tabele, formulare cu previzualizarea telefonului, statistici); pe mobil au doar operațiunile de teren: firma validează coduri la casă, Primăria confirmă prezențe. **Voluntarul** (cont creat de Primărie) folosește doar mobilul: acțiunile lui, scanner, mesaje. Împărțirea exactă mobil / web public / panouri: tabelul din `design/final/README.md`.
+- **Primăria = administrator complet** al conținutului orașului (agendă, acțiuni, validare, voluntari, firme partenere, obiective & ghiduri). **Adminul platformei** are în plus moderare pe tot conținutul, utilizatori și setări. Firmele și voluntarii **nu își fac singuri conturi** active: firma se poate înregistra, dar conținutul ei rămâne ciornă până o verifică Primăria/Adminul; voluntarii sunt creați doar de Primărie.
 - **Bucla de valoare:** Primăria publică acțiuni → localnicii participă → Primăria confirmă cu QR → puncte → clasament + oferte la firme locale → firmele au clienți → firmele publică evenimente/oferte → vizitatorii au ce face. Fiecare rol primește ceva și dă ceva.
 - **Date reale, etichetate.** Evenimentele instituțiilor sunt reale (link spre organizator, `EXTERNAL`); cele cu bilete în aplicație (`IN_APP`) sunt marcate vizibil „Bilete în aplicație / Doar în AradExperience”. Ce e inventat pentru demo e marcat `is_demo` și „(demo)”.
 - **Totul în română cu diacritice**, EN opțional. Textele de ghid sunt scrise pentru citit cu voce tare.
+- **Ecranele** sunt cele din `design/final/` (mobil + web); prototipul e funcțional și arată și comportamentul (stări, sheet-uri, sincronizarea admin ↔ aplicație).
 
 ## 1. Conturi și roluri (T03)
 | | Vizitator | Localnic | Firmă locală | Primărie | Admin |
@@ -85,13 +87,23 @@ Reguli: e-mail + parolă (min. 8), JWT 24 h; rolul se alege la înregistrare (Vi
 - Reguli: capacitate; o înscriere per acțiune; confirmarea e idempotentă; punctele se scriu doar prin `PointsService`; sold = suma tranzacțiilor; clasamentul e public; `NO_SHOW` pentru respinși.
 - Ecrane: S1d–f, E7 · W2, W12, W20–W22.
 
-## 12. Admin (T14)
-- Dashboard cu statistici; **Firme** de verificat/respins (publică automat conținutul în ciornă); **Evenimente / Oferte / Acțiuni** (publică, ascunde, editează, creează evenimente oficiale); **Obiective & ghiduri** (CRUD + reordonare puncte); **Utilizatori** (rol, ajustare puncte cu notă, dezactivare).
-- Ecrane: W3, W23–W26.
+## 12. Panourile web: Primărie și Admin (T11, T14)
+- **Primăria** (`/w/city/*`): Panou (KPI, participare la acțiuni, activitate), Evenimente (agenda orașului; creează evenimente oficiale, ascunde), Acțiuni comunitare (creare cu puncte 30–100, locuri, voluntari alocați, poză), **Validare participanți** (listă per acțiune cu Confirmă/Respinge/Confirmă toți + cardul „Voluntarii care scanează”; fără scanner în web), Voluntari (creare cont cu cod SMS simulat, acțiuni alocate, unică folosință, suspendare, mesaj), Mesaje (conversații cu voluntarii), Clasament (lună/an, premii, export CSV), Firme partenere (creare cont + invitație, verificare/respingere a firmelor înregistrate singure, „Intră în cont”), Obiective & ghiduri (editare puncte de ghid, „Generează cu AI”).
+- **Admin** (`/w/admin/*`): același panou + Conținut & moderare (publică/ascunde orice eveniment, ofertă, acțiune), Utilizatori (rol, ajustare puncte cu notă, dezactivare), Setări (praguri „Popular”, integrări, limbi).
+- Toate formularele de creare au **previzualizare live** a cardului așa cum apare în aplicație.
+- Ecrane: planșa web din `design/final/screens/sheet-web.png` (paginile 14–29).
 
-## 13. Transversale
+## 13. Transport în comun (T19, mobil)
+- Tab „Transport” în navbar. Destinație → lista traseelor (tramvai: linie, urcare/coborâre, durată; și pe jos) → alegi → harta cu tot drumul (pe jos + tramvai + pe jos), „Pornește călătoria” (simulare). Stații lângă tine cu plecări, pagina liniei.
+- Reguli: traseele și stațiile sunt reale (OSM, ODbL), orarele sunt exemple și se afișează ca atare; fără autobuze în v1.
+
+## 14. Voluntar (T18, mobil)
+- Cont creat doar de Primărie; intră cu cod de 6 cifre. Vede doar acțiunile alocate (blocate până în ziua acțiunii, deschise cu 30 min înainte; bifă verde la final), scanează QR-ul participanților (sau cod manual), scrie coordonatorului. Nu are acces la panoul web.
+- Reguli: confirmarea acordă punctele o singură dată; cont de unică folosință expiră după ultima acțiune.
+
+## 15. Transversale
 - **PWA** instalabilă (mobil), offline pentru bilete și ultimul itinerar; **i18n** RO (+EN); **notificări** (în afara v1 — pitch); **hărți** Leaflet/OSM; **securitate**: JWT, roluri pe rute, coduri QR = doar text, fără date personale; **erori** ProblemDetail afișate în toast.
-- **Mobil vs web — aceleași date, altă așezare**: pe mobil ecranele sunt pe rând cu tab bar; pe web, liste + detaliu/formular alături (drawer), tabele pentru panouri, „Contul meu” ca hub (W14) pentru ce pe mobil e în Bilete/Salvate/Profil.
+- **Mobil vs web — aceleași date, altă așezare**: pe mobil ecranele sunt pe rând cu tab bar (Evenimente · Chat · Hartă · Bilete/Panou · Transport); pe web, liste + detaliu/formular alături (drawer), tabele pentru panouri, „Contul meu” ca hub (W14) pentru ce pe mobil e în Bilete/Salvate/Profil.
 
 ## Ce NU e în v1 (de spus în pitch la „ce urmează”)
-Plăți reale, anularea biletelor, notificări push, sincronizare cu Google Calendar (doar export .ics / link), HU, recenzii la obiective, mesagerie firmă–client, rapoarte PDF pentru Primărie.
+Plăți reale, anularea biletelor, notificări push, sincronizare cu Google Calendar (doar export .ics / link), HU, recenzii la obiective, mesagerie firmă–client, rapoarte PDF pentru Primărie, autobuze în Transport, SMS real pentru voluntari.

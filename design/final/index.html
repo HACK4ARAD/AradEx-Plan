@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AradExperience · mock final</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="shared/ui.css">
+<style>
+  body { background: var(--bg); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .wrap { max-width: 860px; width: 100%; }
+  h1 { font-size: 34px; letter-spacing: -.03em; margin: 0 0 6px; }
+  .sub { color: var(--mut); margin: 0 0 26px; font-size: 15px; line-height: 1.5; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .card { background: var(--surf); border: 1px solid var(--line); border-radius: 20px; padding: 22px; display: flex; flex-direction: column; gap: 10px; text-decoration: none; box-shadow: var(--shadow); }
+  .card:hover { border-color: var(--ink); }
+  .card .ic { width: 44px; height: 44px; border-radius: 12px; background: var(--ink); color: #fff; display: flex; align-items: center; justify-content: center; }
+  .card h2 { margin: 6px 0 0; font-size: 20px; letter-spacing: -.02em; }
+  .card p { margin: 0; color: var(--mut); font-size: 14px; line-height: 1.5; }
+  .tag { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+  .tag span { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--soft); }
+  .foot { margin-top: 22px; color: var(--mut); font-size: 13px; line-height: 1.6; }
+  code { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; background: var(--soft); padding: 2px 6px; border-radius: 6px; }
+  @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><span style="width:10px;height:10px;border-radius:50%;background:var(--acc)"></span><b>AradExperience</b> <span class="mut">· mock final · Hack4Arad 2026</span></div>
+  <h1>Un produs, două fețe.</h1>
+  <p class="sub">Aplicația de telefon pentru localnici și vizitatori, site-ul și panourile web pentru Primărie, firmele partenere și administrator. Aceleași date, în același browser: ce publici în web apare în telefon, ce fac oamenii în telefon apare în panouri.</p>
+  <div class="grid">
+    <a class="card" href="mobile.html">
+      <span class="ic"><span class="ms">smartphone</span></span>
+      <h2>Aplicația (mobil)</h2>
+      <p>Evenimente · Oferte · Comunitate · Hartă · Chat · Bilete · Transport · Ghid virtual · Planificator · Itinerarii · roluri Vizitator, Localnic, Voluntar, Firmă, Primărie.</p>
+      <div class="tag"><span>390 × 844</span><span>Clean Ink</span><span>RO</span></div>
+    </a>
+    <a class="card" href="web.html">
+      <span class="ic"><span class="ms">dashboard</span></span>
+      <h2>Web: site + panouri</h2>
+      <p>Site public (agenda, obiective, hartă, planificator) și panourile: Primăria (administrator complet), Firma parteneră, Administrator platformă.</p>
+      <div class="tag"><span>1440 px</span><span>Sidebar + tabele</span><span>Previzualizare telefon</span></div>
+    </a>
+  </div>
+  <p class="foot">Conturi demo: <code>visitor@demo.ro</code> · <code>local@demo.ro</code> · <code>firma@demo.ro</code> · <code>primaria@demo.ro</code> · <code>admin@demo.ro</code>, parola <code>demo1234</code>. Cod voluntar: <code>482913</code>. Datele sunt de exemplu; firmele, ofertele și acțiunile sunt fictive. Capturi de ecran: <code>screens/</code>.</p>
+</div>
+</body>
+</html>

@@ -5,16 +5,16 @@ description: Cum se adaugă sau se extinde un feature în backend-ul AradEx-Back
 
 # Feature nou / extindere în `AradEx-Backend`
 
-Căile de cod sunt relative la rădăcina repo-ului `AradEx-Backend` (sau a worktree-ului tău `../_wt/AradEx-Backend-Txx`); documentele sunt în `AradEx-Plan/docs/`. Citește `AradEx-Backend/CLAUDE.md`, secțiunea feature-ului din `AradEx-Plan/docs/API.md`, tabelul din `AradEx-Plan/docs/DATA-MODEL.md` și `AradEx-Plan/docs/TEAM.md` (lucrezi doar în feature-urile culoarului tău). Un feature `<f>` (ex. `events`) atinge:
+Căile de cod sunt relative la rădăcina repo-ului `AradEx-Backend` (sau a worktree-ului tău `../_wt/AradEx-Backend-Txx`); documentele sunt în `AradEx-Plan/docs/`. Citește `AradEx-Backend/CLAUDE.md`, secțiunea feature-ului din `AradEx-Plan/docs/API.md`, tabelul din `AradEx-Plan/docs/DATA-MODEL.md` (lucrezi doar în feature-urile story-ului tău). Un feature `<f>` (ex. `events`) atinge:
 `api/src/main/java/aradexperience/{api/<F>Api, dto/<f>/*, enums/*}` și `app/src/main/java/aradexperience/{entity,repository,service,mapper,controller}/<f>/` + migrarea + testele.
 
 ## Ordinea
-1. **Migrare** `app/src/main/resources/db/migration/V{n}__{f}.sql` (din numerele rezervate culoarului tău în `AradEx-Plan/docs/TEAM.md`). Doar DDL + indexuri. Seed separat `V{n}_1__seed_{f}.sql` (skill `seed-data`).
+1. **Migrare** `app/src/main/resources/db/migration/V{n}__{f}.sql` (numărul următor liber, în ordinea story-urilor din PLAN). Doar DDL + indexuri. Seed separat `V{n}_1__seed_{f}.sql` (skill `seed-data`).
 2. **Entity** `entity/<f>/X.java` (Lombok `@Getter @Setter @NoArgsConstructor`, `@Entity @Table`, id `IDENTITY`, enum-uri `@Enumerated(STRING)` — enum-ul din `api/enums`, timpi `OffsetDateTime`). FK-uri simple ca `Long businessId` când nu ai nevoie de obiect.
 3. **Repository** `repository/<f>/XRepository extends JpaRepository<X, Long>` (+ `JpaSpecificationExecutor` pentru filtre).
 4. **DTO-uri** în `api/…/dto/<f>/`: `XDto`, `XSummary` (răspuns), `XCreate`/`XRequest` (cerere, validări jakarta). Record-uri; numele câmpurilor = exact `API.md`. Enum-uri noi în `api/…/enums/`.
 5. **Interfața** `api/…/api/<F>Api`: `@Tag`, `@RequestMapping("/api/v1/…")` pe tip; pe metode `@GetMapping`/`@PostMapping` + `@Operation`, `@ResponseStatus(CREATED)` la creare, `@Valid @RequestBody`, `@PathVariable`, `@RequestParam`. Fără tipuri din `app`.
-6. **Mapper** `mapper/<f>/XMapper` — clasă utilitară statică: `toDto`, `toSummary`, `toEntity`. Câmpurile calculate vin ca parametri (`toSummary(ev, distanceKm, saved)`). Se folosește cu `import static`.
+6. **Mapper** `mapper/<f>/XMapper` — clasă utilitară adnotată cu `@UtilityClass` (Lombok): `toDto`, `toSummary`, `toEntity`. Câmpurile calculate vin ca parametri (`toSummary(ev, distanceKm, saved)`). Se folosește cu `import static`.
 7. **Service** `service/<f>/XService`: `@Service @RequiredArgsConstructor @Transactional(readOnly = true)`; metodele care scriu au `@Transactional`. Aici stau regulile (capacitate, idempotență, proprietar). Primește `CurrentUser` ca parametru. Aruncă excepțiile din `aradexperience.exceptions`.
 8. **Controller** `controller/<f>/XController implements <F>Api` (`@RestController @RequiredArgsConstructor`): `AuthContext.require()` → service → mapper. Zero logică.
 9. **Security**: `config/SecurityConfig` e al lui P1 și are din T03 regulile pentru toate rutele din API.md (`/business/**` BUSINESS, `/city/**` CITY_HALL, `/admin/**` ADMIN, GET-urile publice). Dacă ruta ta nu e acoperită, cere-i lui P1 regula — nu o adăuga tu.
@@ -40,6 +40,7 @@ public interface TicketsApi {
 
 ```java
 // app/…/mapper/tickets/TicketMapper.java
+@lombok.experimental.UtilityClass
 public final class TicketMapper {
   private TicketMapper() {}
   public static TicketDto toDto(Ticket t) { return new TicketDto(t.getId(), t.getCode(), t.getEventId(), t.getQtyAdult(), t.getQtyChild(), t.getStatus(), t.getCreatedAt()); }

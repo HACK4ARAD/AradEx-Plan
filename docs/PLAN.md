@@ -1,14 +1,31 @@
 # AradExperience — Plan de implementare (Hack4Arad 2026)
 
-Toate funcționalitățile, împărțite în **task-uri de mărime medie** (câteva ecrane + entități + endpoint-uri),
-ordonate după dependențe. Fiecare task se poate lua direct de un om + Claude Code și se verifică la final
-cu skill-ul `task-workflow` (secțiunea „Verificare” de mai jos este checklist-ul).
+Toate funcționalitățile, împărțite în **story-uri de mărime medie** (câteva ecrane + entități + endpoint-uri), cu dependențele și ordinea în care ar trebui făcute. **Cine ia ce story se decide în echipă, în ziua respectivă**; nu există împărțire fixă pe oameni. Fiecare story se verifică la final cu skill-ul `task-workflow` (secțiunea „Verificare” e checklist-ul feature-ului, nu al întregului demo).
 
-Convenție: `T05` = task, `S3` = ecran din prototipul original (`design/AradExperience.html`),
-`E2` / `W2` = ecran nou din `design/AradExperience-extensii.html` (mobil / web), `W5+` din `AradExperience-web.html`.
+**Designul final** (ecranele pe care le implementăm): `design/final/` — `mobile.html` și `web.html`, planșele în `design/final/screens/`, descrierea în `design/final/README.md`.
+
+Convenție: `T05` = story; `S3`, `E2`, `W6` = codurile ecranelor (vezi planșele din `design/final/screens/` și tabelul din `design/README.md`).
 Contractul de API este în `docs/API.md`, modelul de date în `docs/DATA-MODEL.md`, povestea de demo în `docs/DEMO.md` (toate în repo-ul `AradEx-Plan`, folderul `docs/`).
 Cinci repo-uri git surori (organizația HACK4ARAD, același folder): `AradEx-Plan` (planul comun: `docs/`, `design/`, `CLAUDE.md`, `STRUCTURE.md`, toate skill-urile — de aici se deschide Claude Code), `AradEx-Backend` (Gradle multi-modul: `api` = contractul REST, `app` = aplicația), `AradEx-Frontend` (Vue, web + mobil), `AradEx-Infrastructure` (Postgres local, deploy) și `AradEx-Ops` (agenții Paperclip).
-Un task care atinge mai multe repo-uri = un branch cu același nume în fiecare (`feat/T07-tickets`) și câte un PR; starea culoarului (`docs/status/Px.md`) intră în PR-ul din `AradEx-Plan` pe același branch. Cine ce fișiere atinge: `docs/TEAM.md`.
+Un story care atinge mai multe repo-uri = un branch cu același nume în fiecare (`feat/T07-tickets`) și câte un PR.
+
+
+## Ordinea de implementare (story-uri și dependențe)
+
+| # | Story | Depinde de | De ce acum |
+|---|---|---|---|
+| 1 | T00 Repo & tooling · T01 API skeleton · T02 APP skeleton | — | baza; fără ele nimeni nu poate porni |
+| 2 | T03 Auth & roluri | T01, T02 | toate ecranele au nevoie de cont/rol |
+| 3 | T04 Deploy v0 | T01, T02 | în paralel cu T03; URL public devreme |
+| 4 | T05 Locuri & ghid virtual · T06 Evenimente | T03 | conținutul pe care se construiește tot |
+| 5 | T07 Bilete · T08 Hartă & indicații · T09 Firme & panou | T06 (T08: și T05) | trei story-uri independente, pot merge în paralel |
+| 6 | T10 Oferte & coduri · T11 Comunitate & puncte · T12 Chat AI | T09 (T10) · T03+T10 (T11) · T06 (T12) | bucla de valoare + diferențiatorul AI |
+| 7 | T13 Planificator itinerar · T14 Admin (web) | T05+T08+T12 (T13) · T09+T10+T11 (T14) | ultimele piese mari |
+| 8 | T19 Transport în comun · T18 Rol Voluntar | T08 (T19) · T11 (T18) | din designul final; după ce bucla de bază e verde |
+| 9 | T15 i18n/PWA · T17 Google Places | ecranele existente | dacă rămâne timp |
+| 10 | T16 Deploy final, seed, demo (T16a/T16b) | toate | duminică dimineață |
+
+Paralelizare: după T03, patru oameni pot lucra simultan pe T05/T06, apoi T07/T08/T09, apoi T10/T11/T12, apoi T13/T14/T18/T19. Fișierele comune (`SecurityConfig`, router, layout-uri, `client.ts`, `components/ui/`) se închid în T01–T03 și nu se mai ating după.
 
 ## Graful de dependențe
 
@@ -28,10 +45,9 @@ T15 i18n + PWA/Capacitor (după ce există ecranele) · T17 Google Places rating
 T16 Deploy final, seed de producție, demo (toate)
 ```
 
-Paralelizare naturală după T03: **T05 + T06** (conținut), apoi **T07 / T08 / T09** în paralel, apoi **T10 + T11 + T12** în paralel, apoi **T13 + T14**.
-Linia de demo (obligatoriu să meargă duminică): T00–T13 + T16. T14 și T15 sunt „dacă mai e timp”, dar admin-ul e mic.
+Linia de demo (obligatoriu să meargă duminică): T00–T13 + T16. T14, T18, T19 și T15 sunt „dacă mai e timp”.
 
-Reguli de dimensiune: un task = max ~4–6 ore pentru un om cu Claude. Dacă depășește, se taie în `T05a/T05b` (Lead Tehnic o notează în STATUS.md), nu se lungește.
+Reguli de dimensiune: un story = max ~4–6 ore pentru un om cu Claude. Dacă depășește, se taie în `T05a/T05b`, nu se lungește.
 
 ---
 
@@ -40,7 +56,7 @@ Reguli de dimensiune: un task = max ~4–6 ore pentru un om cu Claude. Dacă dep
 ### T00 · Repo & tooling
 **Scop:** repo-urile pe GitHub, cu tot ce trebuie ca oricine să poată rula proiectul în 5 minute (5 repo-uri în organizația HACK4ARAD, vezi „Adăugiri” la final).
 **Depinde de:** —
-**Stare:** cele 5 repo-uri există în [HACK4ARAD](https://github.com/HACK4ARAD) cu conținutul kitului v3; CI-ul (`.github/workflows/ci.yml`) există în BE și FE. Rămân: drepturi pentru toți, protecție pe `main`, primul PR care pornește CI-ul.
+**Stare:** cele 5 repo-uri există în [HACK4ARAD](https://github.com/HACK4ARAD) cu conținutul kitului v3. Rămân: drepturi pentru toți, protecție pe `main`.
 
 - Structură: 5 repo-uri surori în organizația [HACK4ARAD](https://github.com/HACK4ARAD), în același folder (ex. `~/HACK4ARAD/`):
   `AradEx-Plan` = planul comun (`docs/`, `design/`, `CLAUDE.md`, `STRUCTURE.md`, `README.md`, `setup.sh`, toate skill-urile în `.claude/skills/`);
@@ -49,9 +65,8 @@ Reguli de dimensiune: un task = max ~4–6 ore pentru un om cu Claude. Dacă dep
   `AradEx-Ops` (agenții Paperclip: instrucțiuni, task-uri, `setup-lane.mjs`). Descrierea completă: `STRUCTURE.md`.
 - `docker-compose.yml` (în `AradEx-Infrastructure`) cu `postgres:16` (db `aradexperience`, user/parolă `arad`/`arad`, port 5432, volum). Nu băgăm încă API/APP în compose — doar DB.
 - `.env.example` în fiecare repo de cod (BE: vezi mai jos; FE: `VITE_API_URL`, `VITE_DEMO`) + `.gitignore` (`.env`, `node_modules`, `build`, `.gradle`, `dist`, `.idea`, `.vscode`, `*.log`).
-- `docs/STATUS.md` (în `AradEx-Plan`) e rezumatul echipei (îl ține Lead Tehnic); fiecare culoar își ține starea în `docs/status/Px.md`, prin PR în `AradEx-Plan` pe același branch ca task-ul.
-- GitHub Actions `ci.yml` există în fiecare repo de cod: BE `./gradlew test` (cu Docker pentru AppSmokeTest), FE `npm ci && npm run build && npm run test`, pe push/PR.
-- De făcut în T00: drept de scriere pentru toți pe cele 5 repo-uri, protecție pe `main` (PR obligatoriu + CI verde), CI-ul pornește pe primul PR.
+- CI/CD: nu în repo-urile de cod; pipeline-urile (BE `./gradlew test`, FE `npm ci && npm run build && npm run test`) se definesc în `AradEx-Infrastructure` când e nevoie.
+- De făcut în T00: drept de scriere pentru toți pe cele 5 repo-uri, protecție pe `main` (PR obligatoriu).
 
 `AradEx-Backend/.env.example`:
 ```
@@ -75,7 +90,7 @@ CORS_ORIGINS=http://localhost:5173
 
 - Java 21, Spring Boot 3.3+, **Gradle multi-modul** (Groovy DSL, wrapper inclus): `settings.gradle` + `build.gradle` părinte (plugin-uri Spring Boot / dependency-management, Java 21 toolchain, BOM) + două module:
   - **`api` = contractul REST** (bibliotecă Java simplă, plugin `java-library`; deps: spring-web, jakarta.validation-api, swagger-annotations): `api/` — o interfață per feature cu `@RequestMapping` + `@GetMapping`/`@PostMapping`, `@Valid`, `@Operation`; `dto/<feature>/` — record-uri cerere/răspuns (+ `dto/common/`: PageResponse, HealthDto); `enums/` (Role…); `annotations/` (validări custom, ex. `@Code`); `exceptions/` (ApiException + BadRequest/NotFound/Conflict/Forbidden). Teste: serializare per DTO din JSON în resources (`dto/auth/UserDtoTest`), `DtoValidationTest`, `ApiContractTest`.
-  - **`app` = aplicația Spring Boot** (plugin `org.springframework.boot`; deps: `project(':api')`, web, security, validation, data-jpa, actuator, springdoc, flyway (+ `flyway-database-postgresql`), postgresql, jjwt, lombok; test: starter-test, spring-security-test, testcontainers): `controller/<feature>/XController implements XApi` + `controller/handler/GlobalExceptionHandler`, `service/<feature>/`, `repository/<feature>/`, `entity/<feature>/`, `mapper/<feature>/` (clase utilitare statice, import static) + transversal `config/` (AppProps, SecurityConfig, OpenApiConfig), `security/` (JwtService, JwtAuthFilter, CurrentUser, AuthContext), `util/` (Codes, Geo, Pages). Teste: `controller/`, `service/`, `mock/` (AuthMock, JsonFixtures, XMock per service), cereri JSON în `src/test/resources/requests/`. `app` depinde de `api`, niciodată invers.
+  - **`app` = aplicația Spring Boot** (plugin `org.springframework.boot`; deps: `project(':api')`, web, security, validation, data-jpa, actuator, springdoc, flyway (+ `flyway-database-postgresql`), postgresql, jjwt, lombok; test: starter-test, spring-security-test, testcontainers): `controller/<feature>/XController implements XApi` + `controller/handler/GlobalExceptionHandler`, `service/<feature>/`, `repository/<feature>/`, `entity/<feature>/`, `mapper/<feature>/` (clase utilitare `@UtilityClass`, import static) + transversal `config/` (AppProps, SecurityConfig, OpenApiConfig), `security/` (JwtService, JwtAuthFilter, CurrentUser, AuthContext), `util/` (Codes, Geo, Pages). Teste: `controller/`, `service/`, `mock/` (AuthMock, JsonFixtures, XMock per service), cereri JSON în `src/test/resources/requests/`. `app` depinde de `api`, niciodată invers.
 - Pachet rădăcină unic `aradexperience` în ambele module (fără `ro.`), `Application` în rădăcină → scanare implicită, fără `scanBasePackages`/`@EntityScan`. Module funcționale (subfoldere create pe parcurs): `auth`, `users`, `places`, `events`, `tickets`, `business`, `offers`, `community`, `points`, `ai`, `itineraries`, `admin`.
 - `app/src/main/resources/application.yml` citește din env (`POSTGRES_URL` etc., cu valori implicite pentru local). Profiluri: `default` (local), `prod`. `./gradlew :app:bootRun` încarcă `.env` automat.
 - Flyway activ, migrările în **`app/src/main/resources/db/migration/`**. Convenție: `V{n}__{modul}.sql` pentru schemă, `V{n}_1__seed_{modul}.sql` pentru date de seed (fiecare task își adaugă migrarea proprie, nu modifică migrările vechi).
@@ -109,7 +124,7 @@ CORS_ORIGINS=http://localhost:5173
 - Pagini placeholder pentru toate rutele din `docs/API.md` §Rute FE, ca să existe navigația de la început.
 
 - **Pregătire anti-conflict (obligatoriu, ca 4 oameni să lucreze în paralel fără să se calce):**
-  - câte un fișier view pentru **fiecare** rută, în folderul feature-ului (`mobile/views/events/SearchView.vue`, `mobile/views/offers/OffersView.vue`, … și echivalentele `web/views/<feature>/`), fiecare cu `PlaceholderScreen`; router-ul (v3: rutele există, cu `PlaceholderView`) le importă pe toate în locul `PlaceholderView` → nimeni nu mai editează `router/index.ts` (lista de fișiere și proprietarii: `docs/TEAM.md`);
+  - câte un fișier view pentru **fiecare** rută, în folderul feature-ului (`mobile/views/events/SearchView.vue`, `mobile/views/offers/OffersView.vue`, … și echivalentele `web/views/<feature>/`), fiecare cu `PlaceholderScreen`; router-ul (v3: rutele există, cu `PlaceholderView`) le importă pe toate în locul `PlaceholderView` → nimeni nu mai editează `router/index.ts` (lista de fișiere și proprietarii:);
   - navigația completă pe roluri (tab bar mobil, sidebar web) gata acum;
   - i18n pe module: `i18n/ro/<modul>.json` + `i18n/en/<modul>.json` încărcate cu `import.meta.glob` (module: common, auth, places, events, tickets, map, chat, plan, business, offers, community, admin);
   - tipuri pe module: `shared/types/<modul>.ts` (mutate din `types/api.ts`, care doar le re-exportă) și fișiere goale `shared/api/<modul>.ts` pentru toate modulele (`auth.ts`, `health.ts` există);
@@ -288,19 +303,11 @@ CORS_ORIGINS=http://localhost:5173
 ## Ce e „done” pentru orice task
 1. Codul e pe `main` printr-un PR (branch `feat/T05-places`), build + teste verzi.
 2. Criteriile din „Verificare” bifate manual, pe mobil **și** web unde există ambele.
-3. `docs/API.md` actualizat dacă s-a schimbat ceva față de contract; `docs/status/Px.md` are task-ul mutat la „Done” + deciziile luate + ce a rămas.
-4. Fluxul de demo (`docs/DEMO.md`) încă merge cap-coadă.
+3. `docs/API.md` actualizat dacă s-a schimbat ceva față de contract; deciziile și ce a rămas sunt în descrierea PR-ului.
+4. Feature-ul story-ului e funcțional cap-coadă (fluxul complet de demo se verifică o singură dată, la final).
 
 ---
 
-## Calendar orientativ (dezvoltarea înainte de eveniment e permisă)
-| Când | Ce | Țintă la final |
-|---|---|---|
-| **Vineri 6 nov** | T00, T01, T02 (toți, 2–3 h) → apoi T03 + T04 în paralel → seara: T05 și T06 pornite | API + APP rulează local și în producție, login merge, există locuri și evenimente în DB |
-| **Sâmbătă 7 nov** (start 11:00 la UAV) | dimineață: T06 final, T07, T08, T09 · după-amiază: T10, T11, T12 · seara/noaptea: T13, verificări pe fluxul de demo | Toată bucla comunitate → puncte → ofertă merge pe două telefoane; chat + itinerar funcționale |
-| **Duminică 8 nov** | până la 10:00: T14 (dacă e timp), T16 (seed prod, video backup, slide-uri) · 10:00 îngheț de cod · 12:00 prezentări | Demo de 6 minute, repetat de 2 ori, cu plan B |
-
-Regula de aur pentru noapte: la 02:00 opriți feature-urile noi și faceți doar stabilizare; un om doarme 4 ore pe rând ca să fie cineva limpede dimineața.
 
 ---
 
@@ -313,21 +320,21 @@ Regula de aur pentru noapte: la 02:00 opriți feature-urile noi și faceți doar
 
 ---
 
-## Adăugiri pentru echipa de 4 (Paperclip, 6 nov)
-**Repo-uri separate:** kitul v3 are 3 repo-uri (umbrelă + be + fe, cele de cod clonate în umbrelă). La noi sunt 5 repo-uri surori în organizația GitHub HACK4ARAD: `AradEx-Plan` (= umbrela: `docs/`, `design/`, `CLAUDE.md`, `STRUCTURE.md`, `setup.sh`, toate skill-urile), `AradEx-Backend` (= `aradexperience-be`), `AradEx-Frontend` (= `aradexperience-fe`), `AradEx-Infrastructure` (`docker-compose.yml`, deploy — în v3 compose-ul stă în BE) și `AradEx-Ops` (agenții Paperclip). Căile `AradEx-Backend/...` din plan sunt relative la folderul comun.
+## Story-uri adăugate (6–7 nov)
+**Repo-uri separate:** 5 repo-uri surori în organizația GitHub HACK4ARAD: `AradEx-Plan` (planul comun), `AradEx-Backend`, `AradEx-Frontend`, `AradEx-Infrastructure` (Postgres local, deploy, CI/CD), `AradEx-Ops` (agenți). Căile `AradEx-Backend/...` din plan sunt relative la folderul comun.
 
-Împărțirea pe oameni e în `docs/TEAM.md`. Task-uri noi față de lista de mai sus:
-
-### T16a · Deploy final & seed de producție (P1)
+### T16a · Deploy final & seed de producție
 Partea tehnică din T16: migrări + seed pe DB-ul de producție, conturi demo verificate, poze, chei, `docs/DEPLOY.md` cu URL-urile reale.
 **Verificare:** fluxul din `docs/DEMO.md` merge pe URL-urile publice, de pe două telefoane.
 
-### T16b · Pitch, slide-uri, video de rezervă (P3)
+### T16b · Pitch, slide-uri, video de rezervă
 Max 8 slide-uri după `docs/DEMO.md` §Pitch; video de rezervă al demo-ului înregistrat duminică dimineață; cronometrare ≤ 6 min, repetat de 2 ori cu toată echipa.
 **Verificare:** slide-urile și video-ul sunt pe laptopul de prezentare și într-un link de rezervă.
 
-### T18 · (stretch) Rol Voluntar + mesaje (P4) — din `design/ia/` (prototip + admin)
-Rol `VOLUNTEER` creat doar de Primărie (fără SMS real), alocat pe acțiuni; în aplicație doar 3 tab-uri: Acțiuni, Scanează, Mesaje; scanarea se deschide cu 30 min înainte de start; Primăria vede cine a scanat pe cine și răspunde la mesaje. Migrarea V10. **Doar după ce bucla T11 e verde.** Rolul nou `VOLUNTEER` cere o schimbare în `Role`/`SecurityConfig` (ale lui P1): o ceri lui P1.
+### T18 · Rol Voluntar + mesaje (din `design/final/`)
+Rol `VOLUNTEER` creat doar de Primărie din panoul web (cod de 6 cifre „prin SMS”, simulat; opțional cont de unică folosință), alocat pe acțiuni. În aplicație are doar 3 tab-uri: **Acțiuni** (blocate până în ziua acțiunii, se deschid cu 30 min înainte; bifă verde când toți participanții sunt confirmați), **Scanează** (QR sau cod manual; rezultate: confirmat +puncte / deja scanat / cod necunoscut), **Mesaje** (conversație cu coordonatorul). Primăria vede voluntarii alocați pe fiecare acțiune și cine a scanat pe cine, răspunde la mesaje; **scanarea nu se face din web**, doar din aplicație. Migrarea V10; rolul nou cere schimbare în `Role`/`SecurityConfig` (T03). **Doar după ce bucla T11 e verde.**
+**Verificare:** Primăria creează un voluntar și îl alocă la o acțiune → voluntarul intră cu codul, vede doar acțiunea lui, scanează QR-ul unui localnic → localnicul primește punctele → mesajul voluntarului apare în panoul Primăriei.
 
-### T19 · (stretch) Transport public — tramvai (P3) — din `design/ia/AradExperience-prototype`
-Căutare destinație, linii de tramvai CTP Arad din OSM (ODbL), stații apropiate, orare de exemplu marcate „(exemplu)”, „Arată-mi pe hartă” în `MapView`. Fără date inventate prezentate ca reale. **Doar după ce T13 e verde.**
+### T19 · Transport în comun — tramvai (din `design/final/`)
+Tab „Transport” în navbar (în locul lui Salvate; Salvate rămâne în Profil). Destinație (căutare sau sugestii: locuri, repere, stații) → **lista traseelor** (variante cu tramvai: linia, stația de urcare/coborâre, durata; plus „pe jos”) → alegi una → **harta cu tot drumul**: mers pe jos până la stație (OSRM), segmentul de tramvai pe șine cu stațiile, mers pe jos până la destinație; „Pornește călătoria” = simulare cu banner „Mai ai N stații · Următoarea: X”. Stații lângă tine cu plecările următoare; pagina liniei. Date: liniile CTP Arad 1, 3, 6, 7, 15, 16 din OpenStreetMap (ODbL; `design/final/shared/tram.js`), orare de exemplu marcate „(exemplu)”; autobuzele lipsesc. **Doar după ce T08 e verde.**
+**Verificare:** Primărie → Gara Arad arată cel puțin o variantă cu tramvai și una pe jos; după selecție harta desenează cele trei segmente; fără internet la OSRM se desenează linie dreaptă fără eroare.

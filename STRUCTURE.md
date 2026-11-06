@@ -22,12 +22,7 @@ AradEx-Plan/                          REPO 1 — planul comun (= umbrela din kit
 │  ├─ API.md                          contractul REST (endpoint-uri, DTO-uri, roluri, rute FE) — legea comună BE ↔ FE
 │  ├─ DATA-MODEL.md                   tabele, enum-uri, convenții de migrări Flyway, ce seed trebuie să existe
 │  ├─ FEATURES.md                     funcționalitățile pe roluri (reguli de business, stări, mobil vs web)
-│  ├─ TEAM.md                         cei 4 oameni / culoare: task-uri, ore, calendar, „Cine ce atinge” (proprietarul fiecărui fișier), migrări rezervate
-│  ├─ STATUS.md                       rezumatul echipei (îl ține doar Lead Tehnic)
-│  ├─ status/P1.md … P4.md            „memoria” fiecărui culoar: stare per task, decizii, probleme cunoscute (în PR-ul task-ului)
-│  ├─ SETUP-ECHIPA.md                 cum își face fiecare coleg laptopul gata (zip, .env, Paperclip, GitHub)
-│  ├─ PAPERCLIP.md                    cum curge munca: agenții, abonamentele, zip-urile, viața unui task, review + merge, probleme
-│  ├─ DEMO.md                         fluxul de demo pas cu pas + pitch; nu are voie să se strice
+│  ├─ DEMO.md                         fluxul de demo pas cu pas + pitch (orientativ; se clarifică la final)
 │  ├─ DEPLOY.md                       local + producție (Render Docker pentru BE, Netlify pentru FE, Neon/Render Postgres)
 │  └─ ARAD-DATA.md                    datele reale despre Arad folosite în seed (surse, program, tarife) și ce e FICTIV
 └─ design/                            designul (se schimbă aici, prin PR în AradEx-Plan)
@@ -80,7 +75,7 @@ AradEx-Backend/                       REPO 2 — backend (Spring Boot 3, Java 21
       src/main/resources/
       ├─ application.yml              config din variabile de mediu cu valori implicite locale; Flyway, JPA validate, springdoc, actuator
       ├─ application-prod.yml         profilul prod (Render)
-      └─ db/migration/                V1 baseline · V2 users+businesses (+V2_1 seed conturi) · V3 places (+V3_1 12 locuri reale, 33 puncte de ghid) · V4 events (+V4_1 30 evenimente) — numerele următoare: rezervate pe culoar în docs/TEAM.md
+      └─ db/migration/                V1 baseline · V2 users+businesses (+V2_1 seed conturi) · V3 places (+V3_1 12 locuri reale, 33 puncte de ghid) · V4 events (+V4_1 30 evenimente) — numerele următoare se iau în ordinea story-urilor din PLAN
       src/test/java/aradexperience/
       ├─ AppSmokeTest                 @SpringBootTest + Testcontainers Postgres: pornește tot, Flyway, /health, 401 pe rute protejate (se sare fără Docker)
       ├─ controller/ControllerTest    adnotare compusă: @WebMvcTest + SecurityConfig real + AppProps + JwtService mock — un test de controller = @ControllerTest(X.class) + @MockBean XService
@@ -138,7 +133,7 @@ AradEx-Ops/                           REPO 5 — agenții Paperclip (doar P1)
 ## Skill-urile — ce conțin, pe scurt
 | Skill | Unde | Când îl folosești | Ce face |
 |---|---|---|---|
-| `task-workflow` | AradEx-Plan | „ia task-ul T07”, „verifică/închide task-ul” | 1) citește PLAN/API/TEAM/STATUS, worktree + branch cu același nume în repo-urile atinse, plan de 5–10 rânduri, `docs/status/Px.md` → IN PROGRESS (migrarea din rezerva culoarului) · 2) ordinea de implementare, când să folosești celelalte skill-uri, ce faci la neclarități (decizia simplă + `docs/status/Px.md`) · 3) checklist de verificare: teste verzi, criteriile task-ului pe mobil + web, Swagger cu 4xx, roluri, stări loading/gol/eroare, diacritice, DEMO.md încă merge, fără secrete · 4) review · 5) merge BE → FE → umbrelă, `docs/status/Px.md` → DONE |
+| `task-workflow` | AradEx-Plan | „ia task-ul T07”, „verifică/închide task-ul” | 1) citește PLAN/API/FEATURES, worktree + branch cu același nume în repo-urile atinse, plan de 5–10 rânduri, descrierea PR-ului → IN PROGRESS (migrarea din rezerva culoarului) · 2) ordinea de implementare, când să folosești celelalte skill-uri, ce faci la neclarități (decizia simplă) · 3) checklist de verificare: teste verzi, criteriile task-ului pe mobil + web, Swagger cu 4xx, roluri, stări loading/gol/eroare, diacritice, DEMO.md încă merge, fără secrete · 4) review · 5) merge BE → FE → umbrelă, descrierea PR-ului → DONE |
 | `review-pr` | AradEx-Plan | „fă review la PR-ul Txx”, „e ok de merge?” | checkout, diff în afara scopului, rulează testele și aplicația, încearcă 400/401/403/404/409, checklist de abateri (logică în controller, adnotări pe controller, mapper injectat, fetch în view, any…), raport de maximum 10 rânduri cu verdict MERGE / după fix / NU |
 | `be-module` | AradEx-Plan (pentru AradEx-Backend) | orice endpoint sau tabel nou | ordinea: migrare → entity → repository → DTO + enum → interfață → mapper static → service + test → controller + test → SecurityConfig; șabloane complete (DTO, interfață, mapper, service, controller, Mock, ControllerTest cu JSON din resources, ServiceTest); capcane (adnotări pe interfață, mapper-e statice, idempotență, paginare) |
 | `seed-data` | AradEx-Plan (pentru AradEx-Backend) | „seed”, „date demo”, demo-ul arată gol | ce seed există deja (V2_1, V3_1, V4_1), regula „date reale din Arad”, unde stau (migrare de seed idempotentă, poze în FE public/img), tabelul celor 12 locuri reale cu coordonate, evenimente, firme, oferte, acțiuni comunitare, conturi demo, cum verifici |
@@ -147,7 +142,7 @@ AradEx-Ops/                           REPO 5 — agenții Paperclip (doar P1)
 Cum apar: toate cinci sunt în `AradEx-Plan/.claude/skills/` (un singur loc), deci se văd din prima când pornești Claude Code din `AradEx-Plan`; agenții Paperclip le au atașate ca skill-uri ale companiei.
 
 ## Fluxul unui task (pe scurt)
-1. `/task-workflow` → „ia task-ul T07” — branch `feat/T07-tickets` (worktree `../_wt/<Repo>-T07`) în BE, FE și Plan; plan; `docs/status/Px.md` IN PROGRESS.
+1. `/task-workflow` → „ia task-ul T07” — branch `feat/T07-tickets` (worktree `../_wt/<Repo>-T07`) în BE, FE și Plan; plan
 2. BE cu `be-module` (+ `seed-data`), FE cu `fe-feature`; teste după fiecare pas.
 3. Checklist-ul de verificare din `task-workflow`; `/review-pr`.
-4. PR-uri cu link între ele; QA & Demo face merge BE → FE → Plan (`docs/status/Px.md` DONE, API.md dacă s-a schimbat, capturi noi în `design/screens/`).
+4. PR-uri cu link între ele; QA & Demo face merge BE → FE → Plan (API.md dacă s-a schimbat, capturi noi în `design/screens/`).
