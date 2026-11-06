@@ -5,8 +5,10 @@ ordonate după dependențe. Fiecare task se poate lua direct de un om + Claude C
 cu skill-ul `task-workflow` (secțiunea „Verificare” de mai jos este checklist-ul).
 
 Convenție: `T05` = task, `S3` = ecran din prototipul original (`design/AradExperience.html`),
-`E2` / `W2` = ecran nou din `design/AradExperience-extensii.html` (mobil / web).
-Contractul de API este în `docs/API.md`, modelul de date în `docs/DATA-MODEL.md`, povestea de demo în `docs/DEMO.md`.
+`E2` / `W2` = ecran nou din `design/AradExperience-extensii.html` (mobil / web), `W5+` din `AradExperience-web.html`.
+Contractul de API este în `docs/API.md`, modelul de date în `docs/DATA-MODEL.md`, povestea de demo în `docs/DEMO.md` (toate în repo-ul `AradEx-Plan`, folderul `docs/`).
+Cinci repo-uri git surori (organizația HACK4ARAD, același folder): `AradEx-Plan` (planul comun: `docs/`, `design/`, `CLAUDE.md`, `STRUCTURE.md`, toate skill-urile — de aici se deschide Claude Code), `AradEx-Backend` (Gradle multi-modul: `api` = contractul REST, `app` = aplicația), `AradEx-Frontend` (Vue, web + mobil), `AradEx-Infrastructure` (Postgres local, deploy) și `AradEx-Ops` (agenții Paperclip).
+Un task care atinge mai multe repo-uri = un branch cu același nume în fiecare (`feat/T07-tickets`) și câte un PR; starea culoarului (`docs/status/Px.md`) intră în PR-ul din `AradEx-Plan` pe același branch. Cine ce fișiere atinge: `docs/TEAM.md`.
 
 ## Graful de dependențe
 
@@ -36,16 +38,22 @@ Reguli de dimensiune: un task = max ~4–6 ore pentru un om cu Claude. Dacă dep
 ## Faza 0 — Fundație
 
 ### T00 · Repo & tooling
-**Scop:** repo-urile cu tot ce trebuie ca oricine să poată rula proiectul în 5 minute (acum 4 repo-uri în organizația HACK4ARAD, vezi „Adăugiri” la final).
+**Scop:** repo-urile pe GitHub, cu tot ce trebuie ca oricine să poată rula proiectul în 5 minute (5 repo-uri în organizația HACK4ARAD, vezi „Adăugiri” la final).
 **Depinde de:** —
+**Stare:** cele 5 repo-uri există în [HACK4ARAD](https://github.com/HACK4ARAD) cu conținutul kitului v3; CI-ul (`.github/workflows/ci.yml`) există în BE și FE. Rămân: drepturi pentru toți, protecție pe `main`, primul PR care pornește CI-ul.
 
-- Structură: `AradEx-Backend/` (Spring Boot), `AradEx-Frontend/` (Vue), `docs/`, `design/`, `.claude/skills/`, `CLAUDE.md`, `README.md`.
-- `docker-compose.yml` cu `postgres:16` (db `aradexperience`, user/parolă `arad`/`arad`, port 5432, volum). Nu băgăm încă API/APP în compose — doar DB.
-- `.env.example` la rădăcină (vezi mai jos) + `.gitignore` (`.env`, `node_modules`, `target`, `dist`, `.idea`, `.vscode`, `*.log`).
-- Copiezi `docs/`, `.claude/`, `CLAUDE.md` din kit. `docs/STATUS.md` e „memoria” echipei — se actualizează la fiecare task.
-- Opțional (15 min): GitHub Actions `ci.yml` care rulează `mvn -q test` în `AradEx-Backend/` și `npm ci && npm run build && npm run test` în `AradEx-Frontend/` pe PR.
+- Structură: 5 repo-uri surori în organizația [HACK4ARAD](https://github.com/HACK4ARAD), în același folder (ex. `~/HACK4ARAD/`):
+  `AradEx-Plan` = planul comun (`docs/`, `design/`, `CLAUDE.md`, `STRUCTURE.md`, `README.md`, `setup.sh`, toate skill-urile în `.claude/skills/`);
+  `AradEx-Backend` (`settings.gradle` + `build.gradle` părinte, wrapper `gradlew`, module `api/` și `app/`, `.env.example`, `Dockerfile`, `CLAUDE.md`, CI);
+  `AradEx-Frontend` (proiect Vue la rădăcină, `.env.example`, `CLAUDE.md`, CI); `AradEx-Infrastructure` (`docker-compose.yml`, config de deploy — doar P1);
+  `AradEx-Ops` (agenții Paperclip: instrucțiuni, task-uri, `setup-lane.mjs`). Descrierea completă: `STRUCTURE.md`.
+- `docker-compose.yml` (în `AradEx-Infrastructure`) cu `postgres:16` (db `aradexperience`, user/parolă `arad`/`arad`, port 5432, volum). Nu băgăm încă API/APP în compose — doar DB.
+- `.env.example` în fiecare repo de cod (BE: vezi mai jos; FE: `VITE_API_URL`, `VITE_DEMO`) + `.gitignore` (`.env`, `node_modules`, `build`, `.gradle`, `dist`, `.idea`, `.vscode`, `*.log`).
+- `docs/STATUS.md` (în `AradEx-Plan`) e rezumatul echipei (îl ține Lead Tehnic); fiecare culoar își ține starea în `docs/status/Px.md`, prin PR în `AradEx-Plan` pe același branch ca task-ul.
+- GitHub Actions `ci.yml` există în fiecare repo de cod: BE `./gradlew test` (cu Docker pentru AppSmokeTest), FE `npm ci && npm run build && npm run test`, pe push/PR.
+- De făcut în T00: drept de scriere pentru toți pe cele 5 repo-uri, protecție pe `main` (PR obligatoriu + CI verde), CI-ul pornește pe primul PR.
 
-`.env.example`:
+`AradEx-Backend/.env.example`:
 ```
 POSTGRES_URL=jdbc:postgresql://localhost:5432/aradexperience
 POSTGRES_USER=arad
@@ -55,37 +63,39 @@ JWT_EXPIRATION_HOURS=24
 OPENAI_API_KEY=sk-...
 OPENAI_MODEL=gpt-4o-mini
 CORS_ORIGINS=http://localhost:5173
-VITE_API_URL=http://localhost:8080/api/v1
 ```
+`AradEx-Frontend/.env.example`: `VITE_API_URL=http://localhost:8080/api/v1`, `VITE_DEMO=true`.
 
-**Verificare:** `(cd ../AradEx-Infrastructure && docker compose up -d)` pornește DB; `git status` nu arată `.env`; README explică cele 3 comenzi (db, api, app).
+**Verificare:** `(cd ../AradEx-Infrastructure && docker compose up -d)` pornește DB; `git status` în toate repo-urile nu arată `.env`; README-urile explică cele 3 comenzi (db, be, fe).
 
 ### T01 · API skeleton (Spring Boot)
 **Scop:** aplicație Spring care pornește pe Postgres, cu migrări, erori standard, OpenAPI, test de fum.
 **Depinde de:** T00
-**Stare:** schelet scris în `AradEx-Backend/` (vezi `AradEx-Backend/README.md`) — rămâne de compilat, rulat și corectat ce nu trece. Migrările **V1–V4 + seed-urile V2_1, V3_1, V4_1 sunt scrise și verificate pe Postgres 16** (T03, T05, T06 pornesc cu schema și datele gata).
+**Stare:** schelet scris în `AradEx-Backend/` (vezi `README.md` și `CLAUDE.md` de acolo) — rămâne de compilat, rulat și corectat ce nu trece. Migrările **V1–V4 + seed-urile V2_1, V3_1, V4_1 sunt scrise și verificate pe Postgres 16** (T03, T05, T06 pornesc cu schema și datele gata).
 
-- Java 21, Spring Boot 3.3+, Maven. Dependențe: web, data-jpa, validation, security, flyway, postgresql, springdoc-openapi-starter-webmvc-ui, jjwt (AradEx-Backend/impl/jackson), lombok, actuator; test: spring-boot-starter-test, testcontainers (postgresql, junit-jupiter).
-- Pachet de bază `ro.aradexperience.api`. Module = pachete pe funcționalitate (`auth`, `users`, `places`, `events`, `tickets`, `business`, `offers`, `community`, `points`, `ai`, `itineraries`, `admin`) + `common` (`config`, `security`, `error`, `util`).
-- `application.yml` citește din env (`POSTGRES_URL` etc., cu valori implicite pentru local). Profiluri: `default` (local), `prod`.
-- Flyway activ, `src/main/resources/db/migration/V1__baseline.sql` gol sau cu extensia `pgcrypto`. Convenție: `V{n}__{modul}.sql` pentru schemă, `V{n}_1__seed_{modul}.sql` pentru date de seed (fiecare task își adaugă migrarea proprie, nu modifică migrările vechi).
-- `common/error/GlobalExceptionHandler` → răspunsuri RFC 7807 (`ProblemDetail`): 400 validare (cu lista `errors[]`), 401, 403, 404 (`NotFoundException`), 409 (`ConflictException`), 500.
-- CORS din `CORS_ORIGINS`. `GET /api/v1/health` → `{status:"ok", time}`. Swagger UI pe `/swagger-ui.html`.
-- `Dockerfile` multi-stage (maven build → eclipse-temurin:21-jre), `EXPOSE 8080`.
-- Test: `ApiSmokeTest` (`@SpringBootTest` + Testcontainers Postgres) care verifică `/health`. Dacă Docker nu e disponibil pe mașină, testul se marchează `@EnabledIf` și se sare.
+- Java 21, Spring Boot 3.3+, **Gradle multi-modul** (Groovy DSL, wrapper inclus): `settings.gradle` + `build.gradle` părinte (plugin-uri Spring Boot / dependency-management, Java 21 toolchain, BOM) + două module:
+  - **`api` = contractul REST** (bibliotecă Java simplă, plugin `java-library`; deps: spring-web, jakarta.validation-api, swagger-annotations): `api/` — o interfață per feature cu `@RequestMapping` + `@GetMapping`/`@PostMapping`, `@Valid`, `@Operation`; `dto/<feature>/` — record-uri cerere/răspuns (+ `dto/common/`: PageResponse, HealthDto); `enums/` (Role…); `annotations/` (validări custom, ex. `@Code`); `exceptions/` (ApiException + BadRequest/NotFound/Conflict/Forbidden). Teste: serializare per DTO din JSON în resources (`dto/auth/UserDtoTest`), `DtoValidationTest`, `ApiContractTest`.
+  - **`app` = aplicația Spring Boot** (plugin `org.springframework.boot`; deps: `project(':api')`, web, security, validation, data-jpa, actuator, springdoc, flyway (+ `flyway-database-postgresql`), postgresql, jjwt, lombok; test: starter-test, spring-security-test, testcontainers): `controller/<feature>/XController implements XApi` + `controller/handler/GlobalExceptionHandler`, `service/<feature>/`, `repository/<feature>/`, `entity/<feature>/`, `mapper/<feature>/` (clase utilitare statice, import static) + transversal `config/` (AppProps, SecurityConfig, OpenApiConfig), `security/` (JwtService, JwtAuthFilter, CurrentUser, AuthContext), `util/` (Codes, Geo, Pages). Teste: `controller/`, `service/`, `mock/` (AuthMock, JsonFixtures, XMock per service), cereri JSON în `src/test/resources/requests/`. `app` depinde de `api`, niciodată invers.
+- Pachet rădăcină unic `aradexperience` în ambele module (fără `ro.`), `Application` în rădăcină → scanare implicită, fără `scanBasePackages`/`@EntityScan`. Module funcționale (subfoldere create pe parcurs): `auth`, `users`, `places`, `events`, `tickets`, `business`, `offers`, `community`, `points`, `ai`, `itineraries`, `admin`.
+- `app/src/main/resources/application.yml` citește din env (`POSTGRES_URL` etc., cu valori implicite pentru local). Profiluri: `default` (local), `prod`. `./gradlew :app:bootRun` încarcă `.env` automat.
+- Flyway activ, migrările în **`app/src/main/resources/db/migration/`**. Convenție: `V{n}__{modul}.sql` pentru schemă, `V{n}_1__seed_{modul}.sql` pentru date de seed (fiecare task își adaugă migrarea proprie, nu modifică migrările vechi).
+- `error/GlobalExceptionHandler` → răspunsuri RFC 7807 (`ProblemDetail`): 400 validare (cu lista `errors[]`), 401, 403, 404 (`NotFoundException`), 409 (`ConflictException`), 500.
+- CORS din `CORS_ORIGINS`. `GET /api/v1/health` → `{status:"ok", time, version}` (`HealthApi` + `HealthController`, șablonul interfață → controller). Swagger UI pe `/swagger-ui.html`.
+- `Dockerfile` la rădăcina repo-ului, multi-stage (`gradle:8.14-jdk21` → `:app:bootJar` → eclipse-temurin:21-jre), `EXPOSE 8080`.
+- Teste existente: `api` — `UserDtoTest`, `RegisterRequestTest` (serializare din JSON), `DtoValidationTest`, `ApiContractTest`; `app` — `JwtServiceTest`, `CodesAndGeoTest`, `HealthControllerTest` (șablonul `@ControllerTest` + `AuthMock`), `AppSmokeTest` (`@SpringBootTest` + Testcontainers Postgres: pornește tot, Flyway, `/health`, 401) — se sare automat dacă Docker nu e disponibil.
 
-**Verificare:** `mvn spring-boot:run` pornește, Flyway aplică V1, `/health` răspunde, Swagger se deschide, `mvn test` verde.
+**Verificare:** `./gradlew test` verde (ambele module); `./gradlew :app:bootRun` pornește, Flyway aplică V1–V4, `/health` răspunde, Swagger se deschide.
 
 ### T02 · APP skeleton (Vue 3)
 **Scop:** proiectul Vue cu cele două „aplicații” (mobil + web), design tokens Clean Ink, client API, PWA.
 **Depinde de:** T00
-**Stare:** schelet construit și verificat în `AradEx-Frontend/` (vezi `AradEx-Frontend/README.md`); rămân componentele MapView / QrCode / QrScanner / AppSheet, care vin în task-urile lor.
+**Stare:** schelet construit și verificat în `AradEx-Frontend/` (vezi `README.md` și `CLAUDE.md` de acolo); rămân componentele MapView / QrCode / QrScanner / AppSheet, care vin în task-urile lor.
 
-- `npm create vite@latest app -- --template vue-ts`; adaugi: vue-router, pinia, tailwindcss, vue-i18n, @vueuse/core, leaflet + @types/leaflet, qrcode, html5-qrcode, vite-plugin-pwa; dev: vitest, @vue/test-utils, eslint + prettier.
+- Proiect Vite + vue-ts la rădăcina repo-ului; adaugi: vue-router, pinia, tailwindcss, vue-i18n, @vueuse/core, leaflet + @types/leaflet, qrcode, html5-qrcode, vite-plugin-pwa; dev: vitest, @vue/test-utils, eslint + prettier.
 - Structură:
   ```
   AradEx-Frontend/src/
-    shared/      AradEx-Backend/ (client.ts, auth.ts, events.ts …)  types/api.ts (oglinda docs/API.md)
+    shared/      api/ (client.ts, auth.ts, events.ts …)  types/api.ts (oglinda docs/API.md)
                  stores/ (auth, ui)  components/ (Button, Card, Chip, Input, Sheet, Toast, EventCard, OfferCard, MapView, QrCode, QrScanner)
                  composables/ (useGeo, useTts, useFormat)  i18n/ (ro.json, en.json)  styles/tokens.css
     mobile/      layouts/MobileLayout.vue (top bar + bottom tabs)  views/…
@@ -99,12 +109,12 @@ VITE_API_URL=http://localhost:8080/api/v1
 - Pagini placeholder pentru toate rutele din `docs/API.md` §Rute FE, ca să existe navigația de la început.
 
 - **Pregătire anti-conflict (obligatoriu, ca 4 oameni să lucreze în paralel fără să se calce):**
-  - câte un fișier view pentru **fiecare** rută (`mobile/views/SearchView.vue`, `EventDetailView.vue`, `OffersView.vue`, … și echivalentele `web/views/`), fiecare cu `PlaceholderScreen`; router-ul le importă pe toate → nimeni nu mai editează `router/index.ts` (lista de fișiere și proprietarii: `docs/TEAM.md`);
+  - câte un fișier view pentru **fiecare** rută, în folderul feature-ului (`mobile/views/events/SearchView.vue`, `mobile/views/offers/OffersView.vue`, … și echivalentele `web/views/<feature>/`), fiecare cu `PlaceholderScreen`; router-ul (v3: rutele există, cu `PlaceholderView`) le importă pe toate în locul `PlaceholderView` → nimeni nu mai editează `router/index.ts` (lista de fișiere și proprietarii: `docs/TEAM.md`);
   - navigația completă pe roluri (tab bar mobil, sidebar web) gata acum;
   - i18n pe module: `i18n/ro/<modul>.json` + `i18n/en/<modul>.json` încărcate cu `import.meta.glob` (module: common, auth, places, events, tickets, map, chat, plan, business, offers, community, admin);
-  - tipuri pe module: `shared/types/<modul>.ts` (re-exportate din `types/api.ts`) și fișiere goale `shared/api/<modul>.ts` pentru toate modulele;
+  - tipuri pe module: `shared/types/<modul>.ts` (mutate din `types/api.ts`, care doar le re-exportă) și fișiere goale `shared/api/<modul>.ts` pentru toate modulele (`auth.ts`, `health.ts` există);
   - componentele folosite de mai multe culoare: `AppSheet`, `QrCode` (generare), `useGeo` (poziție + fallback centrul Aradului);
-  - `mobile/views/HomeView.vue` (S1) ca „cochilie” cu 3 tab-uri care randează `HomeEventsTab.vue` (P2), `HomeOffersTab.vue` (P4), `HomeCommunityTab.vue` (P4) — create acum ca placeholdere.
+  - `mobile/views/home/HomeView.vue` (S1) ca „cochilie” cu 3 tab-uri care randează `HomeEventsTab.vue` (P2), `HomeOffersTab.vue` (P4), `HomeCommunityTab.vue` (P4) — create acum ca placeholdere.
 
 **Verificare:** `npm run dev` → `/` redirecționează corect pe telefon vs desktop; tab bar funcțional; `npm run build` fără erori; Lighthouse arată „installable”; fiecare rută deschide view-ul ei placeholder.
 
@@ -112,8 +122,8 @@ VITE_API_URL=http://localhost:8080/api/v1
 **Scop:** conturi, login, JWT, roluri și conturile demo.
 **Depinde de:** T01, T02
 
-- BE (`V2__users_businesses.sql`): tabelele `users`, `businesses` (vezi DATA-MODEL). `auth`: `POST /auth/register`, `POST /auth/login`, `GET /me`, `PATCH /me`. Roluri: `VISITOR, LOCAL, BUSINESS, CITY_HALL, ADMIN`. Înregistrarea permite doar `VISITOR | LOCAL | BUSINESS` (BUSINESS creează și un rând în `businesses` cu `verified=false`). `CITY_HALL` și `ADMIN` doar din seed.
-- Security: regulile pentru **toate** endpoint-urile din `docs/API.md` (coloana „Auth”) se scriu acum, ca celelalte culoare să nu mai atingă `SecurityConfig`. Selectorul de limbă RO/EN (Profil + `WebLayout`) tot aici.
+- BE (`V2__users_businesses.sql`): tabelele `users`, `businesses` (vezi DATA-MODEL). Contractul există deja în `api`: `api/AuthApi` (`POST /auth/register`, `POST /auth/login`, `GET /me`, `PATCH /me`) + `dto/auth/*` (RegisterRequest, LoginRequest, UpdateMeRequest, AuthResponse, UserDto, BusinessSummary) — de implementat în `app`: `entity/users/User`, `entity/business/Business`, `repository/…`, `service/auth/AuthService`, `mapper/users/UserMapper`, `controller/auth/AuthController implements AuthApi`. Roluri: `VISITOR, LOCAL, BUSINESS, CITY_HALL, ADMIN`. Înregistrarea permite doar `VISITOR | LOCAL | BUSINESS` (BUSINESS creează și un rând în `businesses` cu `verified=false`). `CITY_HALL` și `ADMIN` doar din seed.
+- Security: regulile pentru **toate** endpoint-urile din `docs/API.md` (coloana „Auth”) se scriu acum în `config/SecurityConfig`, ca celelalte culoare să nu mai atingă fișierul. Selectorul de limbă RO/EN (Profil + `WebLayout`) tot aici.
 - Security: `JwtAuthFilter` (Bearer), `SecurityConfig` stateless, BCrypt, reguli: `/auth/**`, `/health`, `/swagger-ui/**`, `/v3/api-docs/**`, `GET /places/**`, `GET /events/**`, `GET /offers/**`, `GET /community/**`, `GET /businesses/**` publice; restul autentificat; `/business/**` → BUSINESS, `/city/**` → CITY_HALL|ADMIN, `/admin/**` → ADMIN. `@AuthenticationPrincipal` → `CurrentUser(id, role)`.
 - Seed `V2_1__seed_users.sql`: `visitor@demo.ro`, `local@demo.ro`, `firma@demo.ro` (+ business „Cafeneaua din Pasaj”, verified), `primaria@demo.ro`, `admin@demo.ro`, toate cu parola `demo1234` (hash BCrypt generat o dată și pus în SQL).
 - FE: `stores/auth.ts` (token în localStorage, `user`, `login/register/logout/fetchMe`), guard-uri pe rute (`meta.roles`), ecran login/înregistrare mobil (S12 adaptat: email + parolă + alegere rol Vizitator/Localnic/Firmă) și web (`/w/login`). Buton „Conturi demo” care completează rapid fiecare cont (doar în dev/demo).
@@ -125,7 +135,7 @@ VITE_API_URL=http://localhost:8080/api/v1
 **Scop:** să existe de sâmbătă un URL public pentru API și APP, ca deploy-ul final să fie doar un push.
 **Depinde de:** T01, T02 (paralel cu T03)
 
-- DB: Neon sau Render Postgres (free). API: Render Web Service din `AradEx-Backend/Dockerfile`, env din `.env.example` (fără valori locale), `CORS_ORIGINS` = URL Netlify. APP: Netlify, build `npm run build`, publish `AradEx-Frontend/dist`, `AradEx-Frontend/public/_redirects` cu `/* /index.html 200`, `VITE_API_URL` = URL Render.
+- DB: Neon sau Render Postgres (free). API: Render Web Service din repo-ul `AradEx-Backend` (Docker, `Dockerfile` la rădăcină), env din `.env.example` (fără valori locale), `CORS_ORIGINS` = URL Netlify. APP: Netlify din repo-ul `AradEx-Frontend`, build `npm run build`, publish `dist`, `public/_redirects` cu `/* /index.html 200`, `VITE_API_URL` = URL Render.
 - Documentezi în `docs/DEPLOY.md`: unde e fiecare, cine are acces, cum se face redeploy.
 
 **Verificare:** `https://<api>/api/v1/health` ok; APP publicată apelează `/health` și afișează „API online” pe un ecran de debug/profil.
@@ -304,7 +314,7 @@ Regula de aur pentru noapte: la 02:00 opriți feature-urile noi și faceți doar
 ---
 
 ## Adăugiri pentru echipa de 4 (Paperclip, 6 nov)
-**Repo-uri separate:** monorepo-ul descris la T00 a fost împărțit în 4 repo-uri în organizația GitHub HACK4ARAD: `AradEx-Ops` (`docs/`, `design/`, `.claude/`, `tools/paperclip/`), `AradEx-Backend` (fostul `api/`), `AradEx-Frontend` (fostul `app/`), `AradEx-Infrastructure` (`docker-compose.yml`, deploy). Căile `AradEx-Backend/...` din plan sunt relative la folderul comun.
+**Repo-uri separate:** kitul v3 are 3 repo-uri (umbrelă + be + fe, cele de cod clonate în umbrelă). La noi sunt 5 repo-uri surori în organizația GitHub HACK4ARAD: `AradEx-Plan` (= umbrela: `docs/`, `design/`, `CLAUDE.md`, `STRUCTURE.md`, `setup.sh`, toate skill-urile), `AradEx-Backend` (= `aradexperience-be`), `AradEx-Frontend` (= `aradexperience-fe`), `AradEx-Infrastructure` (`docker-compose.yml`, deploy — în v3 compose-ul stă în BE) și `AradEx-Ops` (agenții Paperclip). Căile `AradEx-Backend/...` din plan sunt relative la folderul comun.
 
 Împărțirea pe oameni e în `docs/TEAM.md`. Task-uri noi față de lista de mai sus:
 

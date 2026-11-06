@@ -1,17 +1,17 @@
 ---
 name: seed-data
-description: Cum se adaugă date demo (locuri reale din Arad, evenimente, firme, oferte, acțiuni comunitare, conturi) prin migrări Flyway de seed și poze cu licență. Folosește-l când un task cere „seed”, „date de exemplu”, „date demo”, sau când demo-ul arată gol.
+description: Cum se adaugă date demo (locuri reale din Arad, evenimente, firme, oferte, acțiuni comunitare, conturi) prin migrări Flyway de seed în modulul app și poze cu licență. Folosește-l când un task cere „seed”, „date de exemplu”, „date demo”, sau când demo-ul arată gol.
 ---
 
 # Date demo (seed)
 
-**Există deja** (verificate pe Postgres 16): `V2_1__seed_users.sql` (conturi demo + localnici + firme fictive), `V3_1__seed_places.sql` (12 locuri reale cu 33 puncte de ghid), `V4_1__seed_events.sql` (21 evenimente reale nov–dec 2026 + 9 demo). Sursele și corecțiile (Cetatea = doar exterior, Turnul de Apă închis) sunt în `docs/ARAD-DATA.md`. Rămân de scris: V5_1 (bilete demo), V7_1 (oferte), V8_1 (acțiuni comunitare + puncte) — după modelul celor existente.
+**Există deja** (verificate pe Postgres 16): `V2_1__seed_users.sql` (conturi demo + localnici + firme fictive), `V3_1__seed_places.sql` (12 locuri reale cu 33 puncte de ghid), `V4_1__seed_events.sql` (21 evenimente reale nov–dec 2026 + 9 demo). Sursele și corecțiile (Cetatea = doar exterior, Turnul de Apă închis) sunt în `AradEx-Plan/docs/ARAD-DATA.md`. Rămân de scris: V5_1 (bilete demo), V7_1 (oferte), V8_1 (acțiuni comunitare + puncte) — după modelul celor existente.
 
-Regula de aur: **date reale din Arad** (nume, adrese, coordonate, program), firme plauzibile, zero „lorem ipsum”. Demo-ul e pe 7–8 nov 2026 — evenimentele trebuie să cadă pe 7–30 nov 2026 ca listele „Azi / Weekend / 7 zile” să fie pline.
+Regula de aur: **date reale din Arad** (nume, adrese, coordonate, program), firme plauzibile, zero „lorem ipsum”. Demo-ul e pe 7–8 nov 2026 — evenimentele trebuie să cadă pe 7–30 nov 2026 ca listele „Azi / Weekend / 7 zile” să fie pline. Ce e inventat se marchează `is_demo = true` (și „FICTIV” în `AradEx-Plan/docs/ARAD-DATA.md`).
 
 ## Unde
-- Fișier: `AradEx-Backend/src/main/resources/db/migration/V{n}_1__seed_{modul}.sql`, imediat după migrarea de schemă a modulului. SQL pur, `INSERT ... ON CONFLICT DO NOTHING` unde există chei unice, id-uri explicite pentru rândurile la care fac referință alte seed-uri (ex. `places.id = 1` pentru Cetate) și `SELECT setval(...)` la final ca secvența să continue după id-urile fixate.
-- Poze: fișiere în `AradEx-Frontend/public/img/{places|events|offers|actions|businesses}/nume.jpg`, în DB doar calea relativă `/img/offers/cafea.jpg`. Cele existente sunt în `design/assets/` (licențe în `design/README.md`); copiază-le în `AradEx-Frontend/public/img/` la T02.
+- Fișier: `AradEx-Backend/app/src/main/resources/db/migration/V{n}_1__seed_{modul}.sql` (modulul Gradle `app`; numărul `n` = migrarea de schemă a modulului, rezervată culoarului în `AradEx-Plan/docs/TEAM.md`), imediat după migrarea de schemă a modulului. SQL pur, `INSERT ... ON CONFLICT DO NOTHING` unde există chei unice, id-uri explicite pentru rândurile la care fac referință alte seed-uri (ex. `places.id = 1` pentru Cetate) și `SELECT setval(...)` la final ca secvența să continue după id-urile fixate.
+- Poze: fișiere în `AradEx-Frontend/public/img/{places|events|offers|actions|businesses}/nume.jpg`, în DB doar calea relativă `/img/offers/cafea.jpg`. Cele existente sunt în `AradEx-Plan/design/assets/` (licențe în `AradEx-Plan/design/README.md`); copiază-le în `public/img/` la T05/T06.
 - Texte de ghid (T05): generează-le cu modelul (60–120 de cuvinte per punct, ton de ghid prietenos, fără cifre inventate; dacă nu ești sigur de un an sau nume, formulează general) și pune-le direct în SQL cu `$$ ... $$` ca să nu scapi apostrofurile.
 
 ## Lista de locuri reale (T05) — folosește coordonatele acestea
@@ -31,7 +31,7 @@ Regula de aur: **date reale din Arad** (nume, adrese, coordonate, program), firm
 | 12 | Stațiunea Moneasa | NATURE | 46.4480, 22.2620 | 240 min |
 Verifică coordonatele pe OpenStreetMap înainte de commit dacă ai dubii (sunt aproximative la ±100 m); mută pinul dacă e în clădirea greșită. `parking_hint`: „Parcarea Cetății, str. Cetății” / „Parcarea Teatrului, Piața Avram Iancu” etc.
 
-## Evenimente (T06) — exemple de completat (15–20)
+## Evenimente (T06) — deja în V4_1; de completat doar dacă lipsește ceva
 Repetiție deschisă la Filarmonica (gratuit), concert simfonic (bilete), Teatrul Clasic — spectacol pentru copii sâmbătă 11:00 (adult 40 / copil 25), expoziție la Palatul Cultural (10 lei, zilnic), tur ghidat de seară la Cetate (gratuit, 19:30), Târgul producătorilor din județul Arad (piața Avram Iancu, sâmbătă), meci UTA Arad (extern, link), Festivalul Vinului Miniș (sâmbătă 17:00), alergare pe Faleză (sport, gratuit), atelier de ceramică (familie), expoziție foto „Aradul în 1900”, seară de jazz la o cafenea (organizator firmă), cros în Pădurea Ceala.
 Setează `participants_count` mare (≥ 50) la 2–3 evenimente ca să existe 🔥 Popular. Categoriile: vezi DATA-MODEL.
 
@@ -42,7 +42,7 @@ Cafeneaua din Pasaj (CAFE, verified, owner `firma@demo.ro`), Brutăria Veche (PR
 Acțiuni: „Plantăm copaci pe Faleza Mureșului” (sâm. 7 nov 10:00–13:00, +50, 40 locuri, 18 înscriși), „Curățenie în Pădurea Ceala” (dum. 8 nov 09:00–12:00, +40, 60 locuri), „Donăm sânge pentru spitalele din Arad” (mar. 10 nov, +80, 30 locuri). Înscriși fictivi (Radu M., Elena T., Mihai R., Ioana S. …) + tranzacții de puncte în octombrie/noiembrie ca să existe clasament (Mihai 980, Ioana 910, Andrei 860 …). `local@demo.ro` are 270 de puncte și o înscriere `REGISTERED` la plantare (pentru demo-ul cu QR).
 
 ## Conturi (T03)
-`visitor@demo.ro` (VISITOR), `local@demo.ro` (LOCAL, 270 puncte), `firma@demo.ro` (BUSINESS → Cafeneaua din Pasaj), `primaria@demo.ro` (CITY_HALL), `admin@demo.ro` (ADMIN). Parola `demo1234` — hash-ul BCrypt se generează o singură dată (`new BCryptPasswordEncoder().encode("demo1234")`) și se lipește în SQL; același hash la toate.
+`visitor@demo.ro` (VISITOR), `local@demo.ro` (LOCAL, 270 puncte), `firma@demo.ro` (BUSINESS → Cafeneaua din Pasaj), `primaria@demo.ro` (CITY_HALL), `admin@demo.ro` (ADMIN). Parola `demo1234` — hash-ul BCrypt e deja în `V2_1__seed_users.sql`; refolosește-l la conturi noi.
 
 ## Verificare
-După `./mvnw spring-boot:run` pe o bază goală: `GET /events?from=2026-11-07` întoarce ≥ 10, `GET /places` ≥ 10 cu ghid, `GET /offers` ≥ 5, `GET /community/actions` = 3, login cu toate cele 5 conturi merge. Rulează și pe o bază existentă fără erori (seed-ul e idempotent).
+După `./gradlew :app:bootRun` pe o bază goală: `GET /events?from=2026-11-07` întoarce ≥ 10, `GET /places` ≥ 10 cu ghid, `GET /offers` ≥ 5, `GET /community/actions` = 3, login cu toate cele 5 conturi merge. Rulează și pe o bază existentă fără erori (seed-ul e idempotent). Rapid, fără aplicație: `psql -U arad -d aradexperience -f app/src/main/resources/db/migration/V{n}_1__seed_x.sql` de două ori la rând → zero erori.

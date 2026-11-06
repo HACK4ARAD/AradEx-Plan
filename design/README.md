@@ -7,7 +7,7 @@
 - `AradExperience-web-prototip.html` — **prototipul web navigabil**: toate paginile într-un singur fișier, cu meniuri/sidebar/carduri funcționale (hash routing), bară „Demo” cu comutator de rol și listă de pagini, toast-uri care spun ce endpoint ar fi apelat. Deschide-l în browser.
 - `screens/` — câte un JPG per ecran (2× rezoluție). Numele = codul ecranului din `docs/PLAN.md` / `docs/API.md`.
 - `sheets/` — planșe de ansamblu (toate ecranele grupate), bune de pus în slide-uri.
-- `assets/` — poze cu licență liberă (jpg, 720×450) + fonturi (Inter, Material Symbols) extrase din prototip. Copiază `assets/*.jpg` în `app/public/img/` la T02.
+- `assets/` — poze cu licență liberă (jpg, 720×450) + fonturi (Inter, Material Symbols) extrase din prototip. Copiază `assets/*.jpg` în `public/img/` (rădăcina repo-ului FE) când le folosești în seed (T05/T06/T10).
 
 ## Harta ecranelor → rute → task-uri
 | Cod | Ecran | Rută FE | Task |

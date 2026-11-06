@@ -3,11 +3,12 @@
 Ai primit de la Zoltan un zip cu numele tău. În el găsești:
 - `SETUP-ECHIPA.md`: acest ghid, la fel pentru toți;
 - `<Nume>-Px.md`: fișa ta, cu culoarul, task-urile, orele și fișierele tale;
-- cele **4 repo-uri** ale proiectului, cu istoricul git și legate deja de GitHub ([organizația HACK4ARAD](https://github.com/HACK4ARAD)):
-  - `AradEx-Ops`: plan, documente, design, skill-uri Claude, agenții Paperclip (de aici pornești);
-  - `AradEx-Backend`: API-ul Spring Boot;
+- cele **5 repo-uri** ale proiectului, cu istoricul git și legate deja de GitHub ([organizația HACK4ARAD](https://github.com/HACK4ARAD)):
+  - `AradEx-Plan`: planul comun — documente, design, reguli (`CLAUDE.md`, `STRUCTURE.md`), skill-uri Claude (de aici pornești Claude Code și aici lucrează agentul);
+  - `AradEx-Backend`: API-ul Spring Boot (Gradle, modulele `api` = contractul și `app` = aplicația);
   - `AradEx-Frontend`: aplicația Vue (web + mobil);
-  - `AradEx-Infrastructure`: Postgres local și deploy (doar Zoltan îl modifică).
+  - `AradEx-Infrastructure`: Postgres local și deploy (doar Zoltan îl modifică);
+  - `AradEx-Ops`: agenții Paperclip și scriptul `setup-lane.mjs` (doar Zoltan îl modifică).
 
 **Pe scurt:** fiecare lucrează pe laptopul lui, cu abonamentul lui Claude și cu un agent AI în propriul Paperclip. Partea comună a echipei e GitHub-ul: PR-uri, plus `docs/status/Px.md`. Zoltan (P1) are în Paperclip-ul lui agenții **Lead Tehnic** și **QA & Demo**: ei urmăresc PR-urile tuturor, fac review și le fac merge.
 
@@ -28,14 +29,14 @@ Pregătirea ține cam 30–45 de minute. Fă-o înainte de hackathon.
 | Git | `git --version` | |
 | GitHub CLI | `gh --version`, apoi `gh auth login` | contul tău de GitHub (trimite-i lui Zoltan username-ul, ca să te adauge în organizația HACK4ARAD) |
 | Node.js 20+ | `node -v` | pentru `AradEx-Frontend/` și pentru Paperclip |
-| Java 21 + Maven | `java -version` (21), `mvn -v` | macOS: `brew install openjdk@21 maven` |
+| Java 21 | `java -version` (21) | macOS: `brew install openjdk@21`. Gradle nu trebuie instalat: vine cu `./gradlew` din `AradEx-Backend` |
 | Docker Desktop (sau Postgres 16 local) | `docker compose version` | baza de date locală |
 | Claude Code | `claude --version`, apoi pornește `claude` o dată și loghează-te | **cu abonamentul tău** (Pro/Max) |
 
 Pe Windows merge, dar e mai simplu din WSL sau Git Bash. Comenzile de mai jos sunt pentru macOS/Linux.
 
 ## 2. Proiectul
-1. Dezarhivează zip-ul. Obții un folder `HACK4ARAD` cu acest ghid, fișa ta și cele 4 repo-uri. Mută-l în folderul tău personal (`~/HACK4ARAD`), unde rămâne. Paperclip ține minte calea, așa că nu-l mai muta după pasul 4.
+1. Dezarhivează zip-ul. Obții un folder `HACK4ARAD` cu acest ghid, fișa ta și cele 5 repo-uri. Mută-l în folderul tău personal (`~/HACK4ARAD`), unde rămâne. Paperclip ține minte calea, așa că nu-l mai muta după pasul 4.
 2. Fișierele cu chei (nu intră niciodată în git):
    ```
    cd ~/HACK4ARAD
@@ -43,16 +44,17 @@ Pe Windows merge, dar e mai simplu din WSL sau Git Bash. Comenzile de mai jos su
    cp AradEx-Frontend/.env.example AradEx-Frontend/.env
    ```
    Cheile (`OPENAI_API_KEY`, `JWT_SECRET`) le primești de la Zoltan **pe un canal privat**. Nu le pui niciodată în git, în chat-uri publice sau în task-uri.
-3. Regula echipei: **fără `Co-Authored-By:` în commit-uri**. Hook-ul care le scoate se activează în fiecare repo (scriptul de la pasul 4 o face automat):
+3. Regula echipei: **fără `Co-Authored-By:` în commit-uri**. Hook-ul care le scoate se activează în toate 5 repo-urile, odată cu aducerea la zi:
    ```
-   for r in AradEx-Ops AradEx-Backend AradEx-Frontend AradEx-Infrastructure; do git -C $r config core.hooksPath .githooks; done
+   cd ~/HACK4ARAD/AradEx-Plan && ./setup.sh
    ```
 4. Verificare rapidă:
    ```
+   cd ~/HACK4ARAD
    (cd AradEx-Infrastructure && docker compose up -d)
    (cd AradEx-Frontend && npm ci && npm run build)
    ```
-   `AradEx-Backend` (Spring Boot) compilează abia după ce Zoltan termină T01. Până atunci nu-ți face griji pentru `mvn test`.
+   `AradEx-Backend` (Spring Boot) compilează sigur abia după ce Zoltan termină T01. Până atunci nu-ți face griji pentru `./gradlew test` (prima rulare descarcă Gradle și dependențele, durează câteva minute).
 
 ## 3. Paperclip (orchestratorul agenților)
 Rulează într-un terminal separat și **lasă-l pornit**:
@@ -68,36 +70,35 @@ paperclipai onboard --yes
 Într-un al doilea terminal, din folderul proiectului:
 ```
 cd ~/HACK4ARAD/AradEx-Ops
-node tools/paperclip/setup-lane.mjs --lane P2      # Lukas = P2, Octav = P3, Damian = P4
+node setup-lane.mjs --lane P2      # Lukas = P2, Octav = P3, Damian = P4
 ```
 1. **Prima rulare** creează compania **HACK4ARAD** și se oprește cu un link (`http://127.0.0.1:3100/HAC…/company/settings/connections`). Deschide-l și conectează **Claude cu abonamentul tău** („subscription”, login în browser). Apoi bifează-l ca default.
 2. **Rulează din nou aceeași comandă.** Acum scriptul creează:
-   - agentul tău (Claude Sonnet 5.5, cu skill-urile proiectului: `task-workflow`, `be-module`, `fe-feature`, `seed-data`);
-   - proiectul „AradExperience”, legat de folderul tău `AradEx-Ops` (agentul ajunge de acolo și la celelalte 3 repo-uri);
+   - agentul tău (Claude Sonnet 5.5, cu skill-urile proiectului: `task-workflow`, `review-pr`, `be-module`, `fe-feature`, `seed-data`);
+   - proiectul „AradExperience”, legat de folderul tău `AradEx-Plan` (agentul ajunge de acolo și la celelalte repo-uri);
    - task-urile tale, în *backlog*, cu dependențele legate;
    - un task `SETUP` pentru tine.
 3. În UI → Agents, agentul tău trebuie să ajungă **idle** (verde) în cel mult un minut. Dacă rămâne „paused”, rulează scriptul încă o dată; repornește verificarea.
 
-Scriptul poate fi rulat de oricâte ori: nu dublează nimic și aduce la zi instrucțiunile agentului (după un `git pull`).
+Scriptul poate fi rulat de oricâte ori: nu dublează nimic și aduce la zi instrucțiunile agentului (după `./setup.sh` din `AradEx-Plan`).
 
 **Nimic nu pornește singur.** Task-urile stau în *backlog* până le muți tu.
 
 ## 5. GitHub
 Repo-urile sunt deja pe GitHub și clonele din zip sunt legate de ele (`origin`). Ai nevoie doar de:
-1. contul tău în organizația [HACK4ARAD](https://github.com/HACK4ARAD) (ești deja adăugat) și **drept de scriere** pe cele 4 repo-uri — îl dă Zoltan (T00);
+1. contul tău în organizația [HACK4ARAD](https://github.com/HACK4ARAD) (ești deja adăugat, cu drept de admin pe toate 5 repo-urile);
 2. `gh auth login` cu contul tău de GitHub (pasul 1);
 3. la început, aduci ultimele schimbări în toate:
    ```
-   cd ~/HACK4ARAD
-   for r in AradEx-Ops AradEx-Backend AradEx-Frontend AradEx-Infrastructure; do git -C $r pull; done
+   cd ~/HACK4ARAD/AradEx-Plan && ./setup.sh      # git pull în toate 5 (și clonează ce lipsește)
    ```
 
 ## 6. Cum lucrăm în timpul hackathonului
 1. **Pornești un task** mutându-l din *backlog* în **todo**. Faci asta doar când task-urile de care depinde sunt deja pe `main`; descrierea task-ului îți spune care sunt. Agentul se apucă imediat.
-2. Agentul lucrează în worktree-uri separate (`~/HACK4ARAD/_wt/Backend-Txx`, `Frontend-Txx`, `Ops-Txx`), pe branch-ul `feat/Txx-…` cu același nume în fiecare repo atins. Folderele tale principale rămân libere pentru tine.
+2. Agentul lucrează în worktree-uri separate (`~/HACK4ARAD/_wt/AradEx-Backend-Txx`, `AradEx-Frontend-Txx`, `AradEx-Plan-Txx`), pe branch-ul `feat/Txx-…` cu același nume în fiecare repo atins. Folderele tale principale rămân libere pentru tine.
 3. La final, agentul rulează testele și checklist-ul din `task-workflow`, deschide **câte un PR în fiecare repo atins**, pune link-urile în task și îl mută în `in_review`.
 4. **Tu** verifici pe telefonul tău și pe web ce a făcut. Review-ul se face în perechi: Zoltan ↔ Lukas, Octav ↔ Damian.
-5. **QA & Demo**, pe laptopul lui Zoltan, face review pe GitHub:
+5. **QA & Demo**, pe laptopul lui Zoltan, face review pe GitHub (skill-ul `review-pr`):
    - dacă cere modificări, muți task-ul înapoi în `todo` cu un comentariu și agentul le repară pe același branch;
    - dacă aprobă, face merge, iar tu marchezi task-ul `done`.
 6. Pornește-ți următorul task.
@@ -122,9 +123,9 @@ Răspunzi cu un comentariu în task și îl muți înapoi în `todo`.
 |---|---|
 | `Paperclip is not reachable` | pornește `paperclipai run` în alt terminal |
 | Agentul rămâne „paused” | conexiunea Claude nu e default; o faci default și rulezi scriptul din nou |
-| `Expected the repo skills…` | rulează scriptul din folderul `AradEx-Ops` (sau dă `--repo <cale spre AradEx-Ops>`) |
+| `AradEx-Plan not found` / `Expected the repo skills…` | toate 5 repo-urile trebuie să fie în același folder; altfel dă `--plan <cale spre AradEx-Plan>` |
 | Agentul spune că o dependență nu e pe `main` | e corect: aștepți PR-ul colegului (vezi `docs/status/`) |
-| Ai mutat folderul | în Paperclip: Projects → AradExperience → Workspace → noua cale a lui `AradEx-Ops` |
+| Ai mutat folderul | rulează din nou `node setup-lane.mjs --lane Px` din noul `AradEx-Ops` (mută singur workspace-ul pe noul `AradEx-Plan`) |
 | Laptop lent | rulează un singur task odată; oprește `npm run dev` și API-ul când nu le folosești |
 
 Întrebări: pe grupul echipei, către Zoltan.

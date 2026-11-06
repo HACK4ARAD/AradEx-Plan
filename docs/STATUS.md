@@ -2,15 +2,15 @@
 
 **Acest fișier îl actualizează doar Lead Tehnic / Persoana 1 (Zoltan).** Fiecare culoar își scrie starea, deciziile și problemele în `docs/status/P1.md` … `P4.md`, în propriile PR-uri, ca să nu se calce pe același fișier.
 
-Ultima actualizare: 2026-11-06 (kit inițial, înainte de cod)
+Ultima actualizare: 2026-11-06 (kit v3 — 5 repo-uri; BE Gradle cu `api` = contract, `app` = aplicație; înainte de cod)
 
 ## Task-uri
 | Task | Stare | Cine | Branch / PR | Note |
 |---|---|---|---|---|
-| T00 Repo & tooling | IN PROGRESS | P1 Zoltan (kit) | — | docker-compose, .env.example, .gitignore, CLAUDE.md, skills, docs — de făcut: `git init`, remote, CI opțional |
-| T01 API skeleton | IN PROGRESS | P1 Zoltan (kit) | — | schelet scris în avans (AradEx-Backend/README.md): pom, config, security JWT, erori, health, V1, teste — **de compilat** (`mvn test`) și de rulat o dată |
+| T00 Repo & tooling | IN PROGRESS | P1 Zoltan (kit) | — | 5 repo-uri în HACK4ARAD cu conținutul kitului v3: `AradEx-Plan` (docs, design, CLAUDE.md, STRUCTURE.md, toate skill-urile, setup.sh), `AradEx-Backend` (Gradle `api`/`app`, CI), `AradEx-Frontend` (Vue, CI), `AradEx-Infrastructure` (compose), `AradEx-Ops` (Paperclip) — de făcut: drepturi pentru toți, protecție pe `main`, primul PR (pornește CI-ul) |
+| T01 API skeleton | IN PROGRESS | P1 Zoltan (kit) | — | schelet Gradle multi-modul scris în avans (`AradEx-Backend/README.md`, `CLAUDE.md`): `api` (HealthApi, AuthApi + DTO-uri auth/common, 2 teste), `app` (Application, config, security, error, util, health controller, V1–V4 + seed-uri, 4 teste) — **de compilat** (`./gradlew test`) și de rulat o dată |
 | T02 APP skeleton | IN PROGRESS | P1 Zoltan (kit) | — | schelet construit și verificat (`npm run build/test` verzi): layout-uri, router cu toate rutele, client API, auth store, componente de bază, i18n, PWA. Lipsesc: MapView, QrCode/QrScanner, AppSheet (vin în task-urile lor) |
-| T03 Auth & roluri | TODO | P1 Zoltan | | migrarea V2 + seed-ul V2_1 (conturi demo) există |
+| T03 Auth & roluri | TODO | P1 Zoltan | | migrarea V2 + seed-ul V2_1 (conturi demo) există; contractul `AuthApi` + DTO-urile există în `api` |
 | T04 Deploy v0 | TODO | P1 Zoltan | | |
 | T05 Locuri & ghid | TODO | P2 Lukas | | migrarea V3 + seed-ul V3_1 (12 locuri reale, 33 puncte de ghid) există; de adăugat pozele |
 | T06 Evenimente | TODO | P2 Lukas | | migrarea V4 + seed-ul V4_1 (21 evenimente reale + 9 demo) există |

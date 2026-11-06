@@ -4,16 +4,16 @@
 ```
 cp .env.example .env            # completează OPENAI_API_KEY, JWT_SECRET
 (cd ../AradEx-Infrastructure && docker compose up -d)            # Postgres
-cd ../AradEx-Backend && ./mvnw spring-boot:run
-cd ../AradEx-Frontend && npm install && npm run dev
+cd ../AradEx-Backend && ./gradlew :app:bootRun               # :8080
+cd ../AradEx-Frontend && npm install && npm run dev            # :5173
 ```
 
 ## Producție (T04 → T16)
 | Componentă | Unde | Config |
 |---|---|---|
 | DB | Neon (free) sau Render Postgres | copiază connection string în `POSTGRES_URL` (format JDBC: `jdbc:postgresql://host/db?sslmode=require`), user/parolă |
-| API | Render Web Service, Docker (`AradEx-Backend/Dockerfile`) | env: `POSTGRES_*`, `JWT_SECRET`, `OPENAI_API_KEY`, `OPENAI_MODEL`, `CORS_ORIGINS=https://<app>.netlify.app`, `SPRING_PROFILES_ACTIVE=prod`; health check `/api/v1/health` |
-| APP | Netlify | base `app`, build `npm run build`, publish `AradEx-Frontend/dist`, env `VITE_API_URL=https://<api>.onrender.com/api/v1`; `AradEx-Frontend/public/_redirects`: `/* /index.html 200` |
+| API | Render Web Service, Docker — repo `AradEx-Backend`, `Dockerfile` la rădăcină | env: `POSTGRES_*`, `JWT_SECRET`, `OPENAI_API_KEY`, `OPENAI_MODEL`, `CORS_ORIGINS=https://<app>.netlify.app`, `SPRING_PROFILES_ACTIVE=prod`; health check `/api/v1/health` |
+| APP | Netlify — repo `AradEx-Frontend` | base `/` (rădăcina repo-ului), build `npm run build`, publish `dist`, env `VITE_API_URL=https://<api>.onrender.com/api/v1`; `public/_redirects`: `/* /index.html 200` |
 
 Completați aici URL-urile reale când există:
 - API: `https://________.onrender.com`

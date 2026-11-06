@@ -2,7 +2,7 @@
 
 Convenții: tabele și coloane `snake_case`, id-uri `BIGSERIAL`, timpi `TIMESTAMPTZ` (stocați UTC, afișați Europe/Bucharest),
 bani `NUMERIC(10,2)` în RON, enum-uri ca `VARCHAR` validate în Java (`enum`), `created_at TIMESTAMPTZ NOT NULL DEFAULT now()` peste tot.
-Fiecare tabel are migrarea lui în task-ul care îl introduce (`V{n}__{modul}.sql`), seed-ul în `V{n}_1__seed_{modul}.sql`.
+Fiecare tabel are migrarea lui în task-ul care îl introduce (`V{n}__{modul}.sql`), seed-ul în `V{n}_1__seed_{modul}.sql`; toate stau în `AradEx-Backend/app/src/main/resources/db/migration/`.
 Nu se modifică o migrare deja aplicată pe `main` — se adaugă una nouă.
 
 ## Enum-uri
@@ -32,7 +32,7 @@ Migrarea `V2__users_businesses.sql` + seed-ul `V2_1__seed_users.sql` (5 conturi 
 
 ### places (T05, V3)
 `id, name, slug UNIQUE, type, description TEXT, address, lat, lng, image_url, image_credit NULL, opening_hours TEXT NULL, visit_minutes INT, tags VARCHAR (csv: "istorie,familie"), rating NUMERIC(2,1) NULL, parking_hint TEXT NULL, exterior_only BOOL DEFAULT false (Cetatea, Turnul de Apă), google_place_id VARCHAR NULL (T17), created_at`
-Migrarea `V3__places.sql` + seed-ul `V3_1__seed_places.sql` (12 locuri reale, 33 puncte de ghid) **există deja** în `AradEx-Backend/` și trec pe Postgres 16.
+Migrarea `V3__places.sql` + seed-ul `V3_1__seed_places.sql` (12 locuri reale, 33 puncte de ghid) **există deja** în `AradEx-Backend` (modulul `app`) și trec pe Postgres 16.
 
 ### guide_points (T05, V3)
 `id, place_id FK places ON DELETE CASCADE, position INT, title, text TEXT, image_url NULL, audio_url NULL, lat NULL, lng NULL, duration_sec INT NULL`
