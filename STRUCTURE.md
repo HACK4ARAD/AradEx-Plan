@@ -75,7 +75,7 @@ AradEx-Backend/                       REPO 2 — backend (Spring Boot 3, Java 21
       src/main/resources/
       ├─ application.yml              config din variabile de mediu cu valori implicite locale; Flyway, JPA validate, springdoc, actuator
       ├─ application-prod.yml         profilul prod (Render)
-      └─ db/migration/                V1 baseline · V2 users+businesses (+V2_1 seed conturi) · V3 places (+V3_1 12 locuri reale, 33 puncte de ghid) · V4 events (+V4_1 30 evenimente) — numerele următoare: rezervate pe culoar în docs/TEAM.md
+      └─ db/migration/                V1 baseline · V2 users+businesses (+V2_1 seed conturi) · V3 places (+V3_1 12 locuri reale, 33 puncte de ghid) · V4 events (+V4_1 30 evenimente) — numerele următoare se iau în ordinea story-urilor din PLAN
       src/test/java/aradexperience/
       ├─ AppSmokeTest                 @SpringBootTest + Testcontainers Postgres: pornește tot, Flyway, /health, 401 pe rute protejate (se sare fără Docker)
       ├─ controller/ControllerTest    adnotare compusă: @WebMvcTest + SecurityConfig real + AppProps + JwtService mock — un test de controller = @ControllerTest(X.class) + @MockBean XService
