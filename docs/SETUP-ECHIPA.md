@@ -2,6 +2,7 @@
 
 Ai primit de la Zoltan un zip cu numele tău. În el găsești:
 - `SETUP-ECHIPA.md`: acest ghid, la fel pentru toți;
+- `PAPERCLIP.md`: cum funcționează totul (agenții, task-urile, review-ul, merge-ul) — citește-l după instalare;
 - `<Nume>-Px.md`: fișa ta, cu culoarul, task-urile, orele și fișierele tale;
 - cele **5 repo-uri** ale proiectului, cu istoricul git și legate deja de GitHub ([organizația HACK4ARAD](https://github.com/HACK4ARAD)):
   - `AradEx-Plan`: planul comun — documente, design, reguli (`CLAUDE.md`, `STRUCTURE.md`), skill-uri Claude (de aici pornești Claude Code și aici lucrează agentul);

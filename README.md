@@ -24,7 +24,7 @@ claude                                                                # Claude C
 Conturi demo: `visitor@demo.ro`, `local@demo.ro`, `firma@demo.ro`, `primaria@demo.ro`, `admin@demo.ro` / `demo1234`.
 
 ## Unde e ce
-- `docs/TEAM.md` — cine ce face (Zoltan, Lukas, Octav, Damian) și ce fișiere îi aparțin fiecăruia · `docs/SETUP-ECHIPA.md` — instalarea pe laptop
+- `docs/TEAM.md` — cine ce face (Zoltan, Lukas, Octav, Damian) și ce fișiere îi aparțin fiecăruia · `docs/SETUP-ECHIPA.md` — instalarea pe laptop · `docs/PAPERCLIP.md` — cum lucrăm cu Paperclip, agenții, zip-urile, review-ul și merge-ul
 - `docs/PLAN.md` — task-urile T00–T19 · `docs/API.md` — contractul de API · `docs/DATA-MODEL.md` — tabele și migrări · `docs/FEATURES.md` — funcționalitățile pe roluri · `docs/ARAD-DATA.md` — datele reale din seed
 - `docs/STATUS.md` — rezumat (Lead) + `docs/status/Px.md` — starea fiecărui culoar · `docs/DEMO.md` — demo + pitch · `docs/DEPLOY.md`
 - `STRUCTURE.md` — fiecare repo, folder și fișier, la ce folosește, ce conțin skill-urile

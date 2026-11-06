@@ -26,6 +26,7 @@ AradEx-Plan/                          REPO 1 — planul comun (= umbrela din kit
 │  ├─ STATUS.md                       rezumatul echipei (îl ține doar Lead Tehnic)
 │  ├─ status/P1.md … P4.md            „memoria” fiecărui culoar: stare per task, decizii, probleme cunoscute (în PR-ul task-ului)
 │  ├─ SETUP-ECHIPA.md                 cum își face fiecare coleg laptopul gata (zip, .env, Paperclip, GitHub)
+│  ├─ PAPERCLIP.md                    cum curge munca: agenții, abonamentele, zip-urile, viața unui task, review + merge, probleme
 │  ├─ DEMO.md                         fluxul de demo pas cu pas + pitch; nu are voie să se strice
 │  ├─ DEPLOY.md                       local + producție (Render Docker pentru BE, Netlify pentru FE, Neon/Render Postgres)
 │  └─ ARAD-DATA.md                    datele reale despre Arad folosite în seed (surse, program, tarife) și ce e FICTIV

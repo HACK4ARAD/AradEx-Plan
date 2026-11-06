@@ -6,7 +6,7 @@ Acesta e **planul comun** (de aici se deschide Claude Code și aici e workspace-
 
 | Repo | Ce conține | Cine îl modifică |
 |---|---|---|
-| [AradEx-Plan](https://github.com/HACK4ARAD/AradEx-Plan) | **acesta**: `docs/` (PLAN, API, DATA-MODEL, FEATURES, TEAM, STATUS + `status/Px.md`, DEMO, DEPLOY, ARAD-DATA, SETUP-ECHIPA), `design/`, `CLAUDE.md`, `STRUCTURE.md`, `setup.sh`, `.claude/skills/` | toți, fiecare doar `docs/status/Px.md` + secțiunea lui din `API.md`; restul Lead/Zoltan |
+| [AradEx-Plan](https://github.com/HACK4ARAD/AradEx-Plan) | **acesta**: `docs/` (PLAN, API, DATA-MODEL, FEATURES, TEAM, STATUS + `status/Px.md`, DEMO, DEPLOY, ARAD-DATA, SETUP-ECHIPA, PAPERCLIP), `design/`, `CLAUDE.md`, `STRUCTURE.md`, `setup.sh`, `.claude/skills/` | toți, fiecare doar `docs/status/Px.md` + secțiunea lui din `API.md`; restul Lead/Zoltan |
 | [AradEx-Backend](https://github.com/HACK4ARAD/AradEx-Backend) | Spring Boot 3 · Java 21 · Gradle (Groovy) · Postgres · Flyway · JWT — modulele `api` (contractul) și `app` (aplicația) | fiecare doar feature-urile lui (`docs/TEAM.md`) |
 | [AradEx-Frontend](https://github.com/HACK4ARAD/AradEx-Frontend) | Vue 3 + Vite + TS · Pinia · Router · Tailwind 4 · vue-i18n · Leaflet · PWA — `/m` mobil, `/w` web | fiecare doar fișierele lui (`docs/TEAM.md`) |
 | [AradEx-Infrastructure](https://github.com/HACK4ARAD/AradEx-Infrastructure) | Postgres local (`docker-compose.yml`), config de deploy | doar P1 (Zoltan) |
