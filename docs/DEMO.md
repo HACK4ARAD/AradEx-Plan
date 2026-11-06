@@ -1,5 +1,7 @@
 # Povestea de demo (≤ 6 minute) + pitch
 
+> Orientativ: dă o idee despre cum legăm feature-urile. Se clarifică exact la final. La un PR verificăm doar că feature-ul lui e funcțional, nu tot fluxul.
+
 Dispozitive: **telefon A** (vizitator → apoi localnic), **telefon B** (primăria, pe teren), **laptop pe proiector** (panouri web).
 Conturi: `visitor@demo.ro`, `local@demo.ro`, `firma@demo.ro`, `primaria@demo.ro` / `demo1234`. Toate datele sunt din seed — nu improviza.
 

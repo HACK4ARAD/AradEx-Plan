@@ -1,0 +1,57 @@
+{
+ "ca": {
+  "file": "loc-ca.jpg",
+  "source": "File:Biserica franciscana din cetatea Aradului.jpg",
+  "credit": "Foto: Vasile Topac · CC BY-SA 3.0 ro · Wikimedia Commons"
+ },
+ "pc": {
+  "file": "loc-pc.jpg",
+  "source": "File:Arad cultural center.jpg",
+  "credit": "Foto: Roland Meier · CC BY-SA 2.5 · Wikimedia Commons"
+ },
+ "tc": {
+  "file": "loc-tc.jpg",
+  "source": "File:Arad TeatrulClasicIoanSlavici.jpg",
+  "credit": "Foto: B. Proksch · CC BY-SA 2.5 · Wikimedia Commons"
+ },
+ "pa": {
+  "file": "loc-pa.jpg",
+  "source": "File:Arad, radnice.jpg",
+  "credit": "Foto: Wikimedia Commons · CC BY-SA 3.0 · Wikimedia Commons"
+ },
+ "br": {
+  "file": "loc-br.jpg",
+  "source": "File:Arad evangelic church.jpg",
+  "credit": "Foto: Roland Meier · CC BY-SA 2.5 · Wikimedia Commons"
+ },
+ "cs": {
+  "file": "loc-cs.jpg",
+  "source": "File:Catedrala ortodoxa arad - panoramio.jpg",
+  "credit": "Foto: tamba lucian · CC BY-SA 3.0 · Wikimedia Commons"
+ },
+ "cc": {
+  "file": "loc-cc.jpg",
+  "source": "File:Catedrala romano-catolică din Arad.jpg",
+  "credit": "Foto: IuliuSturza92 · CC BY-SA 4.0 · Wikimedia Commons"
+ },
+ "ta": {
+  "file": "loc-ta.jpg",
+  "source": "File:Arad - Turnul de Apă (43893417355).jpg",
+  "credit": "Foto: Fred Romero from Paris, France · CC BY 2.0 · Wikimedia Commons"
+ },
+ "fm": {
+  "file": "loc-fm.jpg",
+  "source": "File:Mureș bridge near Arad, Romania 13.jpg",
+  "credit": "Foto: bogdymol · CC BY-SA 4.0 · Wikimedia Commons"
+ },
+ "ce": {
+  "file": "loc-ce.jpg",
+  "source": "File:Maros marosaszo es kelmak kozott2.jpg",
+  "credit": "Foto: Oguszt · CC BY-SA 3.0 · Wikimedia Commons"
+ },
+ "mc": {
+  "file": "loc-mc.jpg",
+  "source": "File:Castelul de la Macea, Arad.jpg",
+  "credit": "Foto: Radufan · CC BY-SA 3.0 · Wikimedia Commons"
+ }
+}

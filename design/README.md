@@ -1,6 +1,12 @@
 # design/ — prototipuri, ecrane, poze
 
-## Fișiere
+## Designul final (sursa de adevăr) → `final/`
+- `final/mobile.html` — aplicația (390×844, 36 de ecrane, roluri Vizitator / Localnic / Voluntar / Firmă / Primărie) și `final/web.html` — site public + panourile Primărie / Admin / Firmă (37 de pagini). Vanilla HTML/JS, fără build; `python3 -m http.server` în `final/` pentru hărți și sincronizarea admin ↔ aplicație. Detalii, conturi demo și tabelul mobil/web: `final/README.md`.
+- `final/screens/sheet-mobile.png` și `final/screens/sheet-web.png` — planșele cu toate ecranele (capturile individuale se regenerează cu `final/screens/shoot-all.mjs`, Playwright + Chrome).
+- Pozele reale ale obiectivelor: `assets/loc-*.jpg` (Wikimedia Commons, CC BY / CC BY-SA; autorii în `assets/CREDITS-foto-obiective.json`; afișați și în aplicație).
+- Ce e mai jos (prototipul original, extensiile, web-ul vechi, `screens/`, `sheets/`) rămâne ca istoric și pentru codurile ecranelor S/E/W.
+
+## Fișiere (istoric)
 - `AradExperience.html` — **prototipul original** (clickabil, un singur fișier, ~6 MB). Deschide în browser. Cod de login în prototip: `123456`. Panoul din dreapta: fluxuri A–D, „Jump to screen” S0–S12, meniu Debug (roluri, stări, dark mode, RO/EN/HU). Detalii în `CITESTE-MA-prototip-original.txt`.
 - `AradExperience-extensii.html` — **ecranele noi** (E1–E7 mobil, W1–W4 web), în același stil „Clean Ink”. Fonturile și CSS-ul sunt locale (`assets/clean-ink.css`, `assets/fonts/`), merge și offline. Referință vizuală.
 - `AradExperience-web.html` — **toate paginile web W5–W26** (publice, panou firmă, panou Primărie, admin), referință vizuală.
@@ -49,7 +55,10 @@
 Fundal `#F7F7F2` · ink `#111111` · text secundar `#5C5C5C` · bordură `#D6D6D0` · accent `#FF5A36` · verde puncte `#1F3A1A` · galben popular `#FFC43D` · piersică ofertă `#FFE8E2` · carduri albe radius 16 · buton primar negru radius 14, h 48–50 · chips radius 999 · font Inter (400–700) · icon-uri Material Symbols Outlined (wght 300).
 Mobil: 390×844, tab bar cu 5 intrări și butonul rotund „Hartă” în mijloc. Web: bară sus 64px, sidebar 250px, conținut max ~1200px, tabele albe radius 16.
 
-## Licențe poze (din prototipul original)
+## Licențe poze
+Obiective (`assets/loc-*.jpg`, Wikimedia Commons): Cetatea Aradului – Vasile Topac (CC BY-SA 3.0 RO); Palatul Cultural – Roland Meier (CC BY-SA 2.5); Teatrul Clasic – B. Proksch (CC BY-SA 2.5); Palatul Administrativ – Wikimedia Commons (CC BY-SA 3.0); Biserica Roșie – Roland Meier (CC BY-SA 2.5); Catedrala Ortodoxă – tamba lucian (CC BY-SA 3.0); Catedrala Romano-Catolică – IuliuSturza92 (CC BY-SA 4.0); Turnul de Apă – Fred Romero (CC BY 2.0); Faleza/Podul Mureș – bogdymol (CC BY-SA 4.0); Lunca Mureșului – Oguszt (CC BY-SA 3.0); Castelul Macea – Radufan (CC BY-SA 3.0). Sursele exacte în `assets/CREDITS-foto-obiective.json`.
+
+### Din prototipul original
 Oferte, acțiuni, locuri (Wikimedia Commons): cafea – Abdulrohmatt (CC BY-SA 4.0); covrigi – Nicubunu (CC BY-SA 3.0); degustare de vin – Sarah Stierch (CC BY 4.0); miere – Amelia Bartlett (CC0); prăjitură – Daria Yakovleva (CC0); plantare copaci – U.S. Air Force, Christopher Tam (domeniu public); curățenie – David Lally (CC BY-SA 2.0); donare de sânge – Shixart1985 (CC BY 2.0); ciorbă de pește – Sacha47 (CC BY-SA 4.0); cappuccino – Frettie (CC BY 3.0); grădină restaurant – Acabashi (CC BY-SA 4.0).
 Pozele cu Cetatea Aradului (Vasile Topac, CC BY-SA 3.0 RO) și Palatul Cultural (Chainwit., CC BY 4.0) se încarcă în prototipul original de pe Wikimedia Commons — descărcați-le de acolo pentru seed și păstrați creditul în `places.image_credit`. Pozele de evenimente din prototip sunt de pe Unsplash (licență Unsplash).
 Hartă: © OpenStreetMap contributors; tile-uri Esri/OSM; trasee OSRM (routing.openstreetmap.de).

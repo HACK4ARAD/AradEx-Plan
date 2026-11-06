@@ -1,0 +1,298 @@
+{
+ "mobile": [
+  [
+   "S0 Limba",
+   "01-s0-limba.png"
+  ],
+  [
+   "S12 Login",
+   "02-s12-login.png"
+  ],
+  [
+   "S1 Acasă · Evenimente (vizitator)",
+   "03-s1-acasa-evenimente-vizitator.png"
+  ],
+  [
+   "S1 Acasă · Evenimente (localnic)",
+   "04-s1-acasa-evenimente-localnic.png"
+  ],
+  [
+   "S1b Oferte",
+   "05-s1b-oferte.png"
+  ],
+  [
+   "S1d Comunitate",
+   "06-s1d-comunitate.png"
+  ],
+  [
+   "S2 Căutare",
+   "07-s2-cautare.png"
+  ],
+  [
+   "S3 Detaliu eveniment",
+   "08-s3-detaliu-eveniment.png"
+  ],
+  [
+   "S4 Alege biletele",
+   "09-s4-alege-biletele.png"
+  ],
+  [
+   "S5 Plată",
+   "10-s5-plata.png"
+  ],
+  [
+   "S10 Bilet cu QR",
+   "11-s10-bilet-cu-qr.png"
+  ],
+  [
+   "S9 Biletele mele",
+   "12-s9-biletele-mele.png"
+  ],
+  [
+   "S7 Hartă",
+   "13-s7-harta.png"
+  ],
+  [
+   "S7b Hartă · traseu",
+   "14-s7b-harta-traseu.png"
+  ],
+  [
+   "S8 Chat",
+   "15-s8-chat.png"
+  ],
+  [
+   "S11 Profil",
+   "16-s11-profil.png"
+  ],
+  [
+   "Ofertă · detaliu",
+   "17-oferta-detaliu.png"
+  ],
+  [
+   "Acțiune comunitară",
+   "18-actiune-comunitara.png"
+  ],
+  [
+   "Clasament + recompense",
+   "19-clasament-recompense.png"
+  ],
+  [
+   "Locuri din Arad",
+   "20-locuri-din-arad.png"
+  ],
+  [
+   "E3 Ghid virtual",
+   "21-e3-ghid-virtual.png"
+  ],
+  [
+   "Pagina firmei",
+   "22-pagina-firmei.png"
+  ],
+  [
+   "E1 Planificator",
+   "23-e1-planificator.png"
+  ],
+  [
+   "Itinerariile tale",
+   "24-itinerariile-tale.png"
+  ],
+  [
+   "E2 Itinerar",
+   "25-e2-itinerar.png"
+  ],
+  [
+   "E4 Harta traseului",
+   "26-e4-harta-traseului.png"
+  ],
+  [
+   "Transport",
+   "27-transport.png"
+  ],
+  [
+   "Transport · plan de drum",
+   "28-transport-plan-de-drum.png"
+  ],
+  [
+   "Transport · linia 1",
+   "29-transport-linia-1.png"
+  ],
+  [
+   "Transport · călătorie pe hartă",
+   "30-transport-calatorie-pe-harta.png"
+  ],
+  [
+   "Panou firmă (teren)",
+   "31-panou-firma-teren.png"
+  ],
+  [
+   "Primărie · validare pe teren",
+   "32-primarie-validare-pe-teren.png"
+  ],
+  [
+   "Voluntar · cod",
+   "33-voluntar-cod.png"
+  ],
+  [
+   "Voluntar · acțiuni",
+   "34-voluntar-actiuni.png"
+  ],
+  [
+   "Voluntar · scanner",
+   "35-voluntar-scanner.png"
+  ],
+  [
+   "Voluntar · mesaje",
+   "36-voluntar-mesaje.png"
+  ]
+ ],
+ "web": [
+  [
+   "W0 Login / conturi",
+   "01-w0-login-conturi.png"
+  ],
+  [
+   "W1 Landing",
+   "02-w1-landing.png"
+  ],
+  [
+   "W5 Evenimente",
+   "03-w5-evenimente.png"
+  ],
+  [
+   "W6 Detaliu eveniment + bilete",
+   "04-w6-detaliu-eveniment-bilete.png"
+  ],
+  [
+   "W7 Obiective",
+   "05-w7-obiective.png"
+  ],
+  [
+   "W8 Ghid virtual",
+   "06-w8-ghid-virtual.png"
+  ],
+  [
+   "W9 Hartă",
+   "07-w9-harta.png"
+  ],
+  [
+   "W10 Planificator",
+   "08-w10-planificator.png"
+  ],
+  [
+   "W11 Oferte",
+   "09-w11-oferte.png"
+  ],
+  [
+   "W12 Comunitate",
+   "10-w12-comunitate.png"
+  ],
+  [
+   "W13 Chat",
+   "11-w13-chat.png"
+  ],
+  [
+   "W14 Contul meu",
+   "12-w14-contul-meu.png"
+  ],
+  [
+   "W15 Pagina firmei",
+   "13-w15-pagina-firmei.png"
+  ],
+  [
+   "Primărie · Panou",
+   "14-primarie-panou.png"
+  ],
+  [
+   "Primărie · Evenimente",
+   "15-primarie-evenimente.png"
+  ],
+  [
+   "Primărie · Eveniment nou",
+   "16-primarie-eveniment-nou.png"
+  ],
+  [
+   "Primărie · Acțiuni comunitare",
+   "17-primarie-actiuni-comunitare.png"
+  ],
+  [
+   "Primărie · Acțiune nouă",
+   "18-primarie-actiune-noua.png"
+  ],
+  [
+   "Primărie · Validare participanți",
+   "19-primarie-validare-participanti.png"
+  ],
+  [
+   "Primărie · Voluntari",
+   "20-primarie-voluntari.png"
+  ],
+  [
+   "Primărie · Voluntar nou",
+   "21-primarie-voluntar-nou.png"
+  ],
+  [
+   "Primărie · Mesaje",
+   "22-primarie-mesaje.png"
+  ],
+  [
+   "Primărie · Clasament",
+   "23-primarie-clasament.png"
+  ],
+  [
+   "Primărie · Firme partenere",
+   "24-primarie-firme-partenere.png"
+  ],
+  [
+   "Primărie · Firmă nouă",
+   "25-primarie-firma-noua.png"
+  ],
+  [
+   "Primărie · Obiective & ghiduri",
+   "26-primarie-obiective-ghiduri.png"
+  ],
+  [
+   "Admin · Dashboard",
+   "27-admin-dashboard.png"
+  ],
+  [
+   "Admin · Conținut & moderare",
+   "28-admin-continut-moderare.png"
+  ],
+  [
+   "Admin · Utilizatori",
+   "29-admin-utilizatori.png"
+  ],
+  [
+   "Firmă · Panou",
+   "30-firma-panou.png"
+  ],
+  [
+   "Firmă · Oferte",
+   "31-firma-oferte.png"
+  ],
+  [
+   "Firmă · Ofertă nouă",
+   "32-firma-oferta-noua.png"
+  ],
+  [
+   "Firmă · Evenimente",
+   "33-firma-evenimente.png"
+  ],
+  [
+   "Firmă · Anunțuri",
+   "34-firma-anunturi.png"
+  ],
+  [
+   "Firmă · Validează coduri",
+   "35-firma-valideaza-coduri.png"
+  ],
+  [
+   "Firmă · Recenzii",
+   "36-firma-recenzii.png"
+  ],
+  [
+   "Firmă · Profilul firmei",
+   "37-firma-profilul-firmei.png"
+  ]
+ ]
+}
