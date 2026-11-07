@@ -96,6 +96,7 @@ Reguli (T21): **Vizitatorul și Localnicul intră doar în aplicația mobilă, c
 
 ## 13. Transport în comun (T19, mobil)
 - Tab „Transport” în navbar. Destinație (căutare în obiective, stații și repere, sau sugestiile) → lista traseelor (tramvai sau autobuz: linie, urcare cu plecarea live, coborâre, durată; și pe jos) → alegi → harta cu tot drumul (pe jos + linie + pe jos), „Pornește călătoria” (simulare; cu GPS-ul pornit avansează singură la stații). Stații lângă tine cu plecările live, liniile (Tramvaie / Autobuze, câte vehicule circulă acum), pagina liniei (stațiile, „lângă tine”, vehiculele care vin).
+- Căutarea destinației: listă derulantă sub câmp — cu câmpul gol cele mai populare (repere, obiective cu ghid, stații mari), apoi după primele litere scrise; fiecare loc cu insignele liniilor CTP care opresc lângă el (≤ 400 m). Aceeași listă e și în Căutare (S2), cu obiective și evenimente.
 - Alte variante: cu bicicleta (stațiile bike sharing ale Primăriei: iei de la cea mai apropiată, lași lângă destinație) și cu mașina (parcarea cu plată Recons de lângă destinație, cu zona, tariful și dacă e cu plată acum). Scurtături spre harta cu liniile live, bicicletele și parcările; „Cum ajung” pe eveniment și obiectiv.
 - Reguli: rețeaua și plecările sunt cele reale (CTP Arad / Telelink, atribuirea afișată); duratele de mers sunt estimate și se spune asta; din afara Aradului (peste 25 km) planul pornește din centru.
 
