@@ -26,13 +26,15 @@ Nu se modifică o migrare deja aplicată pe `main` — se adaugă una nouă.
 
 ### users (T03, V2)
 Migrarea `V2__users_businesses.sql` + seed-ul `V2_1__seed_users.sql` (5 conturi demo + 7 localnici + 5 firme fictive) **există deja**.
-`id, email UNIQUE NULL, phone UNIQUE NULL (T21, E.164), password_hash NULL, display_name, role, locale('ro'|'en'), points_balance INT DEFAULT 0, avatar_url NULL, created_at` · `CHECK (email IS NOT NULL OR phone IS NOT NULL)`. Conturile personale (Vizitator, Localnic) au telefon și intră cu cod OTP; firmele, Primăria și Adminul au email + parolă.
+`id, email UNIQUE NULL, phone UNIQUE NULL (T21, E.164), password_hash NULL, display_name, role, locale('ro'|'en'), points_balance INT DEFAULT 0, avatar_url NULL, created_at, disabled_at NULL (T14, V13: contul dezactivat de Admin nu mai poate intra)` · `CHECK (email IS NOT NULL OR phone IS NOT NULL)`. Conturile personale (Vizitator, Localnic) au telefon și intră cu cod OTP; firmele, Primăria și Adminul au email + parolă.
 
 ### otp_codes (T21, V11)
 `id, phone, provider ('LOCAL'|'TWILIO'), code_hash NULL, attempts INT DEFAULT 0, expires_at, consumed_at NULL, created_at` · index `(phone, created_at)`. LOCAL = codul numerelor de demo `+40799000xxx`, păstrat doar ca hash BCrypt; TWILIO = SMS prin Twilio Verify (codul îl ține Twilio). Rândurile servesc și la limitele numerelor reale (60 s între cereri, 5 pe zi, 5 încercări pe cod, 300 SMS pe zi în total); cererile și verificările pentru un număr se fac pe rând (`pg_advisory_xact_lock`). V11 dă numere de demo conturilor personale din seed: visitor `+40799000001`, local `+40799000002`, localnicii 6–12 `+40799000003`–`009`, și face `tickets.email` opțional.
 
 ### businesses (T03, V2)
-`id, owner_user_id FK users UNIQUE, name, category, description, address, lat DOUBLE, lng DOUBLE, phone NULL, website NULL, image_url NULL, verified BOOL DEFAULT false, views_count INT DEFAULT 0, created_at`
+`id, owner_user_id FK users UNIQUE, name, category, description, address, lat DOUBLE, lng DOUBLE, phone NULL, website NULL, image_url NULL, verified BOOL DEFAULT false, views_count INT DEFAULT 0, created_at, rejected_at NULL, reject_reason NULL (T14, V13)`
+
+**T14 (`V13__admin.sql`)**: `users.disabled_at`, `businesses.rejected_at` + `reject_reason`, indexurile `businesses(verified, created_at DESC)` și `users(role)`. Verificarea firmei (Primăria sau Adminul) publică tot conținutul ei `DRAFT` (evenimente, oferte, anunțuri) și șterge respingerea; respingerea unei firme verificate (suspendare) trece conținutul ei `PUBLISHED` înapoi în `DRAFT`. Firmele create din panou primesc coordonatele centrului Aradului până își completează profilul.
 
 ### places (T05, V3)
 `id, name, slug UNIQUE, type, description TEXT, address, lat, lng, image_url, image_credit NULL, opening_hours TEXT NULL, visit_minutes INT, tags VARCHAR (csv: "istorie,familie"), rating NUMERIC(2,1) NULL, parking_hint TEXT NULL, exterior_only BOOL DEFAULT false (Cetatea, Turnul de Apă), source_url VARCHAR(300) NULL (fișa sursă visitarad.ro, pentru atribuire — V3_2; încă nu e în entitate / DTO), google_place_id VARCHAR NULL (T17), created_at`
