@@ -60,6 +60,9 @@ Nu includeți: interiorul Cetății, interiorul Turnului de Apă, Muzeul de Art�
 
 **Piața Producătorilor Arădeni** (CMC Arad, Piața Avram Iancu) — ultima ediție 26–27 sept 2026, 21 de producători; nu are ediție anunțată în noiembrie → în seed apare ca **FICTIV** („ediție de toamnă”) sau se înlocuiește cu standurile producătorilor de la Târgul de Crăciun.
 
+## Bilete demo — FICTIV (T07)
+`V5_1__seed_tickets.sql`: concertul **„Concert de toamnă: Corul Filarmonicii”** (18 oct. 2026, Palatul Cultural, 35 lei) e **FICTIV** (`is_demo = true`, descrierea începe cu „EVENIMENT DEMO”) și are un singur bilet: `local@demo.ro`, 2 × Standard, 70 lei, **folosit** — ca „Biletele mele › Trecute” să arate ca în design. Fiind trecut, nu apare în listele publice.
+
 ## Firme, oferte, acțiuni comunitare — FICTIVE (pentru demo)
 Firme: Cafeneaua din Pasaj, Brutăria Veche, Crama Dealul Miniș, Producători din județul Arad, Bistro La Mureș, Grădina Bastion — nume inventate, adrese plauzibile în centru. Anunțurile lor (T09, `V6_1__seed_announcements.sql`: program prelungit, angajări, degustări, miere nouă) sunt tot **FICTIVE** și marcate „(FICTIV)” în text. Ofertele (T10, `V7_1__seed_offers.sql`: cafea -20%, prăjitura zilei, cappuccino cu puncte, covrigi 2+1, degustare Miniș, miere de salcâm, meniul de pe Faleză, grătar la Bastion) și codurile lor sunt **FICTIVE**; ofertele Brutăriei Vechi și ale Grădinii Bastion sunt ciorne până la verificarea firmelor (T14). **Nu puneți firme reale cu oferte inventate** (ar fi înșelător în demo); dacă vreți firme reale, cereți-le acordul sau afișați doar profil fără oferte.
 Acțiuni: plantare pe Faleza Mureșului (sâm. 7 nov), curățenie în Pădurea Ceala (dum. 8 nov), donare de sânge la Centrul de Transfuzie Sanguină Arad (mar. 10 nov) — organizator „Primăria Arad” (rol demo).
