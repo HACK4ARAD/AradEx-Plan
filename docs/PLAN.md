@@ -205,7 +205,7 @@ CORS_ORIGINS=http://localhost:5173
 **Scop:** S7 + „Indicații” de oriunde; componenta de hartă refolosită de itinerar (T13).
 **Depinde de:** T05, T06
 
-- `shared/components/MapView.vue` (Leaflet, tile-uri OSM `https://tile.openstreetmap.org/{z}/{x}/{y}.png`, atribuire): props `markers[] {id, lat, lng, kind: event|place|offer|action, label}`, `route?: LatLng[]`, `selectedId`, `userLocation`; emite `select`. Pin-uri numerotate când `numbered=true`.
+- `shared/components/map/MapView.vue`: **Google Maps** (Maps JavaScript API, `GoogleMapCanvas`) când build-ul are `VITE_GOOGLE_MAPS_KEY`, altfel rezerva Leaflet (`LeafletMapCanvas`); props `markers[] {id, lat, lng, kind: event|place|offer|action|stop|vehicle, label}`, `route?`, `selectedId`, `me`, `insets`; emite `select`. (Inițial Leaflet + OSM; schimbat pe Google Maps la cererea lui Zoltan, 7 nov.)
 - `composables/useRoute.ts`: OSRM public `https://routing.openstreetmap.de/routed-{foot|car}/route/v1/driving/{lng,lat};{lng,lat}?overview=full&geometries=geojson` → polilinie + durată + distanță. Fallback: linie dreaptă + estimare 5 km/h / 30 km/h dacă OSRM pică.
 - `composables/useGeo.ts`: `navigator.geolocation` cu fallback pe centrul Aradului (46.1866, 21.3123).
 - FE mobil S7: hartă full-screen, căutare, chips Azi/Weekend/7 zile, filtre Locuri/Evenimente/Oferte, categorii; tap pe pin → card preview jos → „Arată traseul” (pe jos/mașină) / „Deschide”. „Indicații” din S3/E3/oferte deschide S7 centrat cu traseu. Web: fără hartă publică (W9 nu se face; site-ul de prezentare poate avea o captură).
