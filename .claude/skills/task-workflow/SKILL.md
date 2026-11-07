@@ -30,7 +30,7 @@ Rulează efectiv, nu presupune:
 - [ ] Rolurile: un cont cu rol greșit primește 403, nu 500. Guest-ul vede doar ce e public. Regulile pe rute sunt deja în `SecurityConfig` (T03) și testate în `config/SecurityRulesTest`.
 - [ ] Ecranele de mobil merg și în aplicația Android (`npm run android:run` pe emulator, `adb reverse tcp:8080 tcp:8080`; vezi `docs/SETUP.md`).
 - [ ] Stări de listă: loading, gol, eroare — nu ecran alb.
-- [ ] Texte în română cu diacritice, în `ro.json`. Fără „lorem ipsum”, fără `console.log` rămase, fără `TODO` fără explicație.
+- [ ] Texte în română cu diacritice, în `src/shared/i18n/ro/<modul>.json` (și aceleași chei în `en/<modul>.json`). Fără „lorem ipsum”, fără `console.log` rămase, fără `TODO` fără explicație.
 - [ ] Feature-ul tău merge cap-coadă pe mobil și web (fluxul complet din `docs/DEMO.md` se verifică doar la final).
 - [ ] Nicio cheie/secret în diff (`git diff main --stat` în fiecare repo + caută `sk-`, `secret`, `password` în fișierele noi).
 Scrie rezultatul verificării în PR (ce ai testat, ce nu, ce ai observat). PR-ul de FE face trimitere la PR-ul de BE; PR-ul din `AradEx-Plan` la amândouă.

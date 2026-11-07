@@ -8,7 +8,7 @@ Autentificare: `Authorization: Bearer <jwt>`. Erori: RFC 7807 `ProblemDetail`:
 ```
 Paginare: `?page=0&size=20` → `{ "content": [...], "page": 0, "size": 20, "totalElements": 57 }`.
 Roluri în coloana „Auth”: `pub` = public, `auth` = orice utilizator logat, altfel rolul cerut. `ADMIN` are acces oriunde.
-FE: tipurile TypeScript din `AradEx-Frontend/src/shared/types/api.ts` oglindesc DTO-urile de aici — când se schimbă unul, se schimbă și celălalt în același PR.
+FE: tipurile TypeScript din `AradEx-Frontend/src/shared/types/<modul>.ts` oglindesc DTO-urile de aici — când se schimbă unul, se schimbă și celălalt în același PR.
 
 ## DTO-uri comune
 ```ts

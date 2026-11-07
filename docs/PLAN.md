@@ -104,7 +104,7 @@ CORS_ORIGINS=http://localhost:5173
 ### T02 · APP skeleton (Vue 3)
 **Scop:** proiectul Vue cu cele două „aplicații” (mobil + web), design tokens Clean Ink, client API, PWA.
 **Depinde de:** T00
-**Stare:** schelet construit și verificat în `AradEx-Frontend/` (redirect `/`, tab bar, sidebar, PWA, rute cu placeholder). **Nu e făcută încă pregătirea anti-conflict de mai jos** (view per rută, i18n/types/api pe module, AppSheet, QrCode, useGeo, tab-urile din Home) — vezi `docs/STATUS.md`.
+**Stare:** ✅ schelet + pregătirea anti-conflict (FE #8): view per rută (și per secțiune în panourile web), cochilii pentru Acasă / `/m/panel` / landing / Contul meu, i18n/types/api pe module, `AppSheet`, `QrCode`, `QrScanner`, `useGeo`. Cine ce fișiere are: `AradEx-Frontend/CLAUDE.md` §Culoare; deciziile în `docs/STATUS.md`.
 
 - Proiect Vite + vue-ts la rădăcina repo-ului; adaugi: vue-router, pinia, tailwindcss, vue-i18n, @vueuse/core, leaflet + @types/leaflet, qrcode, html5-qrcode, vite-plugin-pwa; dev: vitest, @vue/test-utils, eslint + prettier.
 - Structură:
