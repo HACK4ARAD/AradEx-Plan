@@ -371,7 +371,7 @@ CORS_ORIGINS=http://localhost:5173
 ---
 
 ## Direcții viitoare (după hackathon) — de pus în pitch la „ce urmează”
-- Plăți reale (Stripe/Netopia) și anularea biletelor; notificări push (PWA) pentru mementouri și acțiuni noi.
+- Plăți reale (Stripe live / Netopia; Stripe în modul de test e deja integrat, vezi STATUS) și anularea biletelor; notificări push (PWA) pentru mementouri și acțiuni noi.
 - Sincronizare bidirecțională cu Google Calendar (OAuth) și import automat al evenimentelor instituțiilor (scraping/API-uri: Filarmonica, Teatrul Clasic, Primăria).
 - Rating & recenzii Google (T17), recenzii la obiective, traducere automată RO→EN/HU a ghidului și voce naturală (un serviciu TTS).
 - Transport public în itinerar (orare CTP Arad, tramvaiul Arad–Ghioroc), parcări în timp real.
