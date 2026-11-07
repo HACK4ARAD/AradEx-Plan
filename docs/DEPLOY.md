@@ -29,7 +29,7 @@ Totul e descris în Terraform în `AradEx-Infrastructure/terraform`. Runbook-ul 
 |---|---|---|
 | Domeniu + DNS | Hostinger (cumpărat) → Route 53 | nameserverele `ns-1529.awsdns-63.org`, `ns-1983.awsdns-55.co.uk`, `ns-293.awsdns-36.com`, `ns-714.awsdns-25.net` |
 | HTTPS + rutare | ALB public `aradex-api`, certificat ACM (`eu-north-1`) | HTTP → HTTPS, `www` → apex; `/api/*`, `/swagger-ui*`, `/v3/api-docs*` → API; restul → frontend-ul web (nginx) |
-| API | ECS Fargate, serviciul `aradex-api` (x86, 0,5 vCPU / 1 GB), imaginea din ECR `aradex-api` | `Dockerfile`-ul din `AradEx-Backend`; env: `POSTGRES_*`, `JWT_SECRET`, `ANTHROPIC_API_KEY` (din Secrets Manager, `aradex/anthropic`), `ANTHROPIC_MODEL=claude-haiku-5-5`, `CORS_ORIGINS=https://aradexperience.site`, `SPRING_PROFILES_ACTIVE=prod` |
+| API | ECS Fargate, serviciul `aradex-api` (x86, 0,5 vCPU / 1 GB), imaginea din ECR `aradex-api` | `Dockerfile`-ul din `AradEx-Backend`; env: `POSTGRES_*`, `JWT_SECRET`, `ANTHROPIC_API_KEY` (din Secrets Manager, `aradex/anthropic`), `ANTHROPIC_MODEL=claude-haiku-5-5`, `GOOGLE_PLACES_API_KEY` (opțional, T17, din `aradex/google-places`), `CORS_ORIGINS=https://aradexperience.site`, `SPRING_PROFILES_ACTIVE=prod` |
 | Web (prezentare + panouri) | ECS Fargate, serviciul `aradex-web` (nginx), imaginea din ECR `aradex-web` | `deploy/Dockerfile` + `deploy/nginx.conf` din `AradEx-Frontend`; `VITE_API_URL` din SSM `/aradex/web/api_url` |
 | DB | RDS PostgreSQL 16, `db.t4g.micro`, privată | Flyway rulează migrările + seed-ul la pornirea API-ului; datele demo sunt identice cu cele locale |
 | Alerte | SNS → email (Zoltan) | API fără taskuri sănătoase, erori 5xx, CPU; buget 50 $ cu alertă la 20 $ |
