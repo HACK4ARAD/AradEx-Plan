@@ -310,6 +310,7 @@ CORS_ORIGINS=http://localhost:5173
 ### T17 · (opțional) Rating & recenzii Google pentru obiective și firme
 **Depinde de:** T05, T09 · **Doar dacă rămâne timp și există cheie Google cu billing.**
 - Coloana `google_place_id` pe `places` (V3 există deja → se adaugă în V5) și `businesses` (V6). BE: `GET /places/{id}/google`, `GET /businesses/{id}/google` → Places API (New) Place Details (`rating`, `userRatingCount`, `reviews` max 5, `googleMapsUri`), cache 24 h în memorie, cheia doar în BE. FE: bloc „Pe Google · 4,6 ★ (1.240)” cu până la 5 recenzii și „Powered by Google”, pe E3 și pe pagina firmei din aplicație.
+- **Cheia:** există deja în producție ca `GOOGLE_PLACES_API_KEY` (secretul `aradex/google-places`, pus de P1 cu `AradEx-Infrastructure/scripts/set-google-places-key.sh`); BE o leagă în `app.google.places-api-key` și o folosește doar din backend. Local: `GOOGLE_PLACES_API_KEY` în `AradEx-Backend/.env`. Harta, traseele și „Deschide în Google Maps” nu au nevoie de cheie.
 - Fără scriere/sincronizare spre Google (ar cere OAuth). Evenimentele cu bilete în aplicație rămân doar în aplicație, marcate „Doar în AradExperience”.
 
 ### T16 · Deploy final, seed de producție, demo
