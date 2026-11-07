@@ -57,11 +57,12 @@ Derivat în DTO: `isHot = participants_count >= 50 OR saves_count >= 20`; `dista
 `id, business_id FK, title, body TEXT, image_url NULL, status DEFAULT 'PUBLISHED', created_at`
 
 ### offers (T10, V7)
-`id, business_id FK, title, description TEXT, discount_label ('-20%','2+1','Gratuit'), local_product BOOL DEFAULT false, valid_from DATE, valid_until DATE, points_price INT NULL, image_url NULL, status DEFAULT 'PUBLISHED', views_count INT DEFAULT 0, redemptions_count INT DEFAULT 0, used_count INT DEFAULT 0, created_at`
+`id, business_id FK, title VARCHAR(120), description TEXT, discount_label ('-20%','2+1','Gratuit','40 p'), category ('CAFE'|'RESTAURANT'|'LOCAL'|'EVENT'|'OTHER', DEFAULT 'OTHER'), local_product BOOL DEFAULT false, valid_from DATE DEFAULT azi, valid_until DATE NULL (= permanentă), points_price INT NULL (> 0), image_url NULL, status DEFAULT 'PUBLISHED', views_count INT DEFAULT 0, redemptions_count INT DEFAULT 0, used_count INT DEFAULT 0, created_at`
+`category` adăugat în T10 pentru cercurile din tab-ul Oferte (designul final); CHECK `valid_until >= valid_from`. Index: `(business_id)`, `(status, valid_until)`.
 
 ### offer_redemptions (T10, V7)
 `id, offer_id FK, user_id FK, code UNIQUE ('AX-O{offerId}-XXXXXX'), points_spent INT DEFAULT 0, status DEFAULT 'ISSUED', issued_at, used_at NULL, used_by_user_id FK users NULL`
-Regulă: o singură revendicare cu status `ISSUED` per (offer_id, user_id).
+Regulă: o singură revendicare cu status `ISSUED` per (offer_id, user_id) — garantată de indexul unic parțial `uq_redemptions_active (offer_id, user_id) WHERE status = 'ISSUED'`. După ce codul e folosit, utilizatorul poate revendica din nou. Seed: `V7_1__seed_offers.sql` (8 oferte FICTIVE, 2 ciorne la firmele neverificate, 4 coduri).
 
 ### community_actions (T11, V8)
 `id, title, description TEXT, category, start_at, end_at, location_name, address, lat, lng, points_reward INT, capacity INT, registered_count INT DEFAULT 0, confirmed_count INT DEFAULT 0, image_url NULL, status DEFAULT 'PUBLISHED', created_by FK users, created_at`
