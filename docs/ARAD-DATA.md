@@ -32,6 +32,19 @@ Verificate pe 7 nov 2026; același autor ca exportul visitarad. **Transportul pu
 - **Recomandare pentru noi:** stațiile și liniile intră o dată în DB printr-o migrare de seed (ca la visitarad); datele live trec printr-un endpoint BE cu cache 20–30 s (`RestClient` din Spring, fără librării noi), nu direct din fiecare telefon: o singură sursă de cereri spre Telelink, reparat într-un loc dacă se schimbă ceva, și o rezervă cu datele statice dacă API-ul pică în demo.
 - **Limite:** fără orarul complet pe săptămână (doar sosirile următoare), fără GTFS, fără WebSocket; tenantul din URL poate să se schimbe. **Licență:** nicio licență explicită pe date (MIT acoperă doar codul proiectului); atribuire „Date: CTP Arad / Telelink”; proiect independent, neafiliat CTP / Primăria Arad.
 
+### Parcări cu plată Recons — modul „Mașină” al hărții (FE `feat/parking-layer`)
+- **Unde:** https://github.com/baditaflorin/arad-parking-data (`data/records.json`, `tariffs.json`, `zones.json`, `rules.json`; citit 7 nov 2026, `retrieved_at` 14:38 UTC), sursa primară https://www.reconsarad.ro/parcari-cu-plata.
+- **Ce e:** 79 de poziții (străzi / tronsoane / piețe, **nu locuri individuale**) în zonele 0 verde (doar mediana Bd. Revoluției), 1 roșie, 2 galbenă, 3 albastră, cu capacitatea; 67 au geometria OSM a străzii de referință + un punct (un vârf al străzii), 12 n-au geometrie (inclusiv Bd. Revoluției, 540 de locuri, P-ța Obor, Stadionul UTA) și **nu sunt pe hartă** (nu inventăm coordonate). Program: L–V 08:00–17:00 cu plată, seara și weekendul gratuit; excepție duminică 08:00–14:00 în zona Pieței Obor (Piața Obor, str. Pădurii = str. Prof. Dr. Aurel Ardelean, str. Căpitan Ignat). Durata maximă dată doar pentru zona 0 (2 ore).
+- **Tarife:** parcometrul în lei există în sursă **doar pentru zona 0** (3 lei / oră), care n-are geometrie; pentru zonele 1–3 sursa dă doar SMS-ul, în **EUR + TVA** (0,50 / 0,40 / 0,20 EUR pe oră, codurile 101 / 201 / 311). Cardul arată deci tariful SMS, cu moneda și codul din sursă, fără conversie în lei. Abonamentele / rezervările nu se afișează (3 valori de rezervare au `amount: null`).
+- **Cum e făcut:** `AradEx-Frontend/scripts/parking-data.mjs <folder>` → `src/shared/data/parking/parking.json` (~29 KB: id, nume scurt + tronson, zonă, capacitate, durată maximă, punct, traseul străzii simplificat Douglas–Peucker 5 m: 2.727 → 903 de puncte), încărcat leneș când pornește stratul. Fără endpoint în BE.
+- **Limite:** geometria e a **întregii străzi** din OSM, poate depăși tronsonul din sursă (ex. Calea Aurel Vlaicu); pinul e „Locație aproximativă (strada de referință)”. **Licență:** sursa Recons fără licență deschisă explicită (se citează „Sursa: Recons”); geometria OSM e ODbL → „© OpenStreetMap contributors”, afișate pe hartă cât stratul e pornit.
+
+### Stații de biciclete (bike sharing) — modul „Transport” al hărții (FE `feat/parking-layer`)
+- **Amplasamentele oficiale:** 22 de stații (330 de biciclete) în tabelul de la finalul *Regulamentului de utilizare a sistemului de închiriere biciclete (bike sharing)*, Primăria Arad (primariaarad.ro, PDF; versiunea actualizată HCL 15 mai 2025). Deblocarea se face din aplicația **GloBikes**; bicicleta se returnează la orice stație cu loc liber.
+- **Coordonate:** doar **10 din 22** au poziție publică, din harta https://aradbikes.ro (lista de stații din pagină, toate marcate „Offline” pe 7 nov 2026, deci fără disponibilitate live); toate 10 corespund unor amplasamente din regulament (Gara Aradul Nou, Piața UTA, Polivalentă, Teatru / P-ța Avram Iancu, Piața Gării, Piața Sârbească, Fortuna, Piața Arenei, Vârful cu Dor, Grădiște / Petru Rareș). Celelalte 12 nu sunt pe hartă. În OSM (`amenity=bicycle_rental`, Overpass 7 nov) e doar punctul de închiriere de la Casa de Vizitare a Parcului Natural Lunca Mureșului — adăugat ca „Închiriere biciclete”.
+- **Cum e făcut:** `AradEx-Frontend/scripts/bike-data.mjs <folder>` → `src/shared/data/bikes/bikes.json` (11 puncte, ~2 KB). Bicicletele libere nu se afișează (nu există un feed public, de ex. GBFS); cardul trimite la aplicația GloBikes.
+- **Licență:** fără licență deschisă explicită pe aradbikes.ro / regulament (se citează „Sursa: Primăria Arad · aradbikes.ro”); punctul OSM: „© OpenStreetMap contributors” (ODbL).
+
 ### Calendarul ridicării deșeurilor (opțional, T11 — localnici)
 - **Unde:** https://baditaflorin.github.io/calendar-ridicare-gunoi-arad/ (căutare după stradă / cartier, export ICS, pagină printabilă) · cod: https://github.com/baditaflorin/calendar-ridicare-gunoi-arad.
 - **Date:** JSON static — [`data/catalog.json`](https://baditaflorin.github.io/calendar-ridicare-gunoi-arad/data/catalog.json) (cartiere și străzi, cu nume normalizate pentru căutare) + `data/places/*.json` (programul pe fracții: menajer, reciclabile, campanii de voluminoase / biodeșeuri). Surse oficiale: RETIM (Zona 1, campaniile periodice) și primariaarad.ro (`docs/sources.md` din repo).
@@ -109,7 +122,7 @@ Clasament: 11 localnici fictivi noi (id 101–111: Maria D., Bogdan L., Diana F.
 ## Transport (pentru itinerar)
 - Linii, stații și vehicule live CTP: vezi §Alte date deschise (transport public) — pentru „Transport public” în T13 și stratul de hartă din T08.
 - Pe jos: centrul (Bd. Revoluției, de la Palatul Administrativ la Palatul Cultural) ≈ 1,2 km; Palatul Cultural → Cetate (peste Podul Traian) ≈ 1,5 km.
-- Mașină: parcări — Piața Avram Iancu / Teatru, zona Palatului Cultural (Bd. Dragalina), Subcetate (Piața 13 Martiri); Macea 25 km, Miniș 25 km, Moneasa 100 km.
+- Mașină: parcări — Piața Avram Iancu / Teatru, zona Palatului Cultural (Bd. Dragalina), Subcetate (Piața 13 Martiri); Macea 25 km, Miniș 25 km, Moneasa 100 km. Parcările cu plată (zone, locuri, tarif) sunt pe hartă în modul „Mașină”: vezi §Alte date deschise.
 - Transport public: CTP Arad (tramvaie pe Bd. Revoluției/Calea Aurel Vlaicu); tramvaiul Arad–Ghioroc („Săgeata Verde”) pentru Podgorie; tren Arad–Curtici (15 min) pentru Macea.
 
 ## Surse
@@ -117,6 +130,7 @@ Clasament: 11 localnici fictivi noi (id 101–111: Maria D., Bogdan L., Diana F.
 - Muzeu: museumarad.ro/program-de-vizitare · noapteamuzeelor.org
 - Filarmonica: filarmonicaarad.ro · criticarad.ro · aradculture.ro
 - Transport public: baditaflorin.github.io/arad-transport-open-data (API Telelink / CTP Arad) · deșeuri: baditaflorin.github.io/calendar-ridicare-gunoi-arad (RETIM, primariaarad.ro)
+- Parcări cu plată: github.com/baditaflorin/arad-parking-data (Recons, reconsarad.ro/parcari-cu-plata; geometrie OSM) · bike sharing: Regulamentul sistemului de închiriere biciclete (primariaarad.ro) + aradbikes.ro (coordonate) + OSM Overpass (`amenity=bicycle_rental`)
 - Locații, poze, trasee: visitarad.ro (CNIPT Arad) prin baditaflorin.github.io/hack4arad-turism-arad · coordonate verificate: openstreetmap.org (Nominatim / Overpass, 7 nov 2026)
 - Teatru: specialarad.ro/noiembrie-la-teatrul-clasic-ioan-slavici-fitn · teatrulclasic.ro · iabilet.ro · ticketstore.ro
 - Târgul de Crăciun: specialarad.ro/targul-de-craciun-2026-program-complet · aradon.ro (5 nov 2026)

@@ -12,7 +12,7 @@ FE: tipurile TypeScript din `AradEx-Frontend/src/shared/types/<modul>.ts` oglind
 
 ## DTO-uri comune
 ```ts
-type Role = 'VISITOR'|'LOCAL'|'BUSINESS'|'CITY_HALL'|'ADMIN'|'VOLUNTEER'   // VOLUNTEER: creat de Primărie (T18; coloana users.role îl acceptă după V10)
+type Role = 'VISITOR'|'LOCAL'|'BUSINESS'|'CITY_HALL'|'ADMIN'|'VOLUNTEER'   // VOLUNTEER: creat de Primărie (T18; coloana users.role îl acceptă după V15)
 type UserDto = { id: number; email: string; displayName: string; role: Role; locale: 'ro'|'en'; pointsBalance: number; business?: BusinessSummary }
 type BusinessSummary = { id: number; name: string; category: string; verified: boolean; imageUrl?: string }
 type GeoPoint = { lat: number; lng: number }
@@ -43,7 +43,7 @@ type ItineraryDto = { id?: number; shareCode?: string; title: string; summary: s
 |---|---|---|---|
 | POST | `/auth/register` | pub | **Din T21 doar firme** (`VISITOR`/`LOCAL` → 400, se fac cu telefonul) · `{ email, password(≥8), displayName, role: 'BUSINESS', business?: { name, category, address, lat?, lng? } }` → `{ token, user: UserDto }` (201; 409 dacă emailul există; 400 dacă rolul nu e VISITOR/LOCAL/BUSINESS, dacă `business` lipsește la BUSINESS sau e trimis la alt rol, dacă `category` nu e din `BusinessCategory`, email > 190 caractere, lat/lng în afara intervalelor). BUSINESS creează și firma cu `verified=false` |
 | POST | `/auth/login` | pub | Firme, Primărie, Admin · `{ email, password }` → `{ token, user }` (401 la date greșite, același mesaj pentru email inexistent și parolă greșită; T21: 403 „Personal accounts sign in with their phone number” pentru Vizitator/Localnic, doar după parola corectă) |
-| POST | `/auth/otp/request` | pub | T21 · `{ phone }` (orice formă uzuală: `0744 123 456`, `+40…`) → 202 `{ retryAfterSeconds: 60, demoCode? }`. Numerele de demo `0799000xxx` nu primesc SMS: `demoCode` vine în răspuns. Numerele de demo n-au limite (codul e public), iar orice cod demo încă valabil merge (mai mulți oameni pe același cont). Celelalte primesc SMS prin Twilio Verify, **doar numere românești `+40`** (altfel 400), cu limită globală de 300 SMS pe zi (503) și 503 „SMS unavailable” până sunt puse cheile sau dacă Twilio refuză configurația. 400 număr invalid sau care nu poate primi SMS; 429 `{ retryAfterSeconds }` dacă s-a cerut un cod în ultimele 60 s sau deja 5 în ultimele 24 h |
+| POST | `/auth/otp/request` | pub | T21 · `{ phone }` (orice formă uzuală: `0744 123 456`, `+40…`) → 202 `{ retryAfterSeconds: 60, demoCode? }`. Numerele de demo `0799000xxx` nu primesc SMS: `demoCode` vine în răspuns. Numerele de demo n-au limite (codul e public), iar orice cod demo încă valabil merge (mai mulți oameni pe același cont). Celelalte primesc SMS prin gateway-ul de pe telefonul lui Zoltan (T24, dacă `SMS_GATEWAY_TOKEN` e setat) sau prin Twilio Verify, **doar numere românești `+40`** (altfel 400), cu limită globală de 300 SMS pe zi (503) și 503 „SMS unavailable” până sunt puse cheile sau dacă Twilio refuză configurația. 400 număr invalid sau care nu poate primi SMS; 429 `{ retryAfterSeconds }` dacă s-a cerut un cod în ultimele 60 s sau deja 5 în ultimele 24 h |
 | POST | `/auth/otp/verify` | pub | T21 · `{ phone, code }` → `{ token, user }` dacă numărul are cont, altfel `{ signupToken }` (15 min). 401 „Invalid or expired code” (cod greșit, expirat după 5 min, folosit sau, la numerele reale, după 5 încercări greșite) |
 | POST | `/auth/otp/register` | pub | T21 · `{ signupToken, displayName, role: 'VISITOR'\|'LOCAL' }` → 201 `{ token, user }`; 401 token expirat, 409 numărul are deja cont, 400 alt rol |
 | GET | `/me` | auth | → `UserDto` (401 dacă tokenul e valid dar contul nu mai există) |
@@ -181,16 +181,44 @@ DTO-uri (T14):
 - Contul dezactivat (`disabled`) primește **403 `Account disabled`** la `/auth/login` și la `/auth/otp/verify`; un token emis înainte rămâne valabil până expiră (`SecurityConfig`/`JwtAuthFilter` nu se schimbă în T14).
 
 ## Voluntari (T18)
-Rolul `VOLUNTEER` e deja în `Role` (BE + FE) și în `SecurityConfig` din T03 (`/vol/**` → VOLUNTEER, `POST /auth/volunteer` public, `/city/volunteers/**` → CITY_HALL/ADMIN); T18 adaugă migrarea V10 (CHECK-ul din `users.role`). Conturile le creează doar Primăria.
+Rolul `VOLUNTEER` e în `Role` (BE + FE) și în `SecurityConfig` din T03 (`/vol/**` → VOLUNTEER, `POST /auth/volunteer` public prin `/auth/**`, `/city/**` → CITY_HALL/ADMIN). T18 adaugă migrarea **V15** (`users.role` acceptă VOLUNTEER; voluntarii n-au email / telefon în `users`) — nu V10, cum era rezervat: între timp au intrat V11 (T21), V12 (T22), V13 (T14) și V14 (SMS gateway), iar pe o bază nouă V10 ar fi rulat înaintea constrângerii „email sau telefon” din V11. Conturile le creează doar Primăria. Interfețele: `VolunteerApi` (aplicația), `VolunteerChatApi` (chatul de grup) și `CityVolunteersApi` (panoul). **Mesaje:** fiecare acțiune are un chat de grup al voluntarilor alocați ei (text și poze), doar în aplicație; Primăria / Adminul / firmele nu au mesaje în panou (decizia lui Lukas, 7 nov).
+
+**Reguli.** Acțiunea alocată e `LOCKED` până cu 30 de minute înainte de start, `OPEN` de atunci până la miezul nopții zilei în care se termină (ora Aradului; întârziații se pot confirma și după ora de final), `ENDED` după (sau dacă e `DONE`). Scanarea merge doar `OPEN`. Contul de unică folosință expiră după ultima acțiune alocată (fără acțiuni nu expiră). Suspendat sau expirat: 401 la intrare, 403 pe `/vol/**` (și cu un token vechi); contul dezactivat de Admin (T14, `users.disabled_at`): 403 „Account disabled”, ca la celelalte conturi. Coduri greșite: după 10 în 15 minute de la aceeași adresă → 429 (`retryAfterSeconds`). Telefonul voluntarului stă în `volunteers`, nu în `users.phone`, ca să nu poată intra cu OTP-ul din T21.
+
 | Metodă | Rută | Auth | Cerere → Răspuns |
 |---|---|---|---|
-| GET / POST | `/city/volunteers` | CITY_HALL, ADMIN | `{ name, phone, actionIds: number[], oneTime }` → `VolunteerDto { id, name, phone, actionIds, oneTime, status: 'ACTIVE'\|'SUSPENDED', loginCode }` (cod de 6 cifre, „trimis prin SMS” = simulat) |
-| PATCH | `/city/volunteers/{id}` | CITY_HALL, ADMIN | `{ actionIds?, status? }` → `VolunteerDto` |
-| GET / POST | `/city/volunteers/{id}/messages` | CITY_HALL, ADMIN | `{ text }` → `MessageDto { id, fromCity, text, createdAt }` |
-| POST | `/auth/volunteer` | pub | `{ code }` → `{ token, user }` (401 cod greșit sau suspendat) |
-| GET | `/vol/actions` | VOLUNTEER | → `ActionSummary[]` alocate (+ `unlocked` = se deschide cu 30 min înainte de start) |
-| POST | `/vol/scan` | VOLUNTEER | `{ code }` → `ConfirmResultDto` (aceeași logică idempotentă ca `/city/registrations/confirm`; 403 dacă acțiunea nu e a lui) |
-| GET / POST | `/vol/messages` | VOLUNTEER | `{ text }` → `MessageDto[]` / `MessageDto` |
+| GET | `/city/volunteers` | CITY_HALL, ADMIN | → `VolunteerDto[]` (cele mai noi întâi) |
+| POST | `/city/volunteers` | CITY_HALL, ADMIN | `VolunteerCreate` → `VolunteerDto` (201). Cod de 6 cifre unic, fără 0 la început, „trimis prin SMS” (simulat: îl arată panoul). Telefonul în orice format românesc → E.164. `coordinatorId` lipsă = cel care creează. 400: acțiune inexistentă / nepublicată, coordonator care nu e cont CITY_HALL / ADMIN, telefon invalid |
+| PATCH | `/city/volunteers/{id}` | CITY_HALL, ADMIN | `VolunteerUpdate` → `VolunteerDto` (câmpurile lipsă rămân; o acțiune deja alocată rămâne valabilă și după ce s-a încheiat; 404) |
+| GET | `/city/coordinators` | CITY_HALL, ADMIN | → `CoordinatorDto[]` (conturile CITY_HALL, după nume) |
+| POST | `/auth/volunteer` | pub | `{ code }` (6 cifre) → `AuthResponse { token, user }`; 401 cod greșit / suspendat / expirat; 429 |
+| GET | `/vol/me` | VOLUNTEER | → `VolunteerMeDto` (antetul „Acțiunile tale”) |
+| GET | `/vol/actions` | VOLUNTEER | → `VolunteerActionDto[]` alocate (publicate sau încheiate), după start |
+| POST | `/vol/scan` | VOLUNTEER | `{ code, actionId? }` → `ConfirmResultDto` — aceeași confirmare idempotentă ca `/city/registrations/confirm` (punctele o singură dată, `confirmedBy` = voluntarul). Ordinea erorilor: 404 cod necunoscut → 403 acțiune nealocată → 409 cod de la altă acțiune decât `actionId` („This code is for another action: <titlu>”) → 403 încă închisă / încheiată → 409 înscriere anulată |
+| GET | `/vol/scans` | VOLUNTEER | → `RegistrationDto[]` — ultimele 10 confirmări ale voluntarului („Scanări recente”) |
+| GET | `/vol/chats` | VOLUNTEER | → `ChatSummaryDto[]` — un chat pe fiecare acțiune alocată (cu mesaje noi întâi, apoi după ultimul mesaj) |
+| GET | `/vol/actions/{id}/chat` | VOLUNTEER | → `ChatDto` (voluntarii acțiunii + ultimele 200 de mesaje, cronologic); chatul devine citit. 403 dacă acțiunea nu e a lui |
+| POST | `/vol/actions/{id}/chat` | VOLUNTEER | `{ text }` (≤ 1000) → `ChatMessageDto` (201); 403 |
+| POST | `/vol/actions/{id}/chat/photo` | VOLUNTEER | `multipart/form-data` `file` (+ `?text=` opțional) → `ChatMessageDto` (201). Poza: JPEG / PNG / WebP / GIF, max 10 MB, verificată după conținut, urcată în bucket-ul de poze (`/media/chat/<aleator>.jpg`, public dar imposibil de ghicit); 400 / 403 |
+
+```ts
+type VolunteerStatus = 'ACTIVE' | 'SUSPENDED'
+type VolunteerActionState = 'LOCKED' | 'OPEN' | 'ENDED'
+type VolunteerCreate = { name: string /*≤120*/; phone: string; email?: string; coordinatorId?: number; actionIds: number[] /*≤50*/; oneTime: boolean }
+type VolunteerUpdate = { actionIds?: number[]; status?: VolunteerStatus; coordinatorId?: number }
+type VolunteerDto = { id: number /*= users.id*/; name: string; phone: string /*E.164*/; email?: string; loginCode: string; oneTime: boolean;
+  status: VolunteerStatus; expired: boolean; coordinatorId: number; coordinatorName?: string; actionIds: number[];
+  scans: number /*confirmări făcute*/; createdAt: string; lastLoginAt?: string }
+type ChatMessageDto = { id: number; actionId: number; authorId: number; authorName?: string; mine: boolean; text?: string; imageUrl?: string; createdAt: string }
+type ChatSummaryDto = { actionId: number; title: string; startAt: string; members: number; lastMessage?: ChatMessageDto; unread: number }
+type ChatDto = { actionId: number; title: string; startAt: string; members: { id: number; name: string }[]; messages: ChatMessageDto[] }
+type CoordinatorDto = { id: number; name: string }
+type VolunteerMeDto = { id: number; name: string; coordinatorName?: string; oneTime: boolean; actions: number; scanned: number;
+  toScan: number /*neconfirmați în acțiunile neîncheiate*/; unreadMessages: number /*mesaje noi în chaturi*/ }
+type VolunteerActionDto = { id: number; title: string; category: ActionCategory; startAt: string; endAt: string; locationName: string;
+  address?: string; lat: number; lng: number; pointsReward: number; imageUrl?: string; registered: number; confirmed: number;
+  confirmedByMe: number; state: VolunteerActionState; opensAt: string /*start − 30 min*/ }
+```
 
 ## Transport (T19) — fără endpoint-uri
 Liniile de tramvai CTP Arad (OSM, ODbL) și orarele de exemplu sunt date statice în FE (`shared/data/tram.ts`, din `design/final/shared/tram.js`); traseele pe jos prin OSRM, ca la T08.
@@ -216,6 +244,17 @@ type TransitArrivalDto = { routeId: number; routeShortName?: string; mode?: Tran
 type StopArrivalsDto = { stop: TransitStopDto; distanceKm?: number /*doar la nearest*/; live: boolean; updatedAt?: string; attribution: string; arrivals: TransitArrivalDto[] /*goală dacă live=false*/ }
 ```
 FE: `shared/types/transit.ts`, `shared/api/transit.ts`, `shared/composables/useTransit.ts` (`useTransitVehicles`, `useStopArrivals`, `useNearestStop`, `loadTransitStops`, `transitMarkers(stops, vehicles)` → `MapMarker`-e `{ id: 'stop:<id>' | 'vehicle:<id>', lat, lng, kind: 'stop' | 'vehicle', label }` pentru `MapView`, `label` = textul din pin: numărul liniei la vehicule, gol la stații; `vehicleTitle()` → „Tramvaiul 3 → Gara”), `shared/components/transit/NearestStop.vue` (pe S3 și E3).
+
+## SMS gateway (T24)
+Pentru scriptul de pe Mac-ul lui Zoltan (`AradEx-Ops/sms-gateway`), care trimite codurile OTP prin aplicația Mesaje (iPhone cu redirecționare SMS). Fără cont: header `X-Gateway-Token` = tokenul din secretul `aradex/sms-gateway` (gol = gateway oprit → numerele reale merg prin Twilio); altfel 401.
+
+| Metodă | Rută | Auth | Descriere |
+|---|---|---|---|
+| POST | `/sms-gateway/claim` | token | → `[{ id, phone, body }]`, max 10. Un SMS luat și neconfirmat în 60 s se dă din nou (max 3 ori, apoi FAILED); ce nu pleacă în 4 minute expiră (codul ține 5). |
+| POST | `/sms-gateway/messages/{id}/sent` | token | → 204; textul (cu codul) se șterge din DB |
+| POST | `/sms-gateway/messages/{id}/failed` | token | → 204; textul se șterge; omul cere alt cod |
+
+Codul e generat de API și ținut doar ca hash (`otp_codes.provider = GATEWAY`), cu aceleași limite ca T21 (60 s, 5 pe zi pe număr, 300 SMS reale pe zi în total, 5 încercări). Textul SMS-ului stă în `sms_outbox` (V14) doar până la trimitere și nu apare în log.
 
 ## Poze (media, T05+)
 Pozele încărcate din panou stau în S3 (bucket privat `aradex-media-…`, `AradEx-Infrastructure/terraform/modules/api/media.tf`); local, fără `MEDIA_BUCKET`, pe disc (`MEDIA_LOCAL_DIR`, implicit `uploads/`). API-ul le servește el (fără CloudFront).
@@ -260,7 +299,7 @@ Pe web, linkurile vechi de panou `/w/…` duc la aceeași cale fără prefix; î
 | `/businesses/:id` | pagina firmei |
 | `/panel` | E5 / E7: firma și Primăria pe teren (validare + liste) |
 | `/transport` · `/transport/lines/:id/:dir` · `/transport/trip/:to` | T19 |
-| `/vol/login` · `/vol/actions` · `/vol/scan` · `/vol/messages` | T18 |
+| `/vol/login` · `/vol/actions` · `/vol/scan` · `/vol/messages` · `/vol/messages/:actionId` (chatul de grup) | T18 |
 
 Tab bar: Evenimente · Chat · Hartă · Bilete/Panou · Transport; voluntarul are Acțiuni · Scanează · Mesaje.
 

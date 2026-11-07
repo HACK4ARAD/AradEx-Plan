@@ -44,7 +44,7 @@ T00 Repo & tooling
                                               └─ T11 Comunitate & puncte (T03, T10 pentru plata cu puncte)
                                                     └─ T14 Admin (T09, T10, T11)
 T15 Aplicația Android + iOS, i18n (după ce există ecranele) · T17 Google Places rating/recenzii (opțional, după T05 + T09)
-T18 Voluntari (după T11) · T19 Transport tramvai (după T08)
+T18 Voluntari (după T11) · T19 Transport tramvai (după T08) · T24 SMS gateway (după T21)
 T20 Web = prezentare + panouri (T02, T03) ─ T21 Telefon + cod OTP (T03, T20) ─ T23 Web pentru conturile personale (T21, T06–T08, T10, T11, T22)
 T22 Transport live CTP (T05, T06; stratul de hartă după T08)
 T16 Deploy final, seed de producție, demo (toate)
@@ -91,7 +91,7 @@ CORS_ORIGINS=http://localhost:5173
 ### T01 · API skeleton (Spring Boot)
 **Scop:** aplicație Spring care pornește pe Postgres, cu migrări, erori standard, OpenAPI, test de fum.
 **Depinde de:** T00
-**Stare:** ✅ gata pe `main`: compilează, rulează pe Postgres 16 și `./gradlew test` trece (inclusiv `AppSmokeTest` cu Testcontainers). Migrările de pe `main` (V1–V8, V11–V13 + seed-urile; V9 și V10 rămân rezervate pentru T13 și T18) sunt în `docs/DATA-MODEL.md`.
+**Stare:** ✅ gata pe `main`: compilează, rulează pe Postgres 16 și `./gradlew test` trece (inclusiv `AppSmokeTest` cu Testcontainers). Migrările de pe `main` (V1–V8, V11–V15 + seed-urile; V9 rămâne rezervată pentru T13, V10 a rămas nefolosită — T18 a luat V15) sunt în `docs/DATA-MODEL.md`.
 
 - Java 21, Spring Boot 3.3+, **Gradle multi-modul** (Groovy DSL, wrapper inclus): `settings.gradle` + `build.gradle` părinte (plugin-uri Spring Boot / dependency-management, Java 21 toolchain, BOM) + două module:
   - **`api` = contractul REST** (bibliotecă Java simplă, plugin `java-library`; deps: spring-web, jakarta.validation-api, swagger-annotations): `api/` — o interfață per feature cu `@RequestMapping` + `@GetMapping`/`@PostMapping`, `@Valid`, `@Operation`; `dto/<feature>/` — record-uri cerere/răspuns (+ `dto/common/`: PageResponse, HealthDto); `enums/` (Role…); `annotations/` (validări custom, ex. `@Code`); `exceptions/` (ApiException + BadRequest/NotFound/Conflict/Forbidden). Teste: serializare per DTO din JSON în resources (`dto/auth/UserDtoTest`), `DtoValidationTest`, `ApiContractTest`.
@@ -208,7 +208,7 @@ CORS_ORIGINS=http://localhost:5173
 ### T08 · Hartă & indicații
 **Scop:** S7 + „Indicații” de oriunde; componenta de hartă refolosită de itinerar (T13).
 **Depinde de:** T05, T06
-**Stare:** ✅ merge-uit (FE #26, Plan #27), fără endpoint-uri noi: Google Maps cu cheie, altfel Leaflet; trasee OSRM cu linie dreaptă de rezervă. Stratul „Transport” (stații, vehicule live, liniile CTP) a venit cu T22/T23 (FE #29, #32, #34). Harta pe web pentru contul personal conectat: T23.
+**Stare:** ✅ merge-uit (FE #26, Plan #27), fără endpoint-uri noi: Google Maps cu cheie, altfel Leaflet; trasee OSRM cu linie dreaptă de rezervă. Stratul „Transport” (stații, vehicule live, liniile CTP) a venit cu T22/T23 (FE #29, #32, #34). Harta pe web pentru contul personal conectat: T23. **Apoi (FE #39, Plan #32):** comutatorul „Pe jos / Transport + biciclete / Mașină + parcare” pe harta din aplicație și de pe web, stațiile de biciclete și zonele de parcare cu plată (sursele în `docs/ARAD-DATA.md`).
 
 - `shared/components/map/MapView.vue`: **Google Maps** (Maps JavaScript API, `GoogleMapCanvas`) când build-ul are `VITE_GOOGLE_MAPS_KEY`, altfel rezerva Leaflet (`LeafletMapCanvas`); props `markers[] {id, lat, lng, kind: event|place|offer|action|stop|vehicle, label}`, `route?`, `selectedId`, `me`, `insets`; emite `select`. (Inițial Leaflet + OSM; schimbat pe Google Maps la cererea lui Zoltan, 7 nov.)
 - `composables/useRoute.ts`: OSRM public `https://routing.openstreetmap.de/routed-{foot|car}/route/v1/driving/{lng,lat};{lng,lat}?overview=full&geometries=geojson` → polilinie + durată + distanță. Fallback: linie dreaptă + estimare 5 km/h / 30 km/h dacă OSRM pică.
@@ -302,7 +302,7 @@ CORS_ORIGINS=http://localhost:5173
 
 ### T15 · Aplicația mobilă: Android + iOS (obligatoriu), i18n
 **Depinde de:** ecranele existente
-**Stare:** 🟡 Android ✅ merge-uit în `main` (FE #7): Capacitor 6, `android/`, `npm run android:run`, rulează pe emulator (vezi `docs/SETUP.md`). Rămân iOS (nu există încă `ios/`), iconița/splash, build-urile de livrare. EN: interfața modulelor existente e tradusă (testul i18n verifică cheile și placeholder-ele pe fiecare modul); `chat`, `plan`, `transport`, `volunteer` sunt goale până se fac T12, T13, T19, T18; conținutul din DB (evenimente, locuri, ghiduri, oferte) e doar în română.
+**Stare:** 🟡 Android ✅ merge-uit în `main` (FE #7): Capacitor 6, `android/`, `npm run android:run`, rulează pe emulator (vezi `docs/SETUP.md`). **iOS:** proiectul Capacitor e în `ios/` (FE #38: iOS 15+, portret, textele pentru locație și cameră, `npm run ios:sync` / `ios:open`; FE #40: ciclul de viață UIScene, harta trece pe Leaflet dacă Google refuză cheia; Infra #9: `capacitor://localhost` în CORS). Rămân iconița/splash și build-urile de livrare (APK/AAB semnat, build iOS pe telefon / TestFlight). EN: interfața modulelor existente e tradusă (testul i18n verifică cheile și placeholder-ele pe fiecare modul); `chat`, `plan`, `transport` sunt goale până se fac T12, T13, T19; conținutul din DB (evenimente, locuri, ghiduri, oferte) e doar în română.
 
 - **Aplicația e produsul** (vezi decizia de sus): build-ul mobil (`npm run build:mobile` → `dist-mobile/`) e separat de web și nu are service worker.
 - **Android:** iconiță + splash, `versionCode`/`versionName`, APK de debug pentru demo + AAB semnat (cheia de semnare NU intră în git), URL-ul API de producție în build.
@@ -326,7 +326,7 @@ CORS_ORIGINS=http://localhost:5173
 
 ### T21 · Conturile personale intră cu telefon + cod OTP (P1)
 **Depinde de:** T03, T20
-**Stare:** ✅ merge-uit (BE #18, FE #24, Infra #7, Plan #23); SMS-ul real merge după ce sunt puse cheile Twilio.
+**Stare:** ✅ merge-uit (BE #18, FE #24, Infra #7, Plan #23). SMS-ul pentru numerele reale pleacă prin gateway-ul T24 (telefonul lui Zoltan); Twilio rămâne rezerva când tokenul gateway-ului lipsește.
 - Vizitatorul și Localnicul intră în aplicația mobilă doar cu numărul de telefon și un cod de 6 cifre: `POST /auth/otp/request` → `/auth/otp/verify` → (număr nou) `/auth/otp/register` cu numele și rolul (`docs/API.md` §Auth).
 - Numerele `0799000xxx` sunt de demo (codul apare în aplicație, fără SMS); celelalte primesc SMS prin **Twilio Verify**. SMS-ul prin AWS (SNS, End User Messaging) e blocat de SCP-ul contului.
 - Limite (doar numerele reale; cele de demo n-au, ca nimeni să nu blocheze conturile demo): cod valabil 5 minute, 5 încercări pe cod, 60 s între cereri, 5 coduri pe zi pe număr, SMS doar spre `+40`, maximum 300 SMS pe zi în total. Firma, Primăria și Adminul rămân pe e-mail + parolă (în aplicație printr-un link, pe web în W0, fără tab-ul „Cont personal”).
@@ -392,8 +392,9 @@ Max 8 slide-uri după `docs/DEMO.md` §Pitch; video de rezervă al demo-ului în
 **Verificare:** slide-urile și video-ul sunt pe laptopul de prezentare și într-un link de rezervă.
 
 ### T18 · Rol Voluntar + mesaje (din `design/final/`)
-Rol `VOLUNTEER` creat doar de Primărie din panoul web (cod de 6 cifre „prin SMS”, simulat; opțional cont de unică folosință), alocat pe acțiuni. În aplicație are doar 3 tab-uri: **Acțiuni** (blocate până în ziua acțiunii, se deschid cu 30 min înainte; bifă verde când toți participanții sunt confirmați), **Scanează** (QR sau cod manual; rezultate: confirmat +puncte / deja scanat / cod necunoscut), **Mesaje** (conversație cu coordonatorul). Primăria vede voluntarii alocați pe fiecare acțiune și cine a scanat pe cine, răspunde la mesaje; **scanarea nu se face din web**, doar din aplicație. Migrarea V10; rolul `VOLUNTEER` și regulile `/vol/**` sunt deja în `Role`/`SecurityConfig` (T03). **Doar după ce bucla T11 e verde.** **Stare:** ⬜ neînceput (V10 rezervată; ecranele `/vol/*` din aplicație și „Voluntari” / „Mesaje” din panoul Primăriei sunt placeholder).
-**Verificare:** Primăria creează un voluntar și îl alocă la o acțiune → voluntarul intră cu codul, vede doar acțiunea lui, scanează QR-ul unui localnic → localnicul primește punctele → mesajul voluntarului apare în panoul Primăriei.
+Rol `VOLUNTEER` creat doar de Primărie din panoul web (cod de 6 cifre „prin SMS”, simulat; opțional cont de unică folosință), alocat pe acțiuni. În aplicație are doar 3 tab-uri: **Acțiuni** (blocate până în ziua acțiunii, se deschid cu 30 min înainte; bifă verde când toți participanții sunt confirmați), **Scanează** (QR sau cod manual; rezultate: confirmat +puncte / deja scanat / cod necunoscut), **Mesaje** (conversație cu coordonatorul). Primăria vede voluntarii alocați pe fiecare acțiune și cine a scanat pe cine, răspunde la mesaje; **scanarea nu se face din web**, doar din aplicație. Migrarea V15 (planul rezerva V10, dar V11–V14 au intrat înainte — vezi `docs/API.md` §Voluntari); rolul era deja în `Role`/`SecurityConfig` (T03). **Doar după ce bucla T11 e verde.**
+**Stare:** ✅ merge-uit (BE #23, FE #37, Plan #31): V15 + seed V15_1, `VolunteerApi` (cod, acțiuni, scanare) + `VolunteerChatApi` (chat de grup pe acțiune, text și poze) + `CityVolunteersApi` (conturi, alocare, suspendare, coordonatori); aplicația (Conectare voluntar, Acțiunile tale, Scanează, Mesaje = chaturile de grup) și panoul (Voluntari, Voluntar nou; voluntarii în Acțiuni comunitare și Validare). **Schimbare față de design (7 nov):** fără mesaje voluntar ↔ Primărie; în locul lor, chatul de grup al voluntarilor fiecărei acțiuni, doar în aplicație. Detalii: `docs/STATUS.md`.
+**Verificare:** Primăria creează un voluntar și îl alocă la o acțiune → voluntarul intră cu codul, vede doar acțiunea lui, scanează QR-ul unui localnic → localnicul primește punctele → mesajul / poza voluntarului apare în chatul de grup al acțiunii la ceilalți voluntari (decizia din 7 nov; inițial: în panoul Primăriei).
 
 ### T19 · Transport în comun — tramvai (din `design/final/`)
 Tab „Transport” în navbar (în locul lui Salvate; Salvate rămâne în Profil). Destinație (căutare sau sugestii: locuri, repere, stații) → **lista traseelor** (variante cu tramvai: linia, stația de urcare/coborâre, durata; plus „pe jos”) → alegi una → **harta cu tot drumul**: mers pe jos până la stație (OSRM), segmentul de tramvai pe șine cu stațiile, mers pe jos până la destinație; „Pornește călătoria” = simulare cu banner „Mai ai N stații · Următoarea: X”. Stații lângă tine cu plecările următoare; pagina liniei. Date: liniile CTP Arad 1, 3, 6, 7, 15, 16 din OpenStreetMap (ODbL; `design/final/shared/tram.js`), orare de exemplu marcate „(exemplu)”; autobuzele lipsesc. **Doar după ce T08 e verde.** **Stare:** ⬜ neînceput (tab-ul `/transport`, linia și călătoria sunt placeholder); datele reale de linii și stații există deja din T22.
@@ -405,3 +406,12 @@ Tab „Transport” în navbar (în locul lui Salvate; Salvate rămâne în Prof
 - **FE web:** W0 cu tab-urile „Cont personal” (telefon + cod, `PhoneLogin` mutat în `shared/components/auth`) și „Panouri”; pentru VISITOR / LOCAL: `/` = pagina de start (evenimente, hartă mică, puncte, acțiuni, oferte), `/events`, `/events/:id` (+ stația CTP cea mai apropiată), `/events/:id/tickets`, `/checkout`, `/confirm/:code`, `/tickets/:code`, `/map` (listă + hartă, trasee, strat „Transport”), `/offers`, `/offers/:id`, `/community` cu înscriere și QR, `/community/actions/:id`, `/community/leaderboard`, `/account/{tickets,saved,points,offers,settings}`, `/businesses/:id`. Rutele au `roles: ['VISITOR','LOCAL']` (Adminul are voie peste tot); acțiunile, clasamentul și pagina firmei sunt publice.
 - **Comun:** logica ecranelor mutată din view-urile mobile în `shared/composables` (`useMapScreen`, `useTicketOrder`, `useEventPage`, `useOfferClaim`, `useActionDetail`…) și folosită de ambele aplicații; stratul „Transport” (`useTransitLayer`, `TransitPinCard`) pe ambele hărți.
 **Verificare:** login cu `0799 000 002` pe web → pagina de start; bilet cumpărat pe web apare în Contul meu; harta cu traseu și cu stații / vehicule live; toate paginile la 390 px fără scroll orizontal și la 1280.
+
+### T24 · SMS gateway: codurile OTP trimise de pe un telefon (P1)
+**Depinde de:** T21
+**Stare:** ✅ merge-uit, live (BE #22, Infra #8, Ops #2, Plan #30).
+- **BE:** coada `sms_outbox` (V14) și rutele `/sms-gateway/*` protejate cu token (`SMS_GATEWAY_TOKEN`, secretul `aradex/sms-gateway`); codurile OTP pentru numerele reale intră în coadă în loc să meargă la Twilio. Twilio rămâne rezerva când tokenul e gol. Limitele din T21 nu se schimbă. Detalii: `docs/API.md`.
+- **Ops:** scriptul `AradEx-Ops/sms-gateway` pe un Mac (aplicația Mesaje prin AppleScript, pornit cu launchd, tokenul în Keychain) trimite SMS-urile de pe iPhone-ul legat.
+- **De știut:** Mac-ul trebuie să fie pornit și iPhone-ul aproape; SMS-ul ajunge în 5–15 s; multe SMS-uri de pe un număr personal pot fi filtrate de operator.
+
+**Verificare:** un număr real cere cod în aplicație → SMS-ul vine de pe telefonul gateway-ului în ≤ 15 s → codul merge; cu tokenul gol, codul pleacă prin Twilio (sau 503 dacă nici Twilio nu are chei).
