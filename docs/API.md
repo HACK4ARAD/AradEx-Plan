@@ -163,14 +163,22 @@ AI-ul e **Claude** (Anthropic API, SDK-ul oficial Java, modelul din `ANTHROPIC_M
 ## Admin (T14)
 | Metodă | Rută | Auth | Cerere → Răspuns |
 |---|---|---|---|
-| GET | `/admin/stats` | ADMIN | → `{ usersByRole, events, ticketsSold, offersRedeemed, pointsAwarded, actions }` |
-| GET | `/city/businesses?verified=false` | CITY_HALL, ADMIN | → `BusinessDto[]` (Firme partenere) |
-| POST | `/city/businesses` | CITY_HALL, ADMIN | `{ email, name, category, address, contactName }` → `BusinessDto` (cont BUSINESS nou, verificat, parolă de unică folosință trimisă „prin e-mail”, simulat) |
-| POST | `/city/businesses/{id}/verify` | CITY_HALL, ADMIN | → `BusinessDto` (publică și conținutul `DRAFT` al firmei) |
-| POST | `/city/businesses/{id}/reject` | CITY_HALL, ADMIN | `{ reason? }` → 204 (conținutul rămâne ciornă) |
-| PATCH | `/admin/events/{id}/status` / `/admin/offers/{id}/status` / `/admin/actions/{id}/status` | ADMIN | `{ status }` |
-| GET | `/admin/users?role&q` | ADMIN | → `Page<UserDto>` |
-| PATCH | `/admin/users/{id}` | ADMIN | `{ role?, pointsAdjust?, disabled? }` → `UserDto` (punctele trec prin `PointsService`, tip `ADJUST`) |
+| GET | `/admin/stats` | ADMIN | → `AdminStatsDto` `{ usersByRole, events, ticketsSold, offersRedeemed, codesUsed, pointsAwarded, actions }` |
+| GET | `/city/businesses?verified` | CITY_HALL, ADMIN | → `CityBusinessDto[]` (Firme partenere; neverificatele primele; fără `verified` = toate) |
+| POST | `/city/businesses` | CITY_HALL, ADMIN | `{ email, name, category, address, contactName, phone? }` → 201 `{ business: CityBusinessDto, invitePassword }` (cont BUSINESS nou, verificat; invitația pe e-mail e simulată, parola de unică folosință vine o singură dată în răspuns; 409 `Email already registered`) |
+| POST | `/city/businesses/{id}/verify` | CITY_HALL, ADMIN | → `CityBusinessDto` (publică și conținutul `DRAFT` al firmei: evenimente, oferte, anunțuri; șterge respingerea) |
+| POST | `/city/businesses/{id}/reject` | CITY_HALL, ADMIN | `{ reason? }` (corp opțional) → 204. Firmă nouă: rămâne neverificată, conținutul rămâne ciornă. Firmă verificată = **suspendare**: conținutul ei publicat redevine `DRAFT` până la o nouă verificare |
+| GET | `/admin/events` · `/admin/offers` · `/admin/actions` `?status&q&all=false&page&size=50` | ADMIN | → `Page<AdminContentDto>` (Conținut & moderare: orice element, indiferent de organizator; `q` = titlu; evenimente/acțiuni: implicit doar cele neîncheiate, `all=true` = tot; `size` ≤ 100) |
+| PATCH | `/admin/events/{id}/status` / `/admin/offers/{id}/status` / `/admin/actions/{id}/status` | ADMIN | `{ status }` → `AdminContentDto` (evenimente, oferte: `DRAFT|PUBLISHED|HIDDEN`; acțiuni: `DRAFT|PUBLISHED|CANCELLED|DONE`; altceva → 400) |
+| GET | `/admin/users?role&q&page&size=20` | ADMIN | → `Page<AdminUserDto>` (`q` = nume, e-mail sau telefon) |
+| PATCH | `/admin/users/{id}` | ADMIN | `{ role?, pointsAdjust?, note?, disabled? }` → `AdminUserDto` (punctele trec prin `PointsService`, tip `ADJUST`, cu `note`; 409 `insufficient_points` dacă soldul ar deveni negativ. 400: propriul rol / propriul cont dezactivat, rolul `BUSINESS` (dat sau luat — firmele se gestionează din Firme partenere), `VOLUNTEER` (îl creează Primăria, T18)) |
+
+DTO-uri (T14):
+- `AdminStatsDto` = `{ usersByRole: { VISITOR, LOCAL, BUSINESS, CITY_HALL, ADMIN, VOLUNTEER: number }, events (publicate), ticketsSold (locuri adulți + copii pe biletele neanulate), offersRedeemed (coduri emise sau folosite), codesUsed (folosite la casă), pointsAwarded (puncte câștigate la acțiuni), actions (publicate) }`.
+- `CityBusinessDto` = `{ id, name, category, verified, imageUrl?, address?, phone?, contactName?, email?, activeOffers, draftOffers, codesUsed, createdAt, rejectedAt?, rejectReason? }` (contactul = proprietarul contului firmei).
+- `AdminContentDto` = `{ id, title, category, organizer?, businessId?, organizerVerified? (doar când organizatorul e o firmă), imageUrl?, startAt?, endAt?, validFrom?, validUntil?, participants?, capacity?, used?, views?, status }` — evenimente/acțiuni au `startAt/endAt` + `participants/capacity`, ofertele `validFrom/validUntil` + `used/views`.
+- `AdminUserDto` = `UserDto` + `{ disabled, createdAt, ticketsCount }`.
+- Contul dezactivat (`disabled`) primește **403 `Account disabled`** la `/auth/login` și la `/auth/otp/verify`; un token emis înainte rămâne valabil până expiră (`SecurityConfig`/`JwtAuthFilter` nu se schimbă în T14).
 
 ## Voluntari (T18)
 Rolul `VOLUNTEER` e deja în `Role` (BE + FE) și în `SecurityConfig` din T03 (`/vol/**` → VOLUNTEER, `POST /auth/volunteer` public, `/city/volunteers/**` → CITY_HALL/ADMIN); T18 adaugă migrarea V10 (CHECK-ul din `users.role`). Conturile le creează doar Primăria.
