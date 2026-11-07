@@ -136,7 +136,7 @@ CORS_ORIGINS=http://localhost:5173
 ### T03 · Auth & roluri
 **Scop:** conturi, login, JWT, roluri și conturile demo.
 **Depinde de:** T01, T02
-**Stare:** făcut în `feat/T03-auth` (BE, FE, Plan); deciziile sunt în `docs/STATUS.md`. Rolul `VOLUNTEER` (T18) și regula `/volunteer/**` sunt deja în `Role` / `SecurityConfig`.
+**Stare:** făcut în `feat/T03-auth` (BE, FE, Plan); deciziile sunt în `docs/STATUS.md`. Rolul `VOLUNTEER` (T18) și regula `/vol/**` sunt deja în `Role` / `SecurityConfig`.
 
 - BE (`V2__users_businesses.sql`): tabelele `users`, `businesses` (vezi DATA-MODEL). Contractul există deja în `api`: `api/AuthApi` (`POST /auth/register`, `POST /auth/login`, `GET /me`, `PATCH /me`) + `dto/auth/*` (RegisterRequest, LoginRequest, UpdateMeRequest, AuthResponse, UserDto, BusinessSummary) — de implementat în `app`: `entity/users/User`, `entity/business/Business`, `repository/…`, `service/auth/AuthService`, `mapper/users/UserMapper`, `controller/auth/AuthController implements AuthApi`. Roluri: `VISITOR, LOCAL, BUSINESS, CITY_HALL, ADMIN`. Înregistrarea permite doar `VISITOR | LOCAL | BUSINESS` (BUSINESS creează și un rând în `businesses` cu `verified=false`). `CITY_HALL` și `ADMIN` doar din seed.
 - Security: regulile pentru **toate** endpoint-urile din `docs/API.md` (coloana „Auth”) se scriu acum în `config/SecurityConfig`, ca celelalte culoare să nu mai atingă fișierul. Selectorul de limbă RO/EN (Profil + `WebLayout`) tot aici.

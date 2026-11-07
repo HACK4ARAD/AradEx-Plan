@@ -46,7 +46,7 @@ type ItineraryDto = { id?: number; shareCode?: string; title: string; summary: s
 | GET | `/me/points` | auth | → `PointsDto` (T11) |
 
 JWT: HS256, claims `sub`=userId, `role`, `email`, `exp` = 24 h. Email-ul se normalizează (trim + lowercase) la register și login.
-Securitate (T03, `config/SecurityConfig`): regulile din coloana „Auth” pentru toate rutele de mai jos sunt deja scrise; în plus `/volunteer/**` → VOLUNTEER (T18). Fără token sau token invalid → 401, rol greșit → 403, ambele ProblemDetail cu `instance`. Verificările de proprietar (creator, organizator, firma ofertei) rămân în service (403 `ForbiddenException`). Conturi demo: `visitor@demo.ro`, `local@demo.ro`, `firma@demo.ro`, `primaria@demo.ro`, `admin@demo.ro` / `demo1234`.
+Securitate (T03, `config/SecurityConfig`): regulile din coloana „Auth” pentru toate rutele de mai jos sunt deja scrise; inclusiv `/vol/**` → VOLUNTEER și `POST /auth/volunteer` public (T18). Fără token sau token invalid → 401, rol greșit → 403, ambele ProblemDetail cu `instance`. Verificările de proprietar (creator, organizator, firma ofertei) rămân în service (403 `ForbiddenException`). Conturi demo: `visitor@demo.ro`, `local@demo.ro`, `firma@demo.ro`, `primaria@demo.ro`, `admin@demo.ro` / `demo1234`.
 
 ## Locuri & ghid (T05)
 | Metodă | Rută | Auth | Cerere → Răspuns |
@@ -151,7 +151,7 @@ Răspunsul modelului e forțat cu `response_format: json_schema` (schema în `ai
 | PATCH | `/admin/users/{id}` | ADMIN | `{ role?, pointsAdjust?, disabled? }` → `UserDto` (punctele trec prin `PointsService`, tip `ADJUST`) |
 
 ## Voluntari (T18)
-Rolul `VOLUNTEER` se adaugă în `Role` și în `SecurityConfig` în T18 (`/vol/**` → VOLUNTEER). Conturile le creează doar Primăria.
+Rolul `VOLUNTEER` e deja în `Role` (BE + FE) și în `SecurityConfig` din T03 (`/vol/**` → VOLUNTEER, `POST /auth/volunteer` public, `/city/volunteers/**` → CITY_HALL/ADMIN); T18 adaugă migrarea V10 (CHECK-ul din `users.role`). Conturile le creează doar Primăria.
 | Metodă | Rută | Auth | Cerere → Răspuns |
 |---|---|---|---|
 | GET / POST | `/city/volunteers` | CITY_HALL, ADMIN | `{ name, phone, actionIds: number[], oneTime }` → `VolunteerDto { id, name, phone, actionIds, oneTime, status: 'ACTIVE'\|'SUSPENDED', loginCode }` (cod de 6 cifre, „trimis prin SMS” = simulat) |
