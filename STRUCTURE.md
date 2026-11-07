@@ -24,7 +24,7 @@ AradEx-Plan/                          REPO 1 — planul comun (= umbrela din kit
 │  ├─ PLAN.md                         T00–T19: task-uri medii, ordonate pe dependențe; fiecare cu Scop / BE / FE / Seed / Verificare (+ „Stare”)
 │  ├─ API.md                          contractul REST (endpoint-uri, DTO-uri, roluri, rute FE) — legea comună BE ↔ FE
 │  ├─ DATA-MODEL.md                   tabele, enum-uri, convenții de migrări Flyway, ce seed trebuie să existe
-│  ├─ FEATURES.md                     funcționalitățile pe roluri (reguli de business, stări, mobil vs web)
+│  ├─ FEATURES.md                     funcționalitățile pe roluri (reguli de business, stări, aplicație vs panouri web)
 │  ├─ DEMO.md                         fluxul de demo pas cu pas + pitch (orientativ; se clarifică la final)
 │  ├─ DEPLOY.md                       local + producția pe AWS (https://aradexperience.site): componente, cum ajunge codul în producție, acces
 │  └─ ARAD-DATA.md                    datele reale despre Arad folosite în seed (surse, program, tarife) și ce e FICTIV
@@ -90,7 +90,7 @@ AradEx-Backend/                       REPO 2 — backend (Spring Boot 3, Java 21
       ├─ security/JwtServiceTest · util/CodesAndGeoTest
       └─ resources/requests/<feature>/*.json   cererile pentru testele de controller (requests/auth/register.json = exemplu)
 
-AradEx-Frontend/                      REPO 3 — frontend (Vue 3.5, Vite 8, TypeScript, Tailwind 4, PWA)
+AradEx-Frontend/                      REPO 3 — frontend (Vue 3.5, Vite 8, TypeScript, Tailwind 4, Capacitor): /m = aplicația mobilă (Android + iOS), /w = site de prezentare + panouri
 ├─ CLAUDE.md                          regulile FE: structura pe feature, stack aprobat, stări obligatorii, stil Clean Ink, „Nu”
 ├─ README.md                          comenzi + ce conține scheletul
 ├─ .githooks/ · .claude/settings.json  hook-ul fără co-autori; atribuirea Claude oprită

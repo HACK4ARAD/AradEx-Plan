@@ -8,7 +8,7 @@ Acesta e **planul comun** (de aici se deschide Claude Code și aici e workspace-
 |---|---|---|
 | [AradEx-Plan](https://github.com/HACK4ARAD/AradEx-Plan) | **acesta**: `docs/` (STATUS, SETUP, PLAN, API, DATA-MODEL, FEATURES, DEMO, DEPLOY, ARAD-DATA), `design/` (prototipul final în `design/final/`), `CLAUDE.md`, `STRUCTURE.md`, `setup.sh`, `.claude/skills/` | toți, fiecare secțiunea lui din `API.md`; restul prin PR |
 | [AradEx-Backend](https://github.com/HACK4ARAD/AradEx-Backend) | Spring Boot 3 · Java 21 · Gradle (Groovy) · Postgres · Flyway · JWT — modulele `api` (contractul) și `app` (aplicația) | fiecare doar feature-urile story-ului lui |
-| [AradEx-Frontend](https://github.com/HACK4ARAD/AradEx-Frontend) | Vue 3 + Vite + TS · Pinia · Router · Tailwind 4 · vue-i18n · Leaflet · PWA · Capacitor (aplicația Android) — `/m` mobil, `/w` web | fiecare doar fișierele story-ului lui |
+| [AradEx-Frontend](https://github.com/HACK4ARAD/AradEx-Frontend) | Vue 3 + Vite + TS · Pinia · Router · Tailwind 4 · vue-i18n · Leaflet · Capacitor — `/m` = **aplicația mobilă** (Android + iOS), `/w` = site de prezentare + panouri | fiecare doar fișierele story-ului lui |
 | [AradEx-Infrastructure](https://github.com/HACK4ARAD/AradEx-Infrastructure) | Postgres local (`docker-compose.yml`) și producția pe AWS în Terraform (`terraform/`, runbook în `README.md`) | doar P1 (Zoltan) |
 | [AradEx-Ops](https://github.com/HACK4ARAD/AradEx-Ops) | agenții Paperclip: instrucțiuni, task-uri, `setup-lane.mjs` | doar P1 (Zoltan) |
 
@@ -20,6 +20,7 @@ Descrierea fiecărui folder și fișier: `STRUCTURE.md`. Căile din documente de
 3. `docs/DATA-MODEL.md` — tabele, enum-uri, convenții de migrări. `docs/FEATURES.md` — regulile pe roluri, mobil vs web.
 4. `docs/DEMO.md` — fluxul de demo, orientativ (se clarifică la final; la un PR verifici doar feature-ul lui). `docs/ARAD-DATA.md` — datele reale din seed și ce e FICTIV.
 5. `docs/STATUS.md` — **memoria proiectului**: ce story-uri sunt gata, deciziile luate (de ce e așa), problemele cunoscute. Citește-l înaintea oricărui story; fiecare PR din `AradEx-Plan` îl actualizează. `docs/SETUP.md` — ce instalezi și problemele de mediu cunoscute.
+**Produsul e aplicația mobilă** (Android APK/AAB + iOS, prin Capacitor); web-ul are doar site-ul de prezentare și panourile Primărie / Firmă / Admin — paginile publice web (W5–W15) nu se fac (decizia din `docs/PLAN.md`, sus).
 **Designul final** (sursa de adevăr pentru ecrane): `design/final/` — prototip funcțional mobil (`mobile.html`, 36 de ecrane) + web (`web.html`: site public și panourile Primărie / Admin / Firmă, 37 de pagini), planșele cu toate ecranele în `design/final/screens/`, descrierea în `design/final/README.md`. Prototipurile vechi (`design/AradExperience*.html`, `design/screens/`) rămân doar ca istoric. Stil „Clean Ink”: fundal `#FAFAF7`, ink `#111`, accent `#FF5A36`, verde comunitate `#1F3A12`/`#3B6D11`, galben oferte `#FFC244`, carduri albe radius 16–20, butoane negre radius 14–16, Inter + Material Symbols.
 
 ## Skill-uri (toate aici, în `.claude/skills/`, un singur loc)
@@ -72,7 +73,7 @@ cp ../AradEx-Frontend/.env.example ../AradEx-Frontend/.env    # VITE_API_URL, VI
 - `docs/API.md`: modifici doar secțiunea modulului tău.
 
 ## Definiția lui „gata”
-Build + teste verzi în BE și FE · criteriile din „Verificare” ale story-ului bifate pe mobil și web · feature-ul din PR e funcțional cap-coadă (nu se verifică tot fluxul de demo la fiecare PR; fluxul complet se verifică la final) · `docs/API.md` actualizat dacă s-a schimbat.
+Build + teste verzi în BE și FE · criteriile din „Verificare” ale story-ului bifate în aplicație (browser 390×844 + emulator/simulator) și, pentru panouri, pe web · feature-ul din PR e funcțional cap-coadă (nu se verifică tot fluxul de demo la fiecare PR; fluxul complet se verifică la final) · `docs/API.md` actualizat dacă s-a schimbat.
 
 ## Conturi demo
 `visitor@demo.ro`, `local@demo.ro`, `firma@demo.ro`, `primaria@demo.ro`, `admin@demo.ro` — parola `demo1234`.

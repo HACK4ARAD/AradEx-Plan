@@ -22,7 +22,11 @@ Prototip funcțional al variantei finale de design: **aplicația de telefon** (l
 
 **Din repo-ul de planning (`AradEx-Plan/design` + `docs/FEATURES.md`), adăugate acum:** obiective reale cu **ghid virtual scris + audio** (E3/W8: 12 locuri, puncte de ghid, bară audio TTS, „Ești aici”, exterior-only pentru Cetate și Turnul de Apă); **Planificator de itinerar** E1→E2→E4 / W10 (timp, dată, transport, interese, text liber → program cu ore, mers pe jos, hartă cu pini numerotați, „Pornește ghidul”); badge **🔥 Popular**, „Bilete în aplicație / Doar în AradExperience” vs **Extern** (link spre organizator), **Adaugă în calendar**, **Google Maps**; **Indicații** de oriunde; chat cu **carduri de evenimente + chips de clarificare** și generare de itinerariu; **plata cu puncte** la oferte și categoria „Cu puncte”; **pagina publică a firmei** (oferte, evenimente, anunțuri, program, păreri) și **Anunțuri**; **înregistrare firmă** → cont neverificat → **verificare** (Primărie/Admin) → conținutul devine public; **Admin platformă** (conținut & moderare: publică/ascunde orice; utilizatori: rol, puncte, dezactivare; setări); **Obiective & ghiduri** editabile în panou (+ „Generează cu AI”); site public complet (W1, W5–W15) cu landing, agendă cu filtre, hartă cu listă, oferte, comunitate cu clasament, chat, **Contul meu** ca hub; mobile **Panou pe teren** redus la ce îți trebuie la casă / pe teren (validare cod, scanare QR, lista de azi), restul doar pe web; conturi cu e-mail + parolă și roluri (FEATURES §1), date reale din `ARAD-DATA.md` (evenimente Filarmonica, Teatrul Clasic, Târgul de Crăciun, UTA) marcate față de cele demo.
 
-## Împărțirea funcționalităților (decizia propusă)
+## Împărțirea funcționalităților
+
+> **Actualizare (7 nov):** produsul e aplicația mobilă (Android + iOS). Coloana „Web public” de mai jos **nu se mai face**: pe web rămân doar site-ul de prezentare (pornind din landing-ul W1) și panourile. Vezi decizia din `docs/PLAN.md`.
+
+Tabelul inițial (istoric):
 | | Mobil (localnic, vizitator) | Web public | Web panouri |
 |---|---|---|---|
 | Evenimente, detaliu, bilete QR, salvate | ✔ principal | ✔ (grid + detaliu + cutie bilete, Contul meu) | creare/moderare |
