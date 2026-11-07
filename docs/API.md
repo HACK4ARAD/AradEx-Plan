@@ -12,7 +12,7 @@ FE: tipurile TypeScript din `AradEx-Frontend/src/shared/types/api.ts` oglindesc 
 
 ## DTO-uri comune
 ```ts
-type Role = 'VISITOR'|'LOCAL'|'BUSINESS'|'CITY_HALL'|'ADMIN'
+type Role = 'VISITOR'|'LOCAL'|'BUSINESS'|'CITY_HALL'|'ADMIN'|'VOLUNTEER'   // VOLUNTEER: creat de Primărie (T18; coloana users.role îl acceptă după V10)
 type UserDto = { id: number; email: string; displayName: string; role: Role; locale: 'ro'|'en'; pointsBalance: number; business?: BusinessSummary }
 type BusinessSummary = { id: number; name: string; category: string; verified: boolean; imageUrl?: string }
 type GeoPoint = { lat: number; lng: number }
@@ -39,13 +39,14 @@ type ItineraryDto = { id?: number; shareCode?: string; title: string; summary: s
 ## Auth & utilizator (T03)
 | Metodă | Rută | Auth | Cerere → Răspuns |
 |---|---|---|---|
-| POST | `/auth/register` | pub | `{ email, password(≥8), displayName, role: 'VISITOR'\|'LOCAL'\|'BUSINESS', business?: { name, category, address, lat?, lng? } }` → `{ token, user: UserDto }` (409 dacă emailul există) |
-| POST | `/auth/login` | pub | `{ email, password }` → `{ token, user }` (401 la date greșite) |
-| GET | `/me` | auth | → `UserDto` |
+| POST | `/auth/register` | pub | `{ email, password(≥8), displayName, role: 'VISITOR'\|'LOCAL'\|'BUSINESS', business?: { name, category, address, lat?, lng? } }` → `{ token, user: UserDto }` (201; 409 dacă emailul există; 400 dacă rolul nu e VISITOR/LOCAL/BUSINESS, dacă `business` lipsește la BUSINESS sau e trimis la alt rol, dacă `category` nu e din `BusinessCategory`, email > 190 caractere, lat/lng în afara intervalelor). BUSINESS creează și firma cu `verified=false` |
+| POST | `/auth/login` | pub | `{ email, password }` → `{ token, user }` (401 la date greșite, același mesaj pentru email inexistent și parolă greșită) |
+| GET | `/me` | auth | → `UserDto` (401 dacă tokenul e valid dar contul nu mai există) |
 | PATCH | `/me` | auth | `{ displayName?, locale? }` → `UserDto` |
 | GET | `/me/points` | auth | → `PointsDto` (T11) |
 
-JWT: HS256, claims `sub`=userId, `role`, `email`, `exp` = 24 h. Conturi demo: `visitor@demo.ro`, `local@demo.ro`, `firma@demo.ro`, `primaria@demo.ro`, `admin@demo.ro` / `demo1234`.
+JWT: HS256, claims `sub`=userId, `role`, `email`, `exp` = 24 h. Email-ul se normalizează (trim + lowercase) la register și login.
+Securitate (T03, `config/SecurityConfig`): regulile din coloana „Auth” pentru toate rutele de mai jos sunt deja scrise; în plus `/volunteer/**` → VOLUNTEER (T18). Fără token sau token invalid → 401, rol greșit → 403, ambele ProblemDetail cu `instance`. Verificările de proprietar (creator, organizator, firma ofertei) rămân în service (403 `ForbiddenException`). Conturi demo: `visitor@demo.ro`, `local@demo.ro`, `firma@demo.ro`, `primaria@demo.ro`, `admin@demo.ro` / `demo1234`.
 
 ## Locuri & ghid (T05)
 | Metodă | Rută | Auth | Cerere → Răspuns |
