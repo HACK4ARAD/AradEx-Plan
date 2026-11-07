@@ -43,7 +43,10 @@ T00 Repo & tooling
                                               │     └─ T10 Oferte & coduri  │
                                               └─ T11 Comunitate & puncte (T03, T10 pentru plata cu puncte)
                                                     └─ T14 Admin (T09, T10, T11)
-T15 i18n + PWA/Capacitor (după ce există ecranele) · T17 Google Places rating/recenzii (opțional, după T05 + T09)
+T15 Aplicația Android + iOS, i18n (după ce există ecranele) · T17 Google Places rating/recenzii (opțional, după T05 + T09)
+T18 Voluntari (după T11) · T19 Transport tramvai (după T08)
+T20 Web = prezentare + panouri (T02, T03) ─ T21 Telefon + cod OTP (T03, T20) ─ T23 Web pentru conturile personale (T21, T06–T08, T10, T11, T22)
+T22 Transport live CTP (T05, T06; stratul de hartă după T08)
 T16 Deploy final, seed de producție, demo (toate)
 ```
 
@@ -88,7 +91,7 @@ CORS_ORIGINS=http://localhost:5173
 ### T01 · API skeleton (Spring Boot)
 **Scop:** aplicație Spring care pornește pe Postgres, cu migrări, erori standard, OpenAPI, test de fum.
 **Depinde de:** T00
-**Stare:** schelet scris în `AradEx-Backend/` (vezi `README.md` și `CLAUDE.md` de acolo) — rămâne de compilat, rulat și corectat ce nu trece. Migrările **V1–V4 + seed-urile V2_1, V3_1, V4_1 sunt scrise și verificate pe Postgres 16** (T03, T05, T06 pornesc cu schema și datele gata).
+**Stare:** ✅ gata pe `main`: compilează, rulează pe Postgres 16 și `./gradlew test` trece (inclusiv `AppSmokeTest` cu Testcontainers). Migrările de pe `main` (V1–V8, V11–V13 + seed-urile; V9 și V10 rămân rezervate pentru T13 și T18) sunt în `docs/DATA-MODEL.md`.
 
 - Java 21, Spring Boot 3.3+, **Gradle multi-modul** (Groovy DSL, wrapper inclus): `settings.gradle` + `build.gradle` părinte (plugin-uri Spring Boot / dependency-management, Java 21 toolchain, BOM) + două module:
   - **`api` = contractul REST** (bibliotecă Java simplă, plugin `java-library`; deps: spring-web, jakarta.validation-api, swagger-annotations): `api/` — o interfață per feature cu `@RequestMapping` + `@GetMapping`/`@PostMapping`, `@Valid`, `@Operation`; `dto/<feature>/` — record-uri cerere/răspuns (+ `dto/common/`: PageResponse, HealthDto); `enums/` (Role…); `annotations/` (validări custom, ex. `@Code`); `exceptions/` (ApiException + BadRequest/NotFound/Conflict/Forbidden). Teste: serializare per DTO din JSON în resources (`dto/auth/UserDtoTest`), `DtoValidationTest`, `ApiContractTest`.
@@ -106,7 +109,7 @@ CORS_ORIGINS=http://localhost:5173
 ### T02 · APP skeleton (Vue 3)
 **Scop:** proiectul Vue cu cele două „aplicații” (mobil + web), design tokens Clean Ink, client API, PWA.
 **Depinde de:** T00
-**Stare:** ✅ schelet + pregătirea anti-conflict (FE #8): view per rută (și per secțiune în panourile web), cochilii pentru Acasă / `/panel` / landing / Contul meu, i18n/types/api pe module, `AppSheet`, `QrCode`, `QrScanner`, `useGeo`. Cine ce fișiere are: `AradEx-Frontend/CLAUDE.md` §Culoare; deciziile în `docs/STATUS.md`.
+**Stare:** ✅ merge-uit (FE #8, Plan #6): schelet + pregătirea anti-conflict: view per rută (și per secțiune în panourile web), cochilii pentru Acasă / `/panel` / landing / Contul meu, i18n/types/api pe module, `AppSheet`, `QrCode`, `QrScanner`, `useGeo`. Cine ce fișiere are: `AradEx-Frontend/CLAUDE.md` §Culoare; deciziile în `docs/STATUS.md`.
 
 - Proiect Vite + vue-ts la rădăcina repo-ului; adaugi: vue-router, pinia, tailwindcss, vue-i18n, @vueuse/core, leaflet + @types/leaflet, qrcode, html5-qrcode, vite-plugin-pwa; dev: vitest, @vue/test-utils, eslint + prettier.
 - Structură:
@@ -114,7 +117,7 @@ CORS_ORIGINS=http://localhost:5173
   AradEx-Frontend/src/
     shared/      api/ (client.ts, auth.ts, events.ts …)  types/api.ts (oglinda docs/API.md)
                  stores/ (auth, ui)  components/ (Button, Card, Chip, Input, Sheet, Toast, EventCard, OfferCard, MapView, QrCode, QrScanner)
-                 composables/ (useGeo, useTts, useFormat)  i18n/ (ro.json, en.json)  styles/tokens.css
+                 composables/ (useGeo, useTts, useFormat)  i18n/ (ro/<modul>.json, en/<modul>.json)  styles/tokens.css
     mobile/      layouts/MobileLayout.vue (top bar + bottom tabs)  views/…
     web/         layouts/WebLayout.vue (sidebar + content)         views/…
     router/      mobile.ts / web.ts (rutele fără prefix) · guard.ts; routerul fiecărui build în web/router.ts și mobile/router.ts (alias `@app`; `npm run build` = web, `npm run build:mobile` = aplicația)
@@ -122,7 +125,7 @@ CORS_ORIGINS=http://localhost:5173
 - Tokens (din `design/final/shared/ui.css`): fundal `#FAFAF7`, ink `#111111`, text secundar `#5C5C5C`, border `#E8E8E3`, soft `#F1F1EC`, accent `#FF5A36`, verde comunitate `#3B6D11` / închis `#1F3A12` / soft `#E4EFDA`, galben oferte `#FFC244`, piersică `#FFE8E2`; panouri web: fundal `#F6F6F3`, sidebar `#0E0E10`; card `#FFFFFF` radius 16, buton primar negru radius 14 h48, chip radius 999. Font Inter (Google Fonts), icon-uri Material Symbols Outlined.
 - `shared/api/client.ts`: `fetch` wrapper cu `VITE_API_URL`, header `Authorization: Bearer`, parsare ProblemDetail → `ApiError`, 401 → logout + redirect login.
 - Componente de bază + `MobileLayout` cu tab bar: Evenimente · Chat · Hartă (buton rotund central) · Bilete · Transport (pentru firmă/primărie tab-ul Bilete devine Panou; Salvate e în Profil; voluntarul are doar Acțiuni · Scanează · Mesaje). `WebLayout`: sidebar stânga cu meniu în funcție de rol.
-- PWA: `vite-plugin-pwa` cu manifest (nume, icon 512, `display: standalone`, culoare `#111111`), service worker implicit.
+- PWA: `vite-plugin-pwa` cu manifest (nume, icon 512, `display: standalone`, culoare `#111111`), service worker implicit. **Înlocuit în T20:** web-ul nu mai e PWA (service worker-ul publicat se șterge singur), iar aplicația mobilă e un build separat pentru Capacitor (T15).
 - Pagini placeholder pentru toate rutele din `docs/API.md` §Rute FE, ca să existe navigația de la început.
 
 - **Pregătire anti-conflict (obligatoriu, ca 4 oameni să lucreze în paralel fără să se calce):**
@@ -138,7 +141,7 @@ CORS_ORIGINS=http://localhost:5173
 ### T03 · Auth & roluri
 **Scop:** conturi, login, JWT, roluri și conturile demo.
 **Depinde de:** T01, T02
-**Stare:** ✅ merge-uit în `main` (BE #5, FE #5, Plan #4); deciziile sunt în `docs/STATUS.md`. Rolul `VOLUNTEER` (T18) și regula `/vol/**` sunt deja în `Role` / `SecurityConfig`.
+**Stare:** ✅ merge-uit în `main` (BE #5, FE #5, Plan #4); deciziile sunt în `docs/STATUS.md`. Rolul `VOLUNTEER` (T18) și regula `/vol/**` sunt deja în `Role` / `SecurityConfig`. **Schimbat de T21:** Vizitatorul și Localnicul nu mai au e-mail și parolă — intră cu telefon + cod; `/auth/register` e doar pentru firme, iar `/auth/login` refuză conturile personale (403). Textul de mai jos e varianta inițială.
 
 - BE (`V2__users_businesses.sql`): tabelele `users`, `businesses` (vezi DATA-MODEL). Contractul există deja în `api`: `api/AuthApi` (`POST /auth/register`, `POST /auth/login`, `GET /me`, `PATCH /me`) + `dto/auth/*` (RegisterRequest, LoginRequest, UpdateMeRequest, AuthResponse, UserDto, BusinessSummary) — de implementat în `app`: `entity/users/User`, `entity/business/Business`, `repository/…`, `service/auth/AuthService`, `mapper/users/UserMapper`, `controller/auth/AuthController implements AuthApi`. Roluri: `VISITOR, LOCAL, BUSINESS, CITY_HALL, ADMIN`. Înregistrarea permite doar `VISITOR | LOCAL | BUSINESS` (BUSINESS creează și un rând în `businesses` cu `verified=false`). `CITY_HALL` și `ADMIN` doar din seed.
 - Security: regulile pentru **toate** endpoint-urile din `docs/API.md` (coloana „Auth”) se scriu acum în `config/SecurityConfig`, ca celelalte culoare să nu mai atingă fișierul. Selectorul de limbă RO/EN (Profil + `WebLayout`) tot aici.
@@ -167,6 +170,7 @@ CORS_ORIGINS=http://localhost:5173
 ### T05 · Locuri & ghid virtual
 **Scop:** obiectivele turistice din Arad cu ghid scris + audio pe puncte de interes (ecranul E3), baza pentru hartă și itinerar.
 **Depinde de:** T03 (pentru CRUD-ul de admin), T01/T02
+**Stare:** ✅ merge-uit (BE #8, FE #11, Plan #9). Apoi: **235 de locuri** (223 reale noi din exportul visitarad.ro, coordonatele celor 12 corectate, poză și pentru Podgoria Miniș — `V3_2`, BE #14, Plan #17) și pozele în S3 (BE #17, #20, FE #23, Infra #6, Plan #22, #26). Lista celor 12 de mai jos e seed-ul inițial.
 
 - BE (`V3__places.sql`): `places`, `guide_points`. Endpoint-uri publice: `GET /places?type&q`, `GET /places/{id}` (include `guidePoints[]` ordonate). Editare (Primăria și Adminul, „Obiective & ghiduri”): `POST/PUT/DELETE /city/places`, `POST/PUT/DELETE /city/places/{id}/guide-points`.
 - **Gata:** `V3__places.sql` + `V3_1__seed_places.sql` (12 locuri reale, 33 puncte de ghid, coloana `exterior_only` pentru Cetate/Turnul de Apă — vezi `docs/ARAD-DATA.md`). **Pozele** (Wikimedia Commons, cu licență și credit) sunt în `design/assets/loc-*.jpg` și în `AradEx-Frontend/public/img/`, legate de locuri și de evenimentele din aceleași săli prin `V4_2__seed_images.sql` (11 din 12; Podgoria Miniș n-are încă poză liberă). Rămâne eventual EN. Locurile: Cetatea Aradului, Palatul Cultural (Filarmonica + Muzeul), Teatrul Clasic „Ioan Slavici”, Palatul Administrativ (Primăria), Biserica Roșie, Catedrala „Sfânta Treime”, Catedrala „Sf. Anton de Padova”, Turnul de Apă, Faleza Mureșului, Pădurea Ceala, Podgoria Miniș, Castelul Macea. Fiecare: coordonate corecte, program, durată de vizită, 3–6 puncte de ghid de câte 60–120 de cuvinte (generate cu Claude/GPT, verificate sumar). **Date reale (7 nov):** `V3_2__places_visitarad.sql` corectează coordonatele celor 12 (erau deplasate 150 m – 4 km; verificate pe OSM), dă Podgoriei Miniș o poză și adaugă 223 de locuri din exportul visitarad.ro (CNIPT Arad) — fără ghid, cu poza legată de pe visitarad și atribuirea „Foto și date: CNIPT Arad / visitarad.ro”; `V5_2__seed_event_venues.sql` aliniază sălile evenimentelor. Vezi `docs/ARAD-DATA.md`.
@@ -178,12 +182,12 @@ CORS_ORIGINS=http://localhost:5173
 ### T06 · Evenimente — listare, căutare, detaliu, salvate
 **Scop:** inima aplicației: S1, S2, S3, Salvate, hot events (doar în aplicația mobilă; pe web evenimentele se gestionează din panouri).
 **Depinde de:** T03, T05
-**Stare:** ✅ PR deschis (BE #9, FE #12, Plan #11) — peste piesele de evenimente din T09; din T05 folosește doar tabela `places` (deja în V3). Detalii și decizii: `docs/STATUS.md`.
+**Stare:** ✅ merge-uit (BE #9, FE #12, Plan #11) — peste piesele de evenimente din T09; din T05 folosește doar tabela `places` (deja în V3). Detalii și decizii: `docs/STATUS.md`.
 
 - BE (`V4__events.sql`): `events`, `saved_events`. `GET /events` cu filtre `from,to,category,near=lat,lng,radiusKm,organizerBusinessId,organizerType,hot,q,page,size`, sortare după `startAt`; `GET /events/{id}`; `POST/DELETE /events/{id}/save`; `GET /me/saved-events`. `isHot` = `participantsCount >= 50 || savesCount >= 20` (praguri în config). `distanceKm` calculat în DTO când vine `near`.
 - Creare evenimente: `POST /events` (CITY_HALL/ADMIN) în T06, cu metode publice în `EventService` (`createForOrganizer`, `updateForOrganizer`, `deleteForOrganizer`) pe care T09 (P4) le apelează din `BusinessController` — P4 nu modifică pachetul `events`.
 - **Gata:** `V4__events.sql` + `V4_1__seed_events.sql` + `V4_4__seed_events_more.sql` (încă 5 reale, inclusiv expozițiile Complexului Muzeal) (21 evenimente reale din nov–dec 2026 — Filarmonica, Teatrul Clasic, Târgul de Crăciun, UTA — marcate `is_demo=false`, + 9 demo cu `is_demo=true`). Lista orientativă inițială era: 15–20 evenimente reale/plauzibile pe 7–30 nov 2026 (Filarmonica, Teatrul Clasic, expoziții la Palatul Cultural, tur ghidat la Cetate, târg de produse locale, meci UTA, Festivalul vinului Miniș etc.), categorii: `CONCERT, THEATRE, FAMILY, EXHIBITION, SPORT, OUTDOOR, FAIR, FOOD`.
-- FE mobil: S1 Acasă (header „Ce faci în Arad?”, căutare, cele 3 carduri Evenimente/Oferte/Comunitate, chips Azi/Weekend/7 zile, lista), S2 Căutare + filtre (sheet), S3 Detaliu (hero, bilete, dată, loc + „Indicații”, preț, descriere, „🔥 Popular · N participă”), Salvate. Web: fără agendă publică (W5/W6 nu se fac); panoul Primăriei „Evenimente” e în T11/T14.
+- FE mobil: S1 Acasă (header „Ce faci în Arad?”, căutare, cele 3 carduri Evenimente/Oferte/Comunitate, chips Azi/Weekend/7 zile, lista), S2 Căutare + filtre (sheet), S3 Detaliu (hero, bilete, dată, loc + „Indicații”, preț, descriere, „🔥 Popular · N participă”), Salvate. Web: fără agendă publică pentru cei neconectați; panoul Primăriei „Evenimente” e în T11/T14. **Din T23** contul personal conectat vede pe web `/events`, `/events/:id` și biletele (W5/W6).
 - `EventCard` în `shared/components` folosit de ambele UI.
 
 **Verificare:** filtrele funcționează pe date reale; „near” ordonează după distanță; salvare persistă după refresh; `EventQueryTest` (filtru dată/categorie, hot), `EventServiceTest` (save/unsave idempotent).
@@ -191,11 +195,11 @@ CORS_ORIGINS=http://localhost:5173
 ### T07 · Bilete & înscriere la evenimente
 **Scop:** S4 → S5 → S6 → S9 → S10 cu plată simulată și cod QR.
 **Depinde de:** T06
-**Stare:** ✅ PR deschis, stivuit pe T06 (BE #10, FE #13, Plan #11). Fără recenzii (partea 2) și fără seed-ul V5_1 cu bilete demo.
+**Stare:** ✅ merge-uit (BE #10, FE #13, Plan #11), cu seed-ul `V5_1` (un bilet demo trecut pentru Localnic). Lipsesc recenziile (partea 2): tabela `reviews` există, fără endpoint-uri; pagina „Recenzii” din panoul firmei e încă placeholder.
 
 - BE (`V5__tickets.sql`): `tickets`. `POST /events/{id}/tickets {qtyAdult, qtyChild, email}` → validează capacitate (`capacity - participantsCount`), calculează totalul din `priceAdult/priceChild`, generează `code = AX-T{eventId}-{6 alfanumerice}`, incrementează `participantsCount`. `GET /me/tickets?upcoming=true|false`, `GET /tickets/{code}` (doar proprietar/organizator/admin), `POST /tickets/{code}/use` (organizator/admin). Evenimente `FREE` → bilet gratuit cu același flux („Înscrie-te”), `EXTERNAL` → doar link.
 - „Plata”: FE arată S5 cu card salvat/nou; BE nu procesează nimic — se confirmă direct. În UI scrie „Plată demonstrativă”.
-- FE mobil: S4 (date, Adult/Copil, total), S5 (email + metodă), S6 (confirmare), S9 (Viitoare/Trecute), S10 (bilet cu QR generat din `code` cu `qrcode`, „funcționează offline” — cache-uim biletele în localStorage). Biletele există doar în aplicație (fără „Contul meu” pe web).
+- FE mobil: S4 (date, Adult/Copil, total), S5 (email + metodă), S6 (confirmare), S9 (Viitoare/Trecute), S10 (bilet cu QR generat din `code` cu `qrcode`, „funcționează offline” — cache-uim biletele în localStorage). Biletele există în aplicație și, din T23, în „Contul meu” pe web pentru contul personal conectat.
 - **Calendar:** `GET /events/{id}/ics` (fișier .ics) + link „Google Calendar” construit în FE (template URL, fără login) pe S3 și pe bilet.
 - **Recenzii (partea 2, dacă e timp în T07 sau la T15):** tabela `reviews` (în V5), `GET/POST/PUT /events/{id}/reviews` doar după ce evenimentul a trecut, 1–5 stele + text, media pe S3 și pe pagina firmei din aplicație. Vezi `docs/FEATURES.md` §9.
 
@@ -204,11 +208,12 @@ CORS_ORIGINS=http://localhost:5173
 ### T08 · Hartă & indicații
 **Scop:** S7 + „Indicații” de oriunde; componenta de hartă refolosită de itinerar (T13).
 **Depinde de:** T05, T06
+**Stare:** ✅ merge-uit (FE #26, Plan #27), fără endpoint-uri noi: Google Maps cu cheie, altfel Leaflet; trasee OSRM cu linie dreaptă de rezervă. Stratul „Transport” (stații, vehicule live, liniile CTP) a venit cu T22/T23 (FE #29, #32, #34). Harta pe web pentru contul personal conectat: T23.
 
 - `shared/components/map/MapView.vue`: **Google Maps** (Maps JavaScript API, `GoogleMapCanvas`) când build-ul are `VITE_GOOGLE_MAPS_KEY`, altfel rezerva Leaflet (`LeafletMapCanvas`); props `markers[] {id, lat, lng, kind: event|place|offer|action|stop|vehicle, label}`, `route?`, `selectedId`, `me`, `insets`; emite `select`. (Inițial Leaflet + OSM; schimbat pe Google Maps la cererea lui Zoltan, 7 nov.)
 - `composables/useRoute.ts`: OSRM public `https://routing.openstreetmap.de/routed-{foot|car}/route/v1/driving/{lng,lat};{lng,lat}?overview=full&geometries=geojson` → polilinie + durată + distanță. Fallback: linie dreaptă + estimare 5 km/h / 30 km/h dacă OSRM pică.
 - `composables/useGeo.ts`: `navigator.geolocation` cu fallback pe centrul Aradului (46.1866, 21.3123).
-- FE mobil S7: hartă full-screen, căutare, chips Azi/Weekend/7 zile, filtre Locuri/Evenimente/Oferte, categorii; tap pe pin → card preview jos → „Arată traseul” (pe jos/mașină) / „Deschide”. „Indicații” din S3/E3/oferte deschide S7 centrat cu traseu. Web: fără hartă publică (W9 nu se face; site-ul de prezentare poate avea o captură).
+- FE mobil S7: hartă full-screen, căutare, chips Azi/Weekend/7 zile, filtre Locuri/Evenimente/Oferte, categorii; tap pe pin → card preview jos → „Arată traseul” (pe jos/mașină) / „Deschide”. „Indicații” din S3/E3/oferte deschide S7 centrat cu traseu. Web: fără hartă pentru cei neconectați; **din T23** contul personal conectat are `/map` pe web (W9: listă + hartă, trasee, strat „Transport”).
 - Opțional: buton „Deschide în Google Maps” (`https://www.google.com/maps/dir/?api=1&destination=lat,lng`) — util real pe telefon.
 - **Opțional, date reale (7 nov): transport public CTP — T22 (mai jos)** — stratul „Transport” pe hartă cu cele 299 de stații și tramvaiele / autobuzele **live**, plus „Stația cea mai apropiată · tramvaiul 1 în 4 min” pe E3/S3. Sursa: API-ul public Telelink (fără cheie, CORS ok pentru producție și Android) + exportul static de linii și stații; recomandat prin BE (stațiile seed, live cu cache 20–30 s, rezervă statică). Detalii și reguli de folosire: `docs/ARAD-DATA.md` §Alte date deschise.
 
@@ -221,9 +226,10 @@ CORS_ORIGINS=http://localhost:5173
 ### T09 · Firme: profil, evenimente, anunțuri, panou
 **Scop:** rolul Firmă locală: pagina publică a firmei, publicare evenimente și anunțuri, panoul cu statistici (panou complet pe web, E5 cu operațiunile de teren în aplicație).
 **Depinde de:** T03, T06
+**Stare:** ✅ merge-uit (BE #7, FE #10, Plan #8). Verificarea firmelor (conținutul `DRAFT` devine public) a venit cu T14.
 
 - BE (`V6__business_posts.sql`): `announcements` (+ `events.organizer_business_id` există din V4). `GET /businesses/{id}` (profil + evenimente viitoare + oferte active + anunțuri), `GET /business/me` (firma mea + `stats {views, codesUsed, pointsPayments, upcomingEvents}`), `PUT /business/me`, `POST/PUT/DELETE /business/events`, `GET /business/events`, `POST/DELETE /business/announcements`, `GET /business/activity` (ultimele 20: cod folosit, ofertă salvată, înscriere la eveniment). Firma neverificată poate crea, dar conținutul rămâne `DRAFT` până la verificare (T14) — pentru demo firma din seed e verificată.
-- FE web `/business`: dashboard (3 statistici), tab-uri **Oferte / Evenimente / Anunțuri / Coduri**, formulare de creare (sheet pe mobil, pagină pe web), activitate recentă. FE mobil `/panel` (E5): aceleași tab-uri simplificate + butonul „Validează cod”. Pagina publică a firmei doar în aplicație: `/businesses/:id` (W15 nu se mai face; `/businesses/:id` dispare în T20).
+- FE web `/business`: dashboard (3 statistici), tab-uri **Oferte / Evenimente / Anunțuri / Coduri**, formulare de creare (sheet pe mobil, pagină pe web), activitate recentă. FE mobil `/panel` (E5): aceleași tab-uri simplificate + butonul „Validează cod”. Pagina publică a firmei: în aplicație `/businesses/:id`; pe web a fost scoasă în T20 și **readusă în T23** (`/businesses/:id`, W15, publică).
 - Evenimentele firmei apar în S1/S2 ca orice eveniment, cu „Organizat de {firmă}”.
 
 **Verificare:** o firmă creează un eveniment și îl vede în lista publică; anunțul apare pe pagina firmei; firma nu poate edita evenimentul altei firme (403); `BusinessServiceTest`.
@@ -231,8 +237,9 @@ CORS_ORIGINS=http://localhost:5173
 ### T10 · Oferte & coduri de revendicare
 **Scop:** tab-ul Oferte (vizitator/localnic), revendicare cu cod/QR, validare la firmă.
 **Depinde de:** T09
+**Stare:** ✅ merge-uit (BE #13, FE #15, Plan #16). Plata cu puncte a venit cu T11 (`POST /offers/{id}/redeem?withPoints=true`).
 
-- BE (`V7__offers.sql`): `offers`, `offer_redemptions`. Public: `GET /offers?category&localProduct&near`, `GET /offers/{id}` (incrementează `viewsCount`). Autentificat: `POST /offers/{id}/redeem` → `code = AX-O{offerId}-{6}`, status `ISSUED`, o revendicare activă per user per ofertă (409 altfel); `GET /me/redemptions`. Firmă: `POST/PUT/DELETE /business/offers`, `GET /business/offers`, `POST /business/redemptions/use {code}` → `USED` + `usedAt` (409 dacă e deja folosit/nu e al firmei). `pointsPrice` se setează aici, dar debitarea punctelor vine în T11 (până atunci ofertele cu `pointsPrice` se revendică gratuit cu un TODO vizibil).
+- BE (`V7__offers.sql`): `offers`, `offer_redemptions`. Public: `GET /offers?category&localProduct&near`, `GET /offers/{id}` (incrementează `viewsCount`). Autentificat: `POST /offers/{id}/redeem` → `code = AX-O{offerId}-{6}`, status `ISSUED`, o revendicare activă per user per ofertă (409 altfel); `GET /me/redemptions`. Firmă: `POST/PUT/DELETE /business/offers`, `GET /business/offers`, `POST /business/redemptions/use {code}` → `USED` + `usedAt` (409 dacă e deja folosit/nu e al firmei). `pointsPrice` se setează aici; debitarea punctelor e făcută în T11 (`PointsService.spend`, 409 `insufficient_points`).
 - Seed `V7_1__seed_offers.sql`: 5–8 oferte (cafea -20%, covrigi 2+1, degustare Miniș, miere „Făcut în Arad”, prăjitură) — pozele sunt în `design/assets/`.
 - FE mobil: tab Oferte pe S1 (banner „Doar în AradExperience”, categorii Cafenele/Restaurante/Făcut în Arad/Evenimente, carduri), detaliu ofertă („Revendică” → sheet cu QR + cod + „Arată codul la casă”). Panou firmă (web + mobil): lista ofertelor cu vizualizări/folosite, formular ofertă nouă, ecran „Validează cod” (input + scanner QR cu `html5-qrcode`).
 
@@ -241,7 +248,7 @@ CORS_ORIGINS=http://localhost:5173
 ### T11 · Comunitate & puncte (Primărie + Localnic)
 **Scop:** bucla principală a demo-ului: acțiune comunitară → înscriere → QR → validare de Primărie → puncte → clasament → plată cu puncte la o firmă.
 **Depinde de:** T03, T10
-**Stare:** ✅ gata pe `feat/T11-community` (fără voluntari, T18), inclusiv plata cu puncte la oferte (BE/FE/Plan): V8 + seed, `PointsService` (`award`/`spend`/`adjust`), endpoint-urile publice + `/city/**` + `/city/dashboard`, ecranele din aplicație (S1d, acțiune, clasament, `/panel` pe teren) și panoul web al Primăriei (Panou / Acțiuni / Validare / Clasament, stil web). API aliniat la design (ciorne, `organizer`, categoriile din design). Plata cu puncte: `POST /offers/{id}/redeem?withPoints=true`. Detalii: `docs/STATUS.md`.
+**Stare:** ✅ merge-uit (BE #16, FE #22, Plan #21; fără voluntari, T18), inclusiv plata cu puncte la oferte (BE/FE/Plan): V8 + seed, `PointsService` (`award`/`spend`/`adjust`), endpoint-urile publice + `/city/**` + `/city/dashboard`, ecranele din aplicație (S1d, acțiune, clasament, `/panel` pe teren) și panoul web al Primăriei (Panou / Acțiuni / Validare / Clasament, stil web). API aliniat la design (ciorne, `organizer`, categoriile din design). Plata cu puncte: `POST /offers/{id}/redeem?withPoints=true`. Detalii: `docs/STATUS.md`.
 
 - BE (`V8__community_points.sql`): `community_actions`, `community_registrations`, `points_transactions`; `users.points_balance` ținut sincron de `PointsService` (singurul loc care scrie puncte: `award(userId, amount, refType, refId)`, `spend(...)` cu 409 dacă soldul e insuficient).
 - Public: `GET /community/actions?upcoming=true`, `GET /community/actions/{id}` (include `goingPreview[]` — 3 prenume + număr). Localnic: `POST /community/actions/{id}/register` → `code = AX-C{actionId}-{6}`, `DELETE` (anulare), `GET /me/community/registrations`, `GET /me/points` (sold + tranzacții), `GET /community/leaderboard?period=month|year` → top 50 + poziția mea.
@@ -261,6 +268,7 @@ CORS_ORIGINS=http://localhost:5173
 ### T12 · Chat AI
 **Scop:** S8: asistent care răspunde la „ce fac în weekend cu copiii?” cu evenimente reale din DB.
 **Depinde de:** T06
+**Stare:** ⬜ neînceput: în BE nu există încă modulul `ai` (nici dependența `anthropic-java`), iar ecranul S8 (`/chat`) e placeholder. Face parte din linia de demo.
 
 - BE modul `ai`: `ClaudeClient` peste SDK-ul oficial Anthropic pentru Java (`com.anthropic:anthropic-java:3.2.0`; cheia `ANTHROPIC_API_KEY`, modelul `ANTHROPIC_MODEL` = `claude-haiku-5-5`, din `app.anthropic.*`; timeout 20 s, retry 1, `maxTokens` setat explicit). `POST /ai/chat {messages[], locale}` → `{reply, suggestedEventIds[], quickReplies[]}`. Prompt de sistem: rol, limbă, data curentă, **catalogul compact** al evenimentelor din următoarele 14 zile (id, titlu, categorie, dată, loc, preț, maxim ~60 rânduri) și regula: răspunde scurt, pune o întrebare de clarificare dacă lipsesc ziua/compania, returnează JSON `{reply, suggestedEventIds, quickReplies}` (structured outputs: `outputConfig` cu schema JSON). Fără plăți, fără date inventate — doar id-uri din catalog (BE filtrează id-urile inexistente).
 - **Plasă de siguranță pentru demo:** dacă API-ul pică/timeout → răspuns pre-scris pentru 3 întrebări tipice (`ai/fallback.json`) + mesaj „răspuns offline”.
@@ -271,6 +279,7 @@ CORS_ORIGINS=http://localhost:5173
 ### T13 · Planificator de itinerar (E1 → E2 → E4)
 **Scop:** vizitatorul spune cât timp are, cum se deplasează și ce îl interesează → program cu obiective, ore, traseu pe hartă, ghid audio la fiecare oprire.
 **Depinde de:** T05, T08, T12
+**Stare:** ⬜ neînceput (V9 rezervată, fără tabela `itineraries`); ecranele `/plan`, `/itineraries`, `/itinerary/:id` sunt placeholder. Așteaptă T12. Face parte din linia de demo.
 
 - BE (`V9__itineraries.sql`): `itineraries`. `POST /ai/itinerary {date, startTime, hours | days, transport: WALK|CAR|PUBLIC, interests[], freeText, start?{lat,lng}}` → prompt cu **catalogul locurilor** (id, nume, tip, tag-uri, durată de vizită, program, coordonate, distanța față de centru) + oferte/evenimente din ziua respectivă (ca opriri opționale) → JSON `{title, summary, stops:[{order, placeId|eventId|offerId, arriveAt, leaveAt, note, parkingHint?}]}` (structured outputs, ca la T12). BE validează id-urile, recalculează orele dacă se suprapun, estimează deplasarea între opriri (haversine × factor pe mod de transport; pentru `PUBLIC` se pot folosi stațiile și liniile CTP reale — stația cea mai apropiată de fiecare oprire și liniile comune, vezi `docs/ARAD-DATA.md` §Alte date deschise), apoi `POST /itineraries` salvează și întoarce `id` + `shareCode`. `GET /itineraries/{id}`, `GET /me/itineraries`. Fallback: 2 itinerarii pre-generate (pe jos 1 zi, mașină 1 zi) dacă Claude API pică.
 - FE mobil: **E1** wizard (timp: 3 h / jumătate de zi / o zi / 2 zile + data; transport: Pe jos / Mașină / Transport public; interese: Istorie, Crame & vin, Muzee, Natură, Familie, Gastronomie; text liber; „Generează programul” cu stare de încărcare 5–15 s), **E2** rezultat (rezumat, timeline cu opriri, durată, „ghid disponibil”, oferta din traseu, butoane Vezi pe hartă / Pornește ghidul / Salvează / Regenerează), **E4** hartă cu pin-uri numerotate + traseu OSRM înlănțuit + sheet „Oprirea 2 din 5 · 8 min pe jos” (+ „Parcare: …” la mașină). „Pornește ghidul” → E3 al locului curent. Doar în aplicație (W10 nu se face; itinerariile mele sunt în Profil).
@@ -284,6 +293,7 @@ CORS_ORIGINS=http://localhost:5173
 ### T14 · Admin (web) — W3
 **Scop:** verificarea firmelor, moderarea conținutului, statistici.
 **Depinde de:** T09, T10, T11
+**Stare:** ✅ merge-uit (BE #21, FE #33, Plan #28; ajustare FE #35). V13 (`users.disabled_at`, `businesses.rejected_at` + `reject_reason`); pe lângă rutele de mai jos, `GET /admin/{events|offers|actions}` pentru tabelele de moderare și `PATCH /admin/users/{id}` (rol, puncte cu notă, dezactivare). Respingerea unei firme verificate = suspendare (conținutul ei redevine ciornă). Lipsesc: „Intră în cont” (impersonare), setările editabile. Detalii: `docs/API.md` §Admin, `docs/STATUS.md`.
 
 - BE `admin`: `GET /admin/stats` (users pe roluri, evenimente, bilete, oferte revendicate, puncte acordate), firmele partenere pe `/city/businesses` (Primăria **și** Adminul: listă, `POST /city/businesses` cont nou + invitație, `POST /city/businesses/{id}/verify`, `POST /city/businesses/{id}/reject`), `PATCH /admin/events/{id}/status`, `PATCH /admin/offers/{id}/status`, `PATCH /admin/actions/{id}/status`, `GET /admin/users?role`.
 - FE web: Adminul vede tot panoul Primăriei (`/city/*`: Evenimente, Obiective & ghiduri, Acțiuni, Validare, Voluntari, Mesaje, Clasament, Firme partenere cu Verifică/Respinge) plus grupul **Administrare**: `/admin` (Dashboard cu statistici), `/admin/content` (Conținut & moderare: tabele cu filtru + publică/ascunde pentru evenimente, oferte, acțiuni), `/admin/users` (rol, puncte, dezactivare), `/admin/settings`.
@@ -292,7 +302,7 @@ CORS_ORIGINS=http://localhost:5173
 
 ### T15 · Aplicația mobilă: Android + iOS (obligatoriu), i18n
 **Depinde de:** ecranele existente
-**Stare:** Android ✅ merge-uit în `main` (FE #7): Capacitor 6, `android/`, `npm run android:run`, rulează pe emulator (vezi `docs/SETUP.md`). Rămân iOS, iconița/splash, build-urile de livrare, EN pe module.
+**Stare:** 🟡 Android ✅ merge-uit în `main` (FE #7): Capacitor 6, `android/`, `npm run android:run`, rulează pe emulator (vezi `docs/SETUP.md`). Rămân iOS (nu există încă `ios/`), iconița/splash, build-urile de livrare. EN: interfața modulelor existente e tradusă (testul i18n verifică cheile și placeholder-ele pe fiecare modul); `chat`, `plan`, `transport`, `volunteer` sunt goale până se fac T12, T13, T19, T18; conținutul din DB (evenimente, locuri, ghiduri, oferte) e doar în română.
 
 - **Aplicația e produsul** (vezi decizia de sus): build-ul mobil (`npm run build:mobile` → `dist-mobile/`) e separat de web și nu are service worker.
 - **Android:** iconiță + splash, `versionCode`/`versionName`, APK de debug pentru demo + AAB semnat (cheia de semnare NU intră în git), URL-ul API de producție în build.
@@ -305,6 +315,7 @@ CORS_ORIGINS=http://localhost:5173
 
 ### T20 · Web = site de prezentare + panouri (P1)
 **Depinde de:** T02, T03
+**Stare:** ✅ merge-uit (FE #16, #17, #18, #19). Rămân linkurile de descărcare (după T15) și adresa de contact, în `src/web/presentation.ts`.
 - **Rutare (gata):** web-ul și aplicația mobilă sunt două build-uri complet separate (același backend), fără prefix în URL; web-ul are doar `/`, `/community`, `/privacy`, `/login` și panourile și nu conține nimic din aplicație (`npm run check:web`); linkurile vechi de panou `/w/…` duc la aceeași cale fără prefix.
 - `/` pe web → **site-ul de prezentare** (pornește din landing-ul W1): hero cu „Descarcă aplicația” (Android / iOS), „Ce poți face” (6 funcții), „Acum în Arad” (3 evenimente reale, doar de privit), o bandă Comunitate, cele 4 roluri, „Ești Primărie sau firmă? Intră în panou” → W0, subsol cu contact și Confidențialitate.
 - `/community` → acțiunile care urmează + clasamentul lunii, doar de citit; „Mă înscriu” → „Descarcă aplicația”.
@@ -315,6 +326,7 @@ CORS_ORIGINS=http://localhost:5173
 
 ### T21 · Conturile personale intră cu telefon + cod OTP (P1)
 **Depinde de:** T03, T20
+**Stare:** ✅ merge-uit (BE #18, FE #24, Infra #7, Plan #23); SMS-ul real merge după ce sunt puse cheile Twilio.
 - Vizitatorul și Localnicul intră în aplicația mobilă doar cu numărul de telefon și un cod de 6 cifre: `POST /auth/otp/request` → `/auth/otp/verify` → (număr nou) `/auth/otp/register` cu numele și rolul (`docs/API.md` §Auth).
 - Numerele `0799000xxx` sunt de demo (codul apare în aplicație, fără SMS); celelalte primesc SMS prin **Twilio Verify**. SMS-ul prin AWS (SNS, End User Messaging) e blocat de SCP-ul contului.
 - Limite (doar numerele reale; cele de demo n-au, ca nimeni să nu blocheze conturile demo): cod valabil 5 minute, 5 încercări pe cod, 60 s între cereri, 5 coduri pe zi pe număr, SMS doar spre `+40`, maximum 300 SMS pe zi în total. Firma, Primăria și Adminul rămân pe e-mail + parolă (în aplicație printr-un link, pe web în W0, fără tab-ul „Cont personal”).
@@ -324,16 +336,17 @@ CORS_ORIGINS=http://localhost:5173
 
 ### T22 · Transport public live CTP Arad (P1)
 **Depinde de:** T05, T06 (rândul de pe S3/E3); stratul de hartă: T08
+**Stare:** ✅ merge-uit și live (BE #19, FE #29, Plan #25); stratul de pe hartă și liniile: FE #32, #34.
 - **BE:** `V12__transit.sql` + seed-ul `V12_1` (29 de linii, 299 de stații, variantele cu opririle ordonate și traseul) din exportul static (`docs/tools/ctp-transit-seed.mjs`, rulat o dată). `TransitApi`, public: `GET /transit/stops`, `/transit/routes`, `/transit/vehicles`, `/transit/stops/{id}/arrivals`, `/transit/nearest?lat&lng` (`docs/API.md` §Transport public live CTP).
 - **Live prin BE, nu din telefon:** API-ul public Telelink prin `RestClient`, un cache comun de 25 s, fără cereri suprapuse, backoff 60 → 120 s; vehiculele mai vechi de 120 s = `stale`; fără sursă → `live:false` cu stația și liniile ei, niciodată 500. Atribuire „Date: CTP Arad / Telelink”.
 - **FE (`src/shared`):** `types/transit.ts`, `api/transit.ts`, `composables/useTransit.ts` (vehiculele la 30 s doar cât ecranul e vizibil, sosiri, stația cea mai apropiată, `transitMarkers()` în formatul markerelor din `MapView`), `components/transit/NearestStop.vue` — rândul „Stația cea mai apropiată · Tramvaiul 1 în 4 min” pe S3 (eveniment) și E3 (ghid), doar până la 1,5 km.
-- **Rămâne pentru T08:** stratul „Transport” pe hartă (stațiile + vehiculele live cu `transitMarkers()`, liniile din `/transit/routes`); pentru T13/T19: transport `PUBLIC` și tab-ul Transport pot folosi aceleași date.
+- **Stratul „Transport” pe hartă (gata):** stațiile + vehiculele live (`useTransitLayer`, `TransitPinCard`) și liniile din `/transit/routes`, pe harta din aplicație și pe cea web (T23, FE #32, #34). Pentru T13/T19: transport `PUBLIC` și tab-ul Transport pot folosi aceleași date.
 
 **Verificare:** `/api/v1/transit/vehicles` în producție are vehicule cu `live:true` (sau `live:false` curat dacă Telelink pică); `/transit/nearest` lângă Primărie dă o stație la ~100 m cu sosiri; cu sursa oprită răspunsul vine în ≤ 4 s cu `live:false`, apoi imediat (pauză); S3 și E3 arată rândul cu stația și „Date: CTP Arad / Telelink”.
 
 ### T17 · (opțional) Rating & recenzii Google pentru obiective și firme
 **Depinde de:** T05, T09 · **Doar dacă rămâne timp și există cheie Google cu billing.**
-- Coloana `google_place_id` pe `places` (V3 există deja → se adaugă în V5) și `businesses` (V6). BE: `GET /places/{id}/google`, `GET /businesses/{id}/google` → Places API (New) Place Details (`rating`, `userRatingCount`, `reviews` max 5, `googleMapsUri`), cache 24 h în memorie, cheia doar în BE. FE: bloc „Pe Google · 4,6 ★ (1.240)” cu până la 5 recenzii și „Powered by Google”, pe E3 și pe pagina firmei din aplicație.
+- Coloana `google_place_id`: pe `businesses` există (V6); pe `places` nu există încă — se adaugă într-o migrare nouă când se face T17. **Stare:** ⬜ neînceput. BE: `GET /places/{id}/google`, `GET /businesses/{id}/google` → Places API (New) Place Details (`rating`, `userRatingCount`, `reviews` max 5, `googleMapsUri`), cache 24 h în memorie, cheia doar în BE. FE: bloc „Pe Google · 4,6 ★ (1.240)” cu până la 5 recenzii și „Powered by Google”, pe E3 și pe pagina firmei din aplicație.
 - **Cheia:** există deja în producție ca `GOOGLE_PLACES_API_KEY` (secretul `aradex/google-places`, pus de P1 cu `AradEx-Infrastructure/scripts/set-google-places-key.sh`); BE o leagă în `app.google.places-api-key` și o folosește doar din backend. Local: `GOOGLE_PLACES_API_KEY` în `AradEx-Backend/.env`. Harta, traseele și „Deschide în Google Maps” nu au nevoie de cheie.
 - Fără scriere/sincronizare spre Google (ar cere OAuth). Evenimentele cu bilete în aplicație rămân doar în aplicație, marcate „Doar în AradExperience”.
 
@@ -379,15 +392,16 @@ Max 8 slide-uri după `docs/DEMO.md` §Pitch; video de rezervă al demo-ului în
 **Verificare:** slide-urile și video-ul sunt pe laptopul de prezentare și într-un link de rezervă.
 
 ### T18 · Rol Voluntar + mesaje (din `design/final/`)
-Rol `VOLUNTEER` creat doar de Primărie din panoul web (cod de 6 cifre „prin SMS”, simulat; opțional cont de unică folosință), alocat pe acțiuni. În aplicație are doar 3 tab-uri: **Acțiuni** (blocate până în ziua acțiunii, se deschid cu 30 min înainte; bifă verde când toți participanții sunt confirmați), **Scanează** (QR sau cod manual; rezultate: confirmat +puncte / deja scanat / cod necunoscut), **Mesaje** (conversație cu coordonatorul). Primăria vede voluntarii alocați pe fiecare acțiune și cine a scanat pe cine, răspunde la mesaje; **scanarea nu se face din web**, doar din aplicație. Migrarea V10; rolul nou cere schimbare în `Role`/`SecurityConfig` (T03). **Doar după ce bucla T11 e verde.**
+Rol `VOLUNTEER` creat doar de Primărie din panoul web (cod de 6 cifre „prin SMS”, simulat; opțional cont de unică folosință), alocat pe acțiuni. În aplicație are doar 3 tab-uri: **Acțiuni** (blocate până în ziua acțiunii, se deschid cu 30 min înainte; bifă verde când toți participanții sunt confirmați), **Scanează** (QR sau cod manual; rezultate: confirmat +puncte / deja scanat / cod necunoscut), **Mesaje** (conversație cu coordonatorul). Primăria vede voluntarii alocați pe fiecare acțiune și cine a scanat pe cine, răspunde la mesaje; **scanarea nu se face din web**, doar din aplicație. Migrarea V10; rolul `VOLUNTEER` și regulile `/vol/**` sunt deja în `Role`/`SecurityConfig` (T03). **Doar după ce bucla T11 e verde.** **Stare:** ⬜ neînceput (V10 rezervată; ecranele `/vol/*` din aplicație și „Voluntari” / „Mesaje” din panoul Primăriei sunt placeholder).
 **Verificare:** Primăria creează un voluntar și îl alocă la o acțiune → voluntarul intră cu codul, vede doar acțiunea lui, scanează QR-ul unui localnic → localnicul primește punctele → mesajul voluntarului apare în panoul Primăriei.
 
 ### T19 · Transport în comun — tramvai (din `design/final/`)
-Tab „Transport” în navbar (în locul lui Salvate; Salvate rămâne în Profil). Destinație (căutare sau sugestii: locuri, repere, stații) → **lista traseelor** (variante cu tramvai: linia, stația de urcare/coborâre, durata; plus „pe jos”) → alegi una → **harta cu tot drumul**: mers pe jos până la stație (OSRM), segmentul de tramvai pe șine cu stațiile, mers pe jos până la destinație; „Pornește călătoria” = simulare cu banner „Mai ai N stații · Următoarea: X”. Stații lângă tine cu plecările următoare; pagina liniei. Date: liniile CTP Arad 1, 3, 6, 7, 15, 16 din OpenStreetMap (ODbL; `design/final/shared/tram.js`), orare de exemplu marcate „(exemplu)”; autobuzele lipsesc. **Doar după ce T08 e verde.**
+Tab „Transport” în navbar (în locul lui Salvate; Salvate rămâne în Profil). Destinație (căutare sau sugestii: locuri, repere, stații) → **lista traseelor** (variante cu tramvai: linia, stația de urcare/coborâre, durata; plus „pe jos”) → alegi una → **harta cu tot drumul**: mers pe jos până la stație (OSRM), segmentul de tramvai pe șine cu stațiile, mers pe jos până la destinație; „Pornește călătoria” = simulare cu banner „Mai ai N stații · Următoarea: X”. Stații lângă tine cu plecările următoare; pagina liniei. Date: liniile CTP Arad 1, 3, 6, 7, 15, 16 din OpenStreetMap (ODbL; `design/final/shared/tram.js`), orare de exemplu marcate „(exemplu)”; autobuzele lipsesc. **Doar după ce T08 e verde.** **Stare:** ⬜ neînceput (tab-ul `/transport`, linia și călătoria sunt placeholder); datele reale de linii și stații există deja din T22.
 **Verificare:** Primărie → Gara Arad arată cel puțin o variantă cu tramvai și una pe jos; după selecție harta desenează cele trei segmente; fără internet la OSRM se desenează linie dreaptă fără eroare.
 
 ### T23 · Web pentru conturile personale conectate (P1)
 **Depinde de:** T21 (login cu telefon), T06, T07, T08, T10, T11, T22
+**Stare:** ✅ merge-uit (FE #32, Plan #29).
 - **FE web:** W0 cu tab-urile „Cont personal” (telefon + cod, `PhoneLogin` mutat în `shared/components/auth`) și „Panouri”; pentru VISITOR / LOCAL: `/` = pagina de start (evenimente, hartă mică, puncte, acțiuni, oferte), `/events`, `/events/:id` (+ stația CTP cea mai apropiată), `/events/:id/tickets`, `/checkout`, `/confirm/:code`, `/tickets/:code`, `/map` (listă + hartă, trasee, strat „Transport”), `/offers`, `/offers/:id`, `/community` cu înscriere și QR, `/community/actions/:id`, `/community/leaderboard`, `/account/{tickets,saved,points,offers,settings}`, `/businesses/:id`. Rutele au `roles: ['VISITOR','LOCAL']` (Adminul are voie peste tot); acțiunile, clasamentul și pagina firmei sunt publice.
 - **Comun:** logica ecranelor mutată din view-urile mobile în `shared/composables` (`useMapScreen`, `useTicketOrder`, `useEventPage`, `useOfferClaim`, `useActionDetail`…) și folosită de ambele aplicații; stratul „Transport” (`useTransitLayer`, `TransitPinCard`) pe ambele hărți.
 **Verificare:** login cu `0799 000 002` pe web → pagina de start; bilet cumpărat pe web apare în Contul meu; harta cu traseu și cu stații / vehicule live; toate paginile la 390 px fără scroll orizontal și la 1280.
