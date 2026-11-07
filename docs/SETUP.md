@@ -39,15 +39,15 @@ gh auth login                         # o dată, pentru PR-uri
 ```
 (cd ../AradEx-Infrastructure && docker compose up -d)                                  # Postgres :5432
 (cd ../AradEx-Backend && cp .env.example .env && ./gradlew :app:bootRun)                # API :8080, Swagger /swagger-ui.html
-(cd ../AradEx-Frontend && cp .env.example .env && npm install && npm run dev)           # :5173 → web; aplicația mobilă: /?app=mobile
+(cd ../AradEx-Frontend && cp .env.example .env && npm install && npm run dev)           # :5173 → web; aplicația mobilă: npm run dev:mobile (:5174)
 ```
 În `.env`-ul BE pune un `JWT_SECRET` random de minim 32 de caractere (`openssl rand -hex 32`) și lasă `ANTHROPIC_API_KEY` gol până la T12 (cheia Claude API o are P1). Conturi demo: `visitor@demo.ro`, `local@demo.ro`, `firma@demo.ro`, `primaria@demo.ro`, `admin@demo.ro` / `demo1234` (butoanele „Conturi demo” de pe login le completează).
 
 Aplicația Android pe emulator (pornește emulatorul din Android Studio întâi):
 ```
 cd ../AradEx-Frontend
-npm run dev -- --host 127.0.0.1        # Vite pe IPv4, ca adb reverse să-l găsească
-adb reverse tcp:8080 tcp:8080          # localhost:8080 din telefon = API-ul de pe PC (și tcp:5173 pentru live reload)
+npm run dev:mobile -- --host 127.0.0.1 # aplicația mobilă (:5174) pe IPv4, ca adb reverse să-l găsească
+adb reverse tcp:8080 tcp:8080          # localhost:8080 din telefon = API-ul de pe PC (și tcp:5174 pentru live reload)
 npm run android:run                    # build + instalează „AradExperience” pe emulator
 ```
 În `CORS_ORIGINS` din `.env`-ul BE trebuie să fie și `http://localhost` (originea aplicației native).
