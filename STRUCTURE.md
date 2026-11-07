@@ -98,18 +98,18 @@ AradEx-Frontend/                      REPO 3 — frontend (Vue 3.5, Vite 8, Type
 ├─ public/                            manifest + icon-uri PWA, fonturi locale (Inter, Material Symbols), _redirects (Netlify SPA), img/ (pozele din seed, copiate din design/assets)
 └─ src/
    ├─ main.ts · App.vue · vite-env.d.ts
-   ├─ router/index.ts                 toate rutele /m/* și /w/* (din API.md §Rute FE) cu meta {roles, title, screen, task}; `/` → /m sau /w după lățime; rutele neimplementate → PlaceholderView
+   ├─ router/index.ts                 toate rutele /m/* și /w/* (din API.md §Rute FE) cu meta {roles, title, screen, task}; `/` → /m sau /w după lățime; fiecare rută are view-ul ei (T02), panourile web au o rută pe secțiune; fișierul nu se mai modifică după T03
    ├─ shared/                         tot ce e comun mobil + web — aici stă logica
-   │  ├─ types/api.ts                 DTO-urile din API.md în TypeScript (= modulul api din BE)
+   │  ├─ types/<modul>.ts             DTO-urile din API.md în TypeScript, câte un fișier pe modul (common, auth, business, places, events, tickets, offers, community, chat, plan, admin, volunteer); api.ts doar le re-exportă
    │  ├─ api/                         client.ts (fetch + Bearer + ProblemDetail → ApiError + 401 → logout) și un fișier per interfață BE (auth.ts, health.ts, …)
    │  ├─ stores/                      Pinia: auth.ts (token, user, rol, hasRole), ui.ts (toast)
    │  ├─ composables/                 logica de ecran refolosibilă: useFormat (date/bani/km în ro), useAuthForm (validare, unde ajunge fiecare rol după login), useBack — cu teste; vin useGeo, useTts, useRouteOsrm, useEvents…
-   │  ├─ components/ui/               componentele generice Clean Ink (AppButton, AppChip, AppCard, AppInput, AppIcon, AppToast, EmptyState, Skeleton, ApiStatus, PlaceholderScreen)
+   │  ├─ components/ui/               componentele generice Clean Ink (AppButton, AppChip, AppCard, AppInput, AppIcon, AppSheet, AppToast, EmptyState, Skeleton, ApiStatus, PlaceholderScreen); qr/QrCode + qr/QrScanner
    │  ├─ components/<feature>/        componente de feature comune mobil + web (auth/LoginForm; vin events/EventCard, map/MapView, qr/QrCode…)
-   │  ├─ i18n/                        ro.json (toate textele, cu diacritice), en.json
+   │  ├─ i18n/                        ro/<modul>.json + en/<modul>.json (un fișier pe modul, încărcate automat cu import.meta.glob)
    │  └─ styles/base.css              tokens (culori, radius) + Tailwind
-   ├─ mobile/                         layouts/MobileLayout.vue (tab bar: Evenimente · Chat · Hartă · Bilete/Panou · Salvate) + views/<feature>/ (home/HomeView, auth/LoginView S12, profile/ProfileView S11)
-   └─ web/                            layouts/WebLayout.vue (bară sus + sidebar pe panouri, selector RO/EN) + views/<feature>/ (home/LandingView, auth/LoginView W0 — pagină întreagă)
+   ├─ mobile/                         layouts/MobileLayout.vue (tab bar: Evenimente · Chat · Hartă · Bilete/Panou · Transport; voluntar: Acțiuni · Scanează · Mesaje) + views/<feature>/ (câte un view per rută) + components/home (tab-urile din Acasă) și components/panel (panoul firmei / Primăriei pe telefon)
+   └─ web/                            layouts/WebLayout.vue (bară sus + sidebar întunecat pe panouri, selector RO/EN) + views/<feature>/ (câte un view per rută; business-panel/, city/, admin/ = câte un view pe secțiune; account/ = Contul meu cu tab-uri) + components/home (secțiunile landing-ului)
 ```
 
 ```
@@ -128,7 +128,7 @@ AradEx-Ops/                           REPO 5 — agenții Paperclip (doar P1)
 ## Cum se leagă layerele BE ↔ FE
 | BE (`api` / `app`) | FE (`src/shared`) | Rol |
 |---|---|---|
-| `api/dto`, `api/enums` | `types/api.ts` | același contract, în Java și în TypeScript; `docs/API.md` e sursa |
+| `api/dto`, `api/enums` | `types/<modul>.ts` | același contract, în Java și în TypeScript; `docs/API.md` e sursa |
 | `api/api/XApi` | `api/x.ts` | o interfață = un fișier de client, aceleași rute |
 | `controller` | `views/<feature>` | doar „așază” datele; fără logică |
 | `service` | `composables`, `stores` | logica; testată unitar |

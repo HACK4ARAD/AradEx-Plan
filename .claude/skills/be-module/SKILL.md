@@ -121,7 +121,7 @@ class TicketServiceTest {
 - Idempotență: confirmarea unei înscrieri / folosirea unui cod a doua oară nu modifică nimic (200 cu flag sau 409, conform API.md).
 - Nu expune entități; paginează listele publice (`Pages.of`); `fetch = LAZY` implicit.
 - Orice scriere de puncte trece prin `PointsService`.
-- Un DTO nou din `api` apare în FE în `src/shared/types/api.ts` în același PR (sau îl anunți).
+- Un DTO nou din `api` apare în FE în `src/shared/types/<modul>.ts` în același PR (sau îl anunți).
 - Erori: 400 `BadRequestException`, 401 `UnauthorizedException`, 403 `ForbiddenException`, 404 `NotFoundException`, 409 `ConflictException` (toate în `api/exceptions`). Un `UNIQUE` din DB care poate fi lovit de două cereri simultane: `saveAndFlush` + `catch (DataIntegrityViolationException)` → `ConflictException` (altfel iese 500). Limitele `@Size` din DTO = lungimea coloanei din migrare.
 - Utilizatorul curent: `AuthContext.require()` (rute protejate) / `AuthContext.current()` (rute publice cu conținut personalizat) → `CurrentUser(id, email, role)`. Utilizatori noi (ex. voluntari în T18): emailul se scrie normalizat (`trim().toLowerCase(Locale.ROOT)`, ca în `AuthService.normalize`) — login-ul caută exact.
 - Teste `@SpringBootTest` cu `TestRestTemplate` care așteaptă 401 pe un POST: setează `JdkClientHttpRequestFactory` (vezi `AppSmokeTest`); clientul implicit aruncă „cannot retry due to server authentication”.
