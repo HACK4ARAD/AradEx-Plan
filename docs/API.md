@@ -189,8 +189,43 @@ Liniile de tramvai CTP Arad (OSM, ODbL) și orarele de exemplu sunt date statice
 | GET | `/health` | pub | `{ status: 'ok', time, version }` |
 
 ## Rute FE
-Mobil (`/m`): `/m` S1 · `/m/search` S2 · `/m/events/:id` S3 · `/m/events/:id/tickets` S4 · `/m/checkout` S5 · `/m/confirm/:code` S6 · `/m/map` S7 · `/m/chat` S8 · `/m/tickets` S9 · `/m/tickets/:code` S10 · `/m/profile` S11 · `/m/login` S12 · `/m/offers` · `/m/offers/:id` · `/m/community` · `/m/community/actions/:id` · `/m/community/leaderboard` · `/m/places/:id` E3 · `/m/plan` E1 · `/m/itinerary/:id` E2 · `/m/itinerary/:id/map` E4 · `/m/businesses/:id` · `/m/panel` E5 (firmă / primărie: validare + liste) · `/m/places` (lista obiectivelor) · `/m/itineraries` (itinerariile mele) · `/m/transport` · `/m/transport/lines/:id/:dir` · `/m/transport/trip/:to` (T19) · `/m/vol/login` · `/m/vol/actions` · `/m/vol/scan` · `/m/vol/messages` (T18). Tab bar: Evenimente · Chat · Hartă · Bilete/Panou · Transport; voluntar: Acțiuni · Scanează · Mesaje.
+Două aplicații din același cod Vue, **fără prefix în URL** (decizia din 7 nov, T20). Aplicația se alege o dată, la pornire (`src/router/app.ts`):
+- aplicația nativă (Capacitor) e mereu **mobilă**;
+- în browser, `?app=mobile` / `?app=web` forțează alegerea și se ține minte (test, dev);
+- `?preview=mobile` și linkurile vechi `/m/…` deschid aplicația mobilă doar în tab-ul curent (rezistă la refresh, nu se țin minte), de exemplu din butoanele de previzualizare din panouri;
+- altfel → **web**.
 
-**Decizia din 7 nov (`docs/PLAN.md`):** produsul e aplicația mobilă (rutele `/m`, Android + iOS). Pe web rămân doar **site-ul de prezentare** (`/w`, pornind din W1) și **panourile** (`/w/login` W0, `/w/business/*`, `/w/city/*`, `/w/admin/*`); rutele publice web de mai jos marcate ~~tăiat~~ se scot în T20. Endpoint-urile API nu se schimbă.
+Linkurile vechi `/m/…` și `/w/…` duc la aceeași cale fără prefix, iar orice cale necunoscută duce la `/`. Endpoint-urile API nu se schimbă.
 
-Web (`/w`): `/w` W1 → site de prezentare · ~~`/w/events` W5~~ · ~~`/w/events/:id` W6~~ · ~~`/w/places` W7~~ · ~~`/w/places/:id` W8~~ · ~~`/w/map` W9~~ · ~~`/w/plan` W10~~ · ~~`/w/offers` W11~~ · ~~`/w/community` W12~~ · ~~`/w/chat` W13~~ · ~~`/w/account` W14~~ · ~~`/w/businesses/:id` W15~~ · `/w/login` W0 · `/w/business/*` panou firmă (Panou, Oferte, Evenimente, Anunțuri, Validează coduri, Recenzii, Profilul firmei) · `/w/city/*` panou Primărie, folosit și de Admin (Panou, Evenimente, Obiective & ghiduri, Acțiuni comunitare, Validare, Voluntari, Mesaje, Clasament, Firme partenere) · `/w/admin/*` doar Admin (Dashboard, Conținut & moderare, Utilizatori, Setări). Ecranele: `design/final/screens/`.
+**Aplicația mobilă** (iOS + Android, are tot):
+
+| Rută | Ecran |
+|---|---|
+| `/` | S1 Acasă (Evenimente / Oferte / Comunitate) |
+| `/search` · `/events/:id` · `/events/:id/tickets` | S2 · S3 · S4 |
+| `/checkout` · `/confirm/:code` · `/tickets` · `/tickets/:code` | S5 · S6 · S9 · S10 |
+| `/map` · `/chat` · `/profile` · `/login` · `/saved` | S7 · S8 · S11 · S12 · Salvate |
+| `/offers` · `/offers/:id` | oferte |
+| `/community` · `/community/actions/:id` · `/community/leaderboard` | comunitate |
+| `/places` · `/places/:id` | lista obiectivelor · E3 ghidul virtual |
+| `/plan` · `/itineraries` · `/itinerary/:id` · `/itinerary/:id/map` | E1 · itinerariile mele · E2 · E4 |
+| `/businesses/:id` | pagina firmei |
+| `/panel` | E5 / E7: firma și Primăria pe teren (validare + liste) |
+| `/transport` · `/transport/lines/:id/:dir` · `/transport/trip/:to` | T19 |
+| `/vol/login` · `/vol/actions` · `/vol/scan` · `/vol/messages` | T18 |
+
+Tab bar: Evenimente · Chat · Hartă · Bilete/Panou · Transport; voluntarul are Acțiuni · Scanează · Mesaje.
+
+**Web** (`https://aradexperience.site`): site-ul de prezentare al aplicației mobile + panourile.
+
+| Rută | Ce e |
+|---|---|
+| `/` | site-ul de prezentare (pornește din W1; conținutul în T20) |
+| `/community` | Comunitate, doar de citit (W12): acțiunile care urmează + clasamentul; înscrierea e doar în aplicație |
+| `/privacy` | Confidențialitate (cerută de Google Play și App Store) |
+| `/login` | W0, login-ul panourilor |
+| `/business/*` | panou firmă: Panou, Oferte, Evenimente, Anunțuri, Validează coduri, Recenzii, Profilul firmei |
+| `/city/*` | panou Primărie, folosit și de Admin: Panou, Evenimente, Obiective & ghiduri, Acțiuni comunitare, Validare, Voluntari, Mesaje, Clasament, Firme partenere |
+| `/admin/*` | doar Admin: Dashboard, Conținut & moderare, Utilizatori, Setări |
+
+Pe web **nu există**: W5–W11, W13–W15 (agendă, eveniment, obiective, ghid, hartă, planificator, oferte, chat, Contul meu, pagina publică a firmei). Sunt doar în aplicație. Ecranele: `design/final/screens/`.

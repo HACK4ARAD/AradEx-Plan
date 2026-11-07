@@ -8,7 +8,7 @@ Acesta e **planul comun** (de aici se deschide Claude Code și aici e workspace-
 |---|---|---|
 | [AradEx-Plan](https://github.com/HACK4ARAD/AradEx-Plan) | **acesta**: `docs/` (STATUS, SETUP, PLAN, API, DATA-MODEL, FEATURES, DEMO, DEPLOY, ARAD-DATA), `design/` (prototipul final în `design/final/`), `CLAUDE.md`, `STRUCTURE.md`, `setup.sh`, `.claude/skills/` | toți, fiecare secțiunea lui din `API.md`; restul prin PR |
 | [AradEx-Backend](https://github.com/HACK4ARAD/AradEx-Backend) | Spring Boot 3 · Java 21 · Gradle (Groovy) · Postgres · Flyway · JWT — modulele `api` (contractul) și `app` (aplicația) | fiecare doar feature-urile story-ului lui |
-| [AradEx-Frontend](https://github.com/HACK4ARAD/AradEx-Frontend) | Vue 3 + Vite + TS · Pinia · Router · Tailwind 4 · vue-i18n · Leaflet · Capacitor — `/m` = **aplicația mobilă** (Android + iOS), `/w` = site de prezentare + panouri | fiecare doar fișierele story-ului lui |
+| [AradEx-Frontend](https://github.com/HACK4ARAD/AradEx-Frontend) | Vue 3 + Vite + TS · Pinia · Router · Tailwind 4 · vue-i18n · Leaflet · Capacitor — **aplicația mobilă** (Android + iOS) și **web-ul** (site de prezentare + panouri), două routere fără prefix în URL | fiecare doar fișierele story-ului lui |
 | [AradEx-Infrastructure](https://github.com/HACK4ARAD/AradEx-Infrastructure) | Postgres local (`docker-compose.yml`) și producția pe AWS în Terraform (`terraform/`, runbook în `README.md`) | doar P1 (Zoltan) |
 | [AradEx-Ops](https://github.com/HACK4ARAD/AradEx-Ops) | agenții Paperclip: instrucțiuni, task-uri, `setup-lane.mjs` | doar P1 (Zoltan) |
 
@@ -35,7 +35,7 @@ Agenții Paperclip le au atașate ca skill-uri ale companiei; dacă un skill nu 
 (cd ../AradEx-Infrastructure && docker compose up -d)         # Postgres local (arad/arad, db aradexperience, :5432)
 cd ../AradEx-Backend && ./gradlew :app:bootRun                # API :8080 · Swagger /swagger-ui.html · health /api/v1/health (încarcă .env)
 cd ../AradEx-Backend && ./gradlew test                        # teste BE (api + app)
-cd ../AradEx-Frontend && npm run dev                          # APP :5173 ( / → /m pe telefon, /w pe desktop; ?ui=m|w forțează)
+cd ../AradEx-Frontend && npm run dev                          # APP :5173 → web; aplicația mobilă: /?app=mobile (înapoi: ?app=web)
 cd ../AradEx-Frontend && npm run build && npm run test
 cd ../AradEx-Frontend && npm run android:run                 # aplicația Android pe emulator (Capacitor; docs/SETUP.md)
 powershell -ExecutionPolicy Bypass -File .\setup-windows.ps1  # Windows: verifică/instalează uneltele
@@ -69,7 +69,7 @@ cp ../AradEx-Frontend/.env.example ../AradEx-Frontend/.env    # VITE_API_URL, VI
 ## Fără conflicte între story-uri (4 oameni în paralel)
 - Fiecare story editează doar fișierele feature-ului lui. Dacă îți trebuie o schimbare într-un fișier al altui story, o ceri în PR-ul lui; nu o faci tu. Poți importa și apela codul altuia.
 - BE: fiecare story lucrează în subfolderele feature-urilor lui, în fiecare layer (`api/<F>Api`, `dto/<f>/`, `controller|service|repository|entity|mapper/<f>/`, teste). `config/` (inclusiv `SecurityConfig`), `security/`, `util/`, `exceptions/`, `enums/Role`, `*.gradle` țin de T01/T03 și nu se mai ating după.
-- FE: rutele, navigația, layout-urile, `client.ts`, `components/ui/` și `stores/auth.ts` țin de T02/T03 (`android/` și `capacitor.config.ts` de T15) și nu se mai ating după — fiecare rută are atunci fișierul ei de view în `views/<feature>/`, iar ceilalți doar completează view-urile lor. i18n, tipuri și API pe fișiere de modul (`shared/i18n/ro/<modul>.json`, `shared/types/<modul>.ts`, `shared/api/<modul>.ts`); importă direct din fișierul modulului, nu adăuga linii în fișiere `index.ts` comune. Ecranele cu mai multe story-uri (Acasă, `/m/panel`, landing, Contul meu) sunt cochilii care randează câte o componentă sau un view per story; tabelul complet „fișierele tale” e în `AradEx-Frontend/CLAUDE.md` §Culoare.
+- FE: rutele, navigația, layout-urile, `client.ts`, `components/ui/` și `stores/auth.ts` țin de T02/T03 (`android/` și `capacitor.config.ts` de T15) și nu se mai ating după — fiecare rută are atunci fișierul ei de view în `views/<feature>/`, iar ceilalți doar completează view-urile lor. i18n, tipuri și API pe fișiere de modul (`shared/i18n/ro/<modul>.json`, `shared/types/<modul>.ts`, `shared/api/<modul>.ts`); importă direct din fișierul modulului, nu adăuga linii în fișiere `index.ts` comune. Ecranele cu mai multe story-uri (Acasă, `/panel`, landing, Contul meu) sunt cochilii care randează câte o componentă sau un view per story; tabelul complet „fișierele tale” e în `AradEx-Frontend/CLAUDE.md` §Culoare.
 - `docs/API.md`: modifici doar secțiunea modulului tău.
 
 ## Definiția lui „gata”
