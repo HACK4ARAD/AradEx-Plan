@@ -25,6 +25,7 @@ Skill-uri (toate aici, în `.claude/skills/`): `be-module`, `seed-data`, `fe-fea
 ## 3. Verificare (înainte de PR) — checklist
 Rulează efectiv, nu presupune:
 - [ ] `./gradlew test` verde în worktree-ul de BE **fără teste sărite** (`AppSmokeTest` sărit = Docker oprit); `npm run build && npm run test` verde în worktree-ul de FE; fără erori în consola browserului.
+- [ ] **Web adaptiv:** orice pagină web atinsă (panou, prezentare, Comunitate) merge și la 390×844 — fără scroll orizontal pe pagină, meniul ☰ al panoului se deschide, tabelele sunt carduri sub `md`, butoanele nu ies din ecran (`AradEx-Frontend/CLAUDE.md` §„Web adaptiv”).
 - [ ] Fiecare punct din secțiunea „Verificare” a task-ului, executat manual: în **aplicație** (Chrome device toolbar 390×844, apoi emulator Android / simulator iOS + telefon real dacă există) și, dacă task-ul are panou, pe **web** (≥1280px). Pagini publice web nu se mai fac (decizia din `docs/PLAN.md`).
 - [ ] Endpoint-urile noi apar în Swagger și răspund conform `docs/API.md` (status-uri 400/401/403/404/409 incluse — încearcă-le).
 - [ ] Rolurile: un cont cu rol greșit primește 403, nu 500. Guest-ul vede doar ce e public. Regulile pe rute sunt deja în `SecurityConfig` (T03) și testate în `config/SecurityRulesTest`.

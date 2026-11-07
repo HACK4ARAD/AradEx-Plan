@@ -54,6 +54,9 @@ Erorile API → `ui.error(err)` (toast cu `detail`) + buton „Reîncearcă”. 
 - Icon: `<AppIcon name="event" />` (Material Symbols Outlined, clasa `.msym`).
 - Mobil: zonă de conținut cu `pb-24` ca tab bar-ul să nu acopere butonul de jos; butonul principal al ecranului e fix jos (`fixed bottom-20 inset-x-4`).
 
+## Web adaptiv (obligatoriu)
+Orice pagină web (prezentare, Comunitate, panouri) se folosește și pe telefon: la 390px fără scroll orizontal pe pagină. `WebLayout` face deja sidebar-ul panoului meniu ☰ sub `lg`; în pagina ta: grile `grid-cols-1` + breakpoint (`md:` / `xl:`), antetul cu `flex-wrap`, iar tabelele au sub `md` varianta de carduri (`<div class="md:hidden">` cu câte un card pe rând + `<div class="hidden md:block overflow-x-auto">` cu tabelul; model: `web/views/city/CityActionsView.vue`). Verifici la 390×844 și la ≥1280.
+
 ## Capcane
 - TypeScript cu `erasableSyntaxOnly`: fără `enum` — folosește `type Role = 'VISITOR' | …` și `as const`.
 - `<input type="number">` cu `v-model` (și `AppInput type="number"`) dă **număr**, nu text, după ce omul scrie — funcțiile care citesc formularul trebuie să accepte `string | number` (`String(v ?? '').trim()`), altfel `.trim()` aruncă și submit-ul nu mai pornește (pățit la T09).
