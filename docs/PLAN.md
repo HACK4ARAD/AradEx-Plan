@@ -44,7 +44,7 @@ T00 Repo & tooling
                                               └─ T11 Comunitate & puncte (T03, T10 pentru plata cu puncte)
                                                     └─ T14 Admin (T09, T10, T11)
 T15 Aplicația Android + iOS, i18n (după ce există ecranele) · T17 Google Places rating/recenzii (opțional, după T05 + T09)
-T18 Voluntari (după T11) · T19 Transport tramvai (după T08) · T24 SMS gateway (după T21) · T25 Plata cu cardul Stripe, mod test (după T07)
+T18 Voluntari (după T11) · T19 Transport tramvai (după T08) · T24 SMS gateway (după T21)
 T20 Web = prezentare + panouri (T02, T03) ─ T21 Telefon + cod OTP (T03, T20) ─ T23 Web pentru conturile personale (T21, T06–T08, T10, T11, T22)
 T22 Transport live CTP (T05, T06; stratul de hartă după T08)
 T16 Deploy final, seed de producție, demo (toate)
@@ -302,7 +302,7 @@ CORS_ORIGINS=http://localhost:5173
 
 ### T15 · Aplicația mobilă: Android + iOS (obligatoriu), i18n
 **Depinde de:** ecranele existente
-**Stare:** 🟡 Android ✅ merge-uit în `main` (FE #7): Capacitor 6, `android/`, `npm run android:run`, rulează pe emulator (vezi `docs/SETUP.md`). **iOS:** proiectul Capacitor e în `ios/` (FE #38: iOS 15+, portret, textele pentru locație și cameră, `npm run ios:sync` / `ios:open`; FE #40: ciclul de viață UIScene, harta trece pe Leaflet dacă Google refuză cheia; Infra #9: `capacitor://localhost` în CORS). Rămân iconița/splash și build-urile de livrare (APK/AAB semnat, build iOS pe telefon / TestFlight). EN: interfața modulelor existente e tradusă (testul i18n verifică cheile și placeholder-ele pe fiecare modul); `chat`, `plan`, `transport` sunt goale până se fac T12, T13, T19; conținutul din DB (evenimente, locuri, ghiduri, oferte) e doar în română.
+**Stare:** 🟡 Android ✅ merge-uit în `main` (FE #7): Capacitor 6, `android/`, `npm run android:run`, rulează pe emulator (vezi `docs/SETUP.md`). **iOS:** proiectul Capacitor e în `ios/` (FE #38: iOS 15+, portret, textele pentru locație și cameră, `npm run ios:sync` / `ios:open`; FE #40: ciclul de viață UIScene, harta trece pe Leaflet dacă Google refuză cheia; Infra #9: `capacitor://localhost` în CORS). Rămân iconița/splash și build-urile de livrare (APK/AAB semnat, build iOS pe telefon / TestFlight). EN: interfața modulelor existente e tradusă (testul i18n verifică cheile și placeholder-ele pe fiecare modul); `chat`, `plan` sunt goale până se fac T12, T13 (`transport` e tradus, T19); conținutul din DB (evenimente, locuri, ghiduri, oferte) e doar în română.
 
 - **Aplicația e produsul** (vezi decizia de sus): build-ul mobil (`npm run build:mobile` → `dist-mobile/`) e separat de web și nu are service worker.
 - **Android:** iconiță + splash, `versionCode`/`versionName`, APK de debug pentru demo + AAB semnat (cheia de semnare NU intră în git), URL-ul API de producție în build.
@@ -371,7 +371,7 @@ CORS_ORIGINS=http://localhost:5173
 ---
 
 ## Direcții viitoare (după hackathon) — de pus în pitch la „ce urmează”
-- Plăți reale (Stripe live — T25 face deja plata în mod test — sau Netopia) și anularea biletelor; notificări push (PWA) pentru mementouri și acțiuni noi.
+- Plăți reale (Stripe live / Netopia; Stripe în modul de test e deja integrat, vezi STATUS) și anularea biletelor; notificări push (PWA) pentru mementouri și acțiuni noi.
 - Sincronizare bidirecțională cu Google Calendar (OAuth) și import automat al evenimentelor instituțiilor (scraping/API-uri: Filarmonica, Teatrul Clasic, Primăria).
 - Rating & recenzii Google (T17), recenzii la obiective, traducere automată RO→EN/HU a ghidului și voce naturală (un serviciu TTS).
 - Transport public în itinerar (orare CTP Arad, tramvaiul Arad–Ghioroc), parcări în timp real.
@@ -396,8 +396,9 @@ Rol `VOLUNTEER` creat doar de Primărie din panoul web (cod de 6 cifre „prin S
 **Stare:** ✅ merge-uit (BE #23, FE #37, Plan #31): V15 + seed V15_1, `VolunteerApi` (cod, acțiuni, scanare) + `VolunteerChatApi` (chat de grup pe acțiune, text și poze) + `CityVolunteersApi` (conturi, alocare, suspendare, coordonatori); aplicația (Conectare voluntar, Acțiunile tale, Scanează, Mesaje = chaturile de grup) și panoul (Voluntari, Voluntar nou; voluntarii în Acțiuni comunitare și Validare). **Schimbare față de design (7 nov):** fără mesaje voluntar ↔ Primărie; în locul lor, chatul de grup al voluntarilor fiecărei acțiuni, doar în aplicație. Detalii: `docs/STATUS.md`.
 **Verificare:** Primăria creează un voluntar și îl alocă la o acțiune → voluntarul intră cu codul, vede doar acțiunea lui, scanează QR-ul unui localnic → localnicul primește punctele → mesajul / poza voluntarului apare în chatul de grup al acțiunii la ceilalți voluntari (decizia din 7 nov; inițial: în panoul Primăriei).
 
-### T19 · Transport în comun — tramvai (din `design/final/`)
-Tab „Transport” în navbar (în locul lui Salvate; Salvate rămâne în Profil). Destinație (căutare sau sugestii: locuri, repere, stații) → **lista traseelor** (variante cu tramvai: linia, stația de urcare/coborâre, durata; plus „pe jos”) → alegi una → **harta cu tot drumul**: mers pe jos până la stație (OSRM), segmentul de tramvai pe șine cu stațiile, mers pe jos până la destinație; „Pornește călătoria” = simulare cu banner „Mai ai N stații · Următoarea: X”. Stații lângă tine cu plecările următoare; pagina liniei. Date: liniile CTP Arad 1, 3, 6, 7, 15, 16 din OpenStreetMap (ODbL; `design/final/shared/tram.js`), orare de exemplu marcate „(exemplu)”; autobuzele lipsesc. **Doar după ce T08 e verde.** **Stare:** ⬜ neînceput (tab-ul `/transport`, linia și călătoria sunt placeholder); datele reale de linii și stații există deja din T22.
+### T19 · Transport în comun (din `design/final/`, pe rețeaua reală CTP)
+Tab „Transport” în navbar (în locul lui Salvate; Salvate rămâne în Profil). Destinație (căutare în obiective, stații și repere, sau sugestiile) → **lista traseelor** (cel mult 2 variante cu tramvai / autobuz: linia, stația de urcare și coborâre, plecarea live, durata; plus „pe jos”) → alegi una → **harta cu tot drumul**: mers pe jos până la stație (OSRM), bucata ta din linie cu stațiile, mers pe jos până la destinație; „Pornește călătoria” = simulare cu banner „Mai ai N stații · Următoarea: X”. Stații lângă tine cu plecările următoare; pagina liniei. **Date:** rețeaua CTP Arad din T22 (`/transit/routes`, `/transit/stops`: 8 linii de tramvai + 21 de autobuz) în locul tramvaielor statice din prototip; plecările live (`/transit/stops/{id}/arrivals`, `/transit/nearest`); durata în vehicul e estimată din lungimea traseului (CTP nu publică timpii între stații). **Doar după ce T08 e verde.**
+**Stare:** 🟡 PR deschis (FE #44, Plan #35): cele 4 ecrane din design (Transport, Trasee până acolo, linia, harta traseului + călătoria) pe datele reale, cu autobuzele, plecările și vehiculele live; în plus: bicicleta (stațiile bike sharing) și mașina (parcarea cu plată de lângă destinație) ca „Alte variante”, scurtăturile spre harta cu linii live / biciclete / parcări, „Biciclete lângă tine”, „Cum ajung” pe eveniment și obiectiv. Detalii: `docs/STATUS.md`.
 **Verificare:** Primărie → Gara Arad arată cel puțin o variantă cu tramvai și una pe jos; după selecție harta desenează cele trei segmente; fără internet la OSRM se desenează linie dreaptă fără eroare.
 
 ### T23 · Web pentru conturile personale conectate (P1)
@@ -415,14 +416,3 @@ Tab „Transport” în navbar (în locul lui Salvate; Salvate rămâne în Prof
 - **De știut:** Mac-ul trebuie să fie pornit și iPhone-ul aproape; SMS-ul ajunge în 5–15 s; multe SMS-uri de pe un număr personal pot fi filtrate de operator.
 
 **Verificare:** un număr real cere cod în aplicație → SMS-ul vine de pe telefonul gateway-ului în ≤ 15 s → codul merge; cu tokenul gol, codul pleacă prin Twilio (sau 503 dacă nici Twilio nu are chei).
-
-### T25 · Plata biletelor cu cardul prin Stripe — DOAR mod test
-**Depinde de:** T07
-**Stare:** ✅ PR-uri deschise (BE #28, FE #46, Infra #10; Infra așteaptă `terraform plan`/`apply` de la Zoltan); merge-ul nu schimbă nimic până se pun cheile.
-- **Mod test, fără bani reali:** plata pornește doar cu chei de test Stripe (`sk_test_…` + `pk_test_…`); cheile live sunt ignorate de backend și refuzate de `set-stripe-keys.sh`. Fără chei rămâne plata demonstrativă din T07.
-- **BE:** `V16__ticket_payments.sql` (`tickets.payment_intent_id`, unic); `PaymentsApi` — `GET /payments/config`, `POST /events/{id}/tickets/checkout` (PaymentIntent doar pentru card, suma din prețuri, comanda în `metadata`), `POST /payments/{id}/confirm` (Stripe confirmă plata → biletul, idempotent), `POST /payments/stripe/webhook` (semnat, biletul dacă aplicația s-a închis). Cu Stripe pornit, `POST /events/{id}/tickets` pentru o comandă plătită → 402. Locuri epuizate după plată → rambursare automată. Fără SDK: API-ul REST Stripe prin `RestClient`.
-- **FE (aplicație + web):** pe pagina de plată, Payment Element (Stripe.js de pe `js.stripe.com`, cheia publică de la backend) în locul cardului fictiv; mesaj cu cardul de test `4242 4242 4242 4242`.
-- **Infra:** secretul `aradex/stripe` → `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`; cheile le pune Zoltan cu `scripts/set-stripe-keys.sh`. Webhook-ul în Dashboard-ul Stripe (Test mode): `https://aradexperience.site/api/v1/payments/stripe/webhook`, evenimentul `payment_intent.succeeded`.
-
-**Verificare:** cu cheile de test: un bilet plătit cu `4242 4242 4242 4242` apare în Biletele mele și ca plată „Succeeded” în Dashboard-ul Stripe (Test mode); `4000 0000 0000 9995` e refuzat cu mesajul Stripe; `4000 0025 0000 3155` cere 3-D Secure; cumpărarea directă (fără card) dă 402; fără chei, plata demonstrativă merge ca înainte.
-

@@ -38,7 +38,7 @@ Ecranele de bilete din aplicație (Biletele mele, „Codul tău”, Biletul) urm
 | E1, E2, E4 | Planificator, itinerar, hartă traseu | `/plan`, `/itinerary/:id`, `/itinerary/:id/map` | T13 |
 | E3 | Ghid virtual (scris + audio) | `/places/:id` (+ lista `/places`) | T05 |
 | — | Itinerariile mele | `/itineraries` | T13 |
-| — | Transport: destinație → trasee → hartă cu tot drumul, linie, călătorie | `/transport`, `/transport/lines/:id/:dir`, `/transport/trip/:to` | T19 |
+| — | Transport: destinație → trasee → hartă cu tot drumul, linie, călătorie (pe rețeaua reală CTP; în plus bicicletă și mașină + parcare) | `/transport?to=`, `/transport/lines/:routeId/:pattern`, `/transport/trip/:to?opt=&live=1` | T19 |
 | — | Voluntar: cod, acțiuni, scanner, mesaje | `/vol/login`, `/vol/actions`, `/vol/scan`, `/vol/messages` | T18 |
 | W1 | Landing web | `/` (web) | T06, T08 |
 | W2 | Panou Primărie web | `/city` | T11 |
