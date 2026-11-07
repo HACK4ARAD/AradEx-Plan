@@ -57,7 +57,7 @@ Erorile API → `ui.error(err)` (toast cu `detail`) + buton „Reîncearcă”. 
 ## Capcane
 - TypeScript cu `erasableSyntaxOnly`: fără `enum` — folosește `type Role = 'VISITOR' | …` și `as const`.
 - Leaflet are nevoie de `import 'leaflet/dist/leaflet.css'` și de `invalidateSize()` după ce containerul devine vizibil (tab-uri, sheet-uri).
-- Camera (`html5-qrcode`) merge doar pe HTTPS sau `localhost`; pe telefon real folosiți URL-ul Netlify sau `npm run dev -- --host` + certificate, altfel testați cu input manual de cod.
+- Camera (`html5-qrcode`) merge doar pe HTTPS sau `localhost`; pe telefon real folosiți https://aradexperience.site (după merge pe `main`) sau `npm run dev -- --host` + certificate, altfel testați cu input manual de cod.
 - `speechSynthesis` pornește doar dintr-un handler de tap; pe iOS vocile se încarcă asincron (`onvoiceschanged`).
 - Datele vin ca ISO cu offset — formatează cu `useFormat`, nu cu `toLocaleString` direct.
 - `import.meta.env` nu merge în template — citește-l în `<script setup>` într-o constantă.

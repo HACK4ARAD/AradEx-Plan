@@ -26,6 +26,7 @@ Scopul review-ului e **demo fără bug-uri majore**, nu cod perfect. Durata țin
 
 ## Înainte de merge
 - Baza PR-ului e `main`. Dacă e alt branch de feature (PR stivuit) și acela e deja merge-uit, schimbă baza la `main` și abia apoi merge — altfel codul nu ajunge în `main` (T15: #6 → #7). După merge, verifică pe `origin/main` că fișierele PR-ului sunt acolo.
+- **Merge pe `main` în `AradEx-Backend` / `AradEx-Frontend` = deploy în producție** (https://aradexperience.site, workflow-ul `deploy.yml`). Nu da merge cu build sau teste roșii. După merge, urmărește rularea în tab-ul *Actions* (`gh run watch -R HACK4ARAD/<repo>`) și deschide site-ul; dacă deploy-ul pică, ECS rămâne pe versiunea anterioară, iar repararea se face cu un PR nou (nu cu push direct pe `main`).
 
 ## 4. Raport (în PR sau în chat), maximum 10 rânduri
 ```

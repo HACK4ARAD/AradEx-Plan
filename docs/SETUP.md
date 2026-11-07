@@ -10,7 +10,8 @@
 | Node.js + npm | 20+ (LTS) | frontend (Vite, Vue), Capacitor | `OpenJS.NodeJS.LTS` | `node` |
 | Docker Desktop | 4.x | Postgres local (`AradEx-Infrastructure`), Testcontainers în testele BE | `Docker.DockerDesktop` | `--cask docker` |
 | Android Studio | 2023.3+ | SDK Android 34, emulator, `adb` — aplicația mobilă | `Google.AndroidStudio` | `--cask android-studio` |
-| GitHub CLI | 2.x | `gh pr create`, review-uri | `GitHub.cli` | `gh` |
+| GitHub CLI | 2.x | `gh pr create`, review-uri, `gh run watch` (deploy-ul după merge) | `GitHub.cli` | `gh` |
+| Terraform + AWS CLI (doar P1) | 1.17+ / 2.x | infrastructura AWS din `AradEx-Infrastructure/terraform` (restul echipei nu are nevoie) | `Hashicorp.Terraform`, `Amazon.AWSCLI` | `hashicorp/tap/terraform`, `awscli` |
 | Claude Code | ultima | lucrul cu skill-urile din `AradEx-Plan/.claude/skills/` | vezi docs Anthropic | idem |
 | IDE (opțional) | — | IntelliJ IDEA pentru BE, VS Code (+ Vue - Official) pentru FE | `JetBrains.IntelliJIDEA.Community`, `Microsoft.VisualStudioCode` | `--cask intellij-idea-ce visual-studio-code` |
 

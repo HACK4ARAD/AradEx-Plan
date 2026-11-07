@@ -9,7 +9,7 @@ Acesta e **planul comun** (de aici se deschide Claude Code și aici e workspace-
 | [AradEx-Plan](https://github.com/HACK4ARAD/AradEx-Plan) | **acesta**: `docs/` (STATUS, SETUP, PLAN, API, DATA-MODEL, FEATURES, DEMO, DEPLOY, ARAD-DATA), `design/` (prototipul final în `design/final/`), `CLAUDE.md`, `STRUCTURE.md`, `setup.sh`, `.claude/skills/` | toți, fiecare secțiunea lui din `API.md`; restul prin PR |
 | [AradEx-Backend](https://github.com/HACK4ARAD/AradEx-Backend) | Spring Boot 3 · Java 21 · Gradle (Groovy) · Postgres · Flyway · JWT — modulele `api` (contractul) și `app` (aplicația) | fiecare doar feature-urile story-ului lui |
 | [AradEx-Frontend](https://github.com/HACK4ARAD/AradEx-Frontend) | Vue 3 + Vite + TS · Pinia · Router · Tailwind 4 · vue-i18n · Leaflet · PWA · Capacitor (aplicația Android) — `/m` mobil, `/w` web | fiecare doar fișierele story-ului lui |
-| [AradEx-Infrastructure](https://github.com/HACK4ARAD/AradEx-Infrastructure) | Postgres local (`docker-compose.yml`), config de deploy | doar P1 (Zoltan) |
+| [AradEx-Infrastructure](https://github.com/HACK4ARAD/AradEx-Infrastructure) | Postgres local (`docker-compose.yml`) și producția pe AWS în Terraform (`terraform/`, runbook în `README.md`) | doar P1 (Zoltan) |
 | [AradEx-Ops](https://github.com/HACK4ARAD/AradEx-Ops) | agenții Paperclip: instrucțiuni, task-uri, `setup-lane.mjs` | doar P1 (Zoltan) |
 
 Descrierea fiecărui folder și fișier: `STRUCTURE.md`. Căile din documente de forma `AradEx-Backend/...` sunt relative la folderul comun; comenzile `cd ../AradEx-...` se dau din `AradEx-Plan`.
@@ -62,7 +62,8 @@ cp ../AradEx-Frontend/.env.example ../AradEx-Frontend/.env    # VITE_API_URL, VI
 - Erorile API sunt ProblemDetail; FE afișează `detail` în toast, nu „Something went wrong”.
 - Fără librării noi fără motiv: lista aprobată e în `AradEx-Backend/CLAUDE.md` și `AradEx-Frontend/CLAUDE.md`. Dacă chiar trebuie una, scrie de ce în descrierea PR-ului.
 - Date demo = date reale din Arad (locuri, adrese, coordonate, program); firmele pot fi fictive, dar plauzibile și marcate `is_demo`. Pozele doar cu licență (vezi `design/README.md`).
-- Nu șterge și nu rescrie fișiere mari „ca să fie curat”. Nu rulezi `git push --force`. CI/CD stă în `AradEx-Infrastructure` (repo-urile de cod nu au workflows).
+- Nu șterge și nu rescrie fișiere mari „ca să fie curat”. Nu rulezi `git push --force`.
+- **CI/CD:** singurul workflow din repo-urile de cod e `.github/workflows/deploy.yml` (în `AradEx-Backend` și `AradEx-Frontend`, al lui P1); nu se adaugă alte workflow-uri. **Un merge pe `main` face deploy în producție** (https://aradexperience.site) în ~5–8 minute, după ce trec testele; infrastructura (Terraform) stă în `AradEx-Infrastructure` și o schimbă doar P1. Detalii: `docs/DEPLOY.md`.
 
 ## Fără conflicte între story-uri (4 oameni în paralel)
 - Fiecare story editează doar fișierele feature-ului lui. Dacă îți trebuie o schimbare într-un fișier al altui story, o ceri în PR-ul lui; nu o faci tu. Poți importa și apela codul altuia.
