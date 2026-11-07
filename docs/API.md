@@ -84,16 +84,18 @@ FE folosește `GET /events?near=`, `GET /places?near=`, `GET /offers?near=`, `GE
 ## Firme (T09)
 | Metodă | Rută | Auth | Cerere → Răspuns |
 |---|---|---|---|
-| GET | `/businesses/{id}` | pub | → `{ business: BusinessDto, offers: OfferSummary[], events: EventSummary[], announcements: AnnouncementDto[] }` (incrementează `viewsCount`) |
-| GET | `/business/me` | BUSINESS | → `{ business: BusinessDto, stats: { views, codesUsed, pointsPayments, upcomingEvents } }` |
-| PUT | `/business/me` | BUSINESS | `BusinessDto` (fără verified) |
-| GET / POST | `/business/events` | BUSINESS | `EventCreate` → `EventDto` (status `DRAFT` dacă firma nu e verificată) |
-| PUT / DELETE | `/business/events/{id}` | BUSINESS (proprietar) | |
-| GET / POST | `/business/announcements` | BUSINESS | `{ title, body, imageUrl? }` → `AnnouncementDto { id, title, body, imageUrl?, createdAt }` |
-| DELETE | `/business/announcements/{id}` | BUSINESS | |
-| GET | `/business/activity` | BUSINESS | → `{ items: { type: 'CODE_USED'\|'OFFER_SAVED'\|'OFFER_REDEEMED'\|'TICKET'\|'POINTS_PAYMENT', text, at }[] }` |
+| GET | `/businesses/{id}` | pub | → `{ business: BusinessDto, offers: OfferSummary[], events: EventSummary[], announcements: AnnouncementDto[] }` (incrementează `viewsCount`; doar evenimentele viitoare `PUBLISHED` și anunțurile `PUBLISHED`; `offers` e `[]` până la T10); 404 dacă firma nu există |
+| GET | `/business/me` | BUSINESS | → `{ business: BusinessDto, stats: { views, codesUsed, pointsPayments, upcomingEvents } }` (`codesUsed` vine din T10, `pointsPayments` din T11 — până atunci 0); 404 dacă contul nu are firmă |
+| PUT | `/business/me` | BUSINESS | `BusinessUpdate` = `BusinessDto` fără `id`, `verified`, `viewsCount` (`name`, `category`, `address`, `lat`, `lng` obligatorii) → `BusinessDto` |
+| GET | `/business/events` | BUSINESS | → `EventDto[]` (toate evenimentele firmei, inclusiv ciorne și trecute) |
+| POST | `/business/events` | BUSINESS | `EventCreate` → 201 `EventDto` (status `DRAFT` dacă firma nu e verificată; fără `lat`/`lng` = la sediul firmei); 400 dacă `endAt` ≤ `startAt`, `IN_APP` fără `priceAdult`, `EXTERNAL` fără `externalUrl` |
+| PUT / DELETE | `/business/events/{id}` | BUSINESS (proprietar; ADMIN orice) | PUT: `EventCreate` → `EventDto` (locația rămâne dacă nu trimiți `lat`/`lng`) · DELETE → 204 · 403 dacă e al altei firme, 404 dacă nu există |
+| GET / POST | `/business/announcements` | BUSINESS | `{ title (≤120), body (≤1000), imageUrl? }` → 201 `AnnouncementDto { id, title, body, imageUrl?, status, createdAt }` (`status` = `DRAFT` dacă firma nu e verificată) |
+| DELETE | `/business/announcements/{id}` | BUSINESS (proprietar; ADMIN orice) | → 204 · 403 dacă e al altei firme |
+| GET | `/business/activity` | BUSINESS | → `{ items: { type: 'CODE_USED'\|'OFFER_SAVED'\|'OFFER_REDEEMED'\|'TICKET'\|'POINTS_PAYMENT', text, at }[] }` (ultimele 20; goală până când T07/T10/T11 adaugă sursele) |
 
 `BusinessDto = BusinessSummary & { description, address, lat, lng, phone?, website?, viewsCount }`.
+`EventCreate = { title, description, category, placeId?, locationName?, address?, lat?, lng?, startAt, endAt?, ticketType, priceAdult?, priceChild?, externalUrl?, capacity?, imageUrl? }` (introdus de T09; T06 îl refolosește pentru `POST /events`). `EventCategory`, `OrganizerType`, `TicketType`, `ContentStatus` sunt în `AradEx-Backend/api/…/enums` și în `AradEx-Frontend/src/shared/types/business.ts` (`EventCategory`, `ContentStatus`, `EventCreate` — T06 le poate muta în `types/events.ts`).
 
 ## Oferte (T10, puncte în T11)
 | Metodă | Rută | Auth | Cerere → Răspuns |

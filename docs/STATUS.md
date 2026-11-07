@@ -2,7 +2,7 @@
 
 Starea reală a story-urilor din `docs/PLAN.md`, deciziile luate pe parcurs și ce a rămas. **Fiecare PR din `AradEx-Plan` își actualizează rândul lui aici** (skill-ul `task-workflow`, pasul 5). Adevărul final e pe GitHub (PR-uri merge-uite în `main`); fișierul ăsta e rezumatul pentru oameni și pentru Claude.
 
-Ultima actualizare: 2026-11-07 — T03 și T15/Android merge-uite în `main`; pregătirea anti-conflict T02 în PR (FE #8, Plan #6).
+Ultima actualizare: 2026-11-07 — T09 (Firme & panou) gata de review; T03, T15/Android și pregătirea anti-conflict T02 (FE #8, Plan #6) pe `main`.
 
 ## Story-uri
 Legendă: ✅ gata (merge-uit sau PR deschis, verificat) · 🟡 parțial · ⬜ neînceput
@@ -16,7 +16,8 @@ Legendă: ✅ gata (merge-uit sau PR deschis, verificat) · 🟡 parțial · ⬜
 | T04 Deploy v0 | ⬜ | — | Cere conturi Render + Netlify (+ Neon). `Dockerfile` BE neverificat local (TLS interceptat în containere pe laptopul pe care s-a lucrat). |
 | T05 Locuri & ghid | ⬜ | — | Migrările + seed-ul V3/V3_1 există (+ pozele în V4_2). Editarea obiectivelor e la Primărie: `/city/places/**`. |
 | T06 Evenimente | ⬜ | — | Migrările + seed-ul V4/V4_1/V4_2 (poze) există. |
-| T07–T14, T16–T19 | ⬜ | — | — |
+| T07, T08, T10–T14, T16–T19 | ⬜ | — | — |
+| T09 Firme & panou | 🟡 (PR-uri de deschis) | branch `feat/T09-business` în BE, FE, Plan | **BE:** V6 (`announcements` + `businesses.google_place_id` pentru T17) și V6_1 (4 anunțuri FICTIVE), `BusinessApi` cu toate rutele din API.md §Firme, `BusinessService` (proprietar → 403, firmă neverificată → `DRAFT`, validări 400), 31 de teste noi (`BusinessServiceTest`, `BusinessControllerTest`, DTO-uri). **FE:** pagina publică (mobil + W15), panoul web (Panou, Evenimente cu creare/editare, Anunțuri, Profil), panoul mobil E5 în `/m/panel` (statistici, tab-uri Evenimente/Anunțuri cu creare în sheet); 7 teste noi. Verificat pe API real + în browser la 390×844 și 1280. Lipsesc: lista publică `/events` (T06) — azi evenimentul firmei se vede pe pagina firmei; „Validează un cod” și ofertele (T10); recenziile (T17); harta de pe W15 (T08). |
 | T15 i18n, PWA, Android | 🟡 (Android merge-uit) | [FE #7](https://github.com/HACK4ARAD/AradEx-Frontend/pull/7) (#6 a intrat din greșeală doar în `feat/T03-auth`) | **Android gata:** Capacitor 6, `AradEx-Frontend/android/`, aplicația „AradExperience” (`ro.aradexperience.app`) rulează pe emulator, login verificat. Rămân: iconița și splash-ul aplicației, iOS (doar pe macOS), EN complet pe module, verificarea „Add to Home Screen”. |
 
 ## Decizii luate (de ce e așa)
@@ -34,12 +35,22 @@ Legendă: ✅ gata (merge-uit sau PR deschis, verificat) · 🟡 parțial · ⬜
 - **T02 — voluntarii:** rutele `/m/vol/*` au `roles: ['VOLUNTEER']`, fără cont duc la `/m/vol/login`, iar după login voluntarul ajunge la `/m/vol/actions` — T18 nu mai atinge router-ul sau `useAuthForm`.
 - **T15 — Capacitor 6** (nu 7/8): folosește SDK Android 34, deja instalat; build-ul rulează pe JDK 21 (wrapper-ul Gradle din `android/` urcat la 8.14.3). Aplicația nativă: origine `http://localhost` (trebuie în `CORS_ORIGINS`), pornește mereu pe `/m`, fără service worker. `@capacitor/cli` aduce o vulnerabilitate în `tar` (doar unealta de build, nu ajunge în APK; fix doar în Capacitor 8).
 
+- **T09 — piese minime de evenimente în T09:** T06 nu era început, așa că T09 a adăugat ce îi trebuia pentru `/business/events`: în BE entitatea `Event`, `EventRepository` (doar interogările pe firmă), `EventSummary`/`EventDto`/`EventCreate`, `EventMapper` și enum-urile `EventCategory`, `OrganizerType`, `TicketType`, `ContentStatus`; în FE `EventCreate`, `EventCategory`, `ContentStatus` în `types/business.ts`. **T06 le refolosește** (adaugă lista publică, filtrele, `distanceKm`, `saved`); dacă le mută în `types/events.ts`, le șterge din `types/business.ts` (același nume în două module strică `types/api.ts`).
+- **T09 — locația evenimentului firmei** e opțională: fără `lat`/`lng` evenimentul e la sediul firmei; la editare rămâne locația existentă. `priceFrom` = 0 la `FREE` (prețurile se șterg), minimul adult/copil la `IN_APP`, prețul adult la `EXTERNAL`.
+- **T09 — `AnnouncementDto` are și `status`** (în plus față de API.md inițial), ca firma să-și vadă ciornele în panou; pagina publică arată doar `PUBLISHED`. API.md actualizat.
+- **T09 — `GET /business/activity` e goală** până când există sursele ei (coduri T10, bilete T07, plăți cu puncte T11); `stats.codesUsed`/`pointsPayments` sunt 0 până atunci. Fiecare story adaugă rândurile lui în `BusinessService.activity`.
+- **T09 — ADMIN** trece de `/business/**` (SecurityConfig) și poate edita/șterge orice eveniment sau anunț de firmă, dar `/business/me` îi dă 404 (n-are firmă).
+- **T09 — composables noi:** `shared/composables/useBusiness.ts` (panou + pagina publică) și `useEventForm.ts` (formularul de eveniment, ora Aradului cu ora de vară, teste) — fișiere noi, nu ating ale altcuiva; `EventForm` din `shared/components/business/` poate fi refolosit de T06 pentru evenimentele Primăriei.
+
 ## Probleme cunoscute / de făcut mai târziu
 - **Lecție (T15):** un PR stivuit (bază = alt branch de feature) se merge-uiește doar după ce i-ai schimbat baza la `main` (PR → *Edit* → base). FE #6 avea baza `feat/T03-auth`, a fost merge-uit după ce T03 intrase deja în `main`, iar codul a ajuns doar în branch-ul vechi; s-a reparat cu FE #7. Regula e acum în `task-workflow` și `review-pr`.
 - Branch-urile `feat/T03-auth` (BE, FE, Plan) și `feat/T15-android` (FE) sunt merge-uite și pot fi șterse pe GitHub.
 - `AradEx-Ops/agents/*.md` trimit încă la `docs/TEAM.md` și `docs/status/Px.md` (șterse); de aliniat la acest fișier (P1).
 - `GlobalExceptionHandler` are încă un handler pentru `BadCredentialsException` care nu mai e folosit (login-ul aruncă `UnauthorizedException`); inofensiv.
 - Iconița aplicației Android e cea implicită Capacitor.
+- **T09:** `AppSmokeTest` (Testcontainers) a fost **sărit** la verificarea T09 pe laptopul folosit — utilizatorul nu e în grupul `docker`, deci testele nu ajung la Docker fără `sudo`. De rulat `./gradlew test` cu Docker accesibil înainte de merge (vezi SETUP §5).
+- **T09:** butonul „Validează un cod” (web + mobil) e dezactivat cu mesajul „vine în T10”; secțiunile Oferte / Validează coduri / Recenzii ale panoului rămân placeholder (T10, T17).
+- **T09:** migrarea V6 vine înaintea lui V5 (T07); dacă T07 intră după T09 pe o bază unde V6 e deja aplicat, Flyway refuză V5 fără `outOfOrder` — T07 trebuie să verifice numărul pe `origin/main` (CLAUDE.md BE).
 
 ## Împărțirea propusă pentru story-urile de features
 Discutată în echipă (cine ia ce se decide în ziua respectivă; dependențele sunt în `docs/PLAN.md`):
