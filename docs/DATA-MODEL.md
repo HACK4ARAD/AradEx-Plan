@@ -20,6 +20,7 @@ Nu se modifică o migrare deja aplicată pe `main` — se adaugă una nouă.
 - `RegistrationStatus`: `REGISTERED, CONFIRMED, CANCELLED, NO_SHOW`
 - `PointsType`: `EARN_ACTION, SPEND_OFFER, ADJUST`
 - `Transport`: `WALK, CAR, PUBLIC`
+- `TransitMode`: `TRAM, BUS` (`transit_routes.mode`, T22)
 
 ## Tabele
 
@@ -93,6 +94,13 @@ Cine a scanat pe cine: `community_registrations.confirmed_by` (există din V8).
 ### itineraries (T13, V9)
 `id, user_id FK NULL, title, params JSONB (cererea), stops JSONB (lista de opriri calculată), summary TEXT, share_code UNIQUE (8 caractere), created_at`
 
+### transit_routes, transit_stops, transit_patterns, transit_pattern_stops (T22, V12)
+Rețeaua statică CTP Arad, doar citire (seed `V12_1__seed_transit.sql`, generat o dată cu `docs/tools/ctp-transit-seed.mjs` din exportul static; aplicația nu descarcă nimic la pornire). Id-urile liniilor și stațiilor sunt cele din Telelink. Datele live (vehicule, sosiri) **nu** stau în DB.
+- `transit_routes`: `id INT PK (routeId Telelink), short_name (numărul afișat: „1”, „39b”), long_name, mode ('TRAM'|'BUS'), color NULL ('#rrggbb'), text_color NULL` — 29 de rânduri.
+- `transit_stops`: `id INT PK, name, code NULL, lat, lng` — 299 (un rând = un peron; același nume poate avea două id-uri, câte unul pe sens).
+- `transit_patterns`: `id SERIAL PK, route_id FK, pattern_index INT (poate fi negativ), from_stop_id NULL FK, to_stop_id NULL FK, path TEXT (polilinie codificată, precizie 5, simplificată la ~5 m)` · `UNIQUE (route_id, pattern_index)` — 77.
+- `transit_pattern_stops`: `pattern_id FK ON DELETE CASCADE, seq INT (de la 1), stop_id FK` · `PK (pattern_id, seq)`, index pe `stop_id` — 805 opriri.
+
 ## Relații pe scurt
 ```
 users 1─1 businesses (doar rol BUSINESS)
@@ -102,6 +110,7 @@ users n─n events (saved_events) ; users 1─n tickets ─n 1 events
 users 1─n offer_redemptions ─n 1 offers
 community_actions 1─n community_registrations ─n 1 users
 users 1─n points_transactions ; users 1─n itineraries
+transit_routes 1─n transit_patterns 1─n transit_pattern_stops n─1 transit_stops (T22, doar citire)
 ```
 
 ## Seed (date demo) — ce trebuie să existe

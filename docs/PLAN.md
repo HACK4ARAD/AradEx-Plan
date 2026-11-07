@@ -23,7 +23,7 @@ Un story care atinge mai multe repo-uri = un branch cu același nume în fiecare
 | 5 | T07 Bilete · T08 Hartă & indicații · T09 Firme & panou | T06 (T08: și T05) | trei story-uri independente, pot merge în paralel |
 | 6 | T10 Oferte & coduri · T11 Comunitate & puncte · T12 Chat AI | T09 (T10) · T03+T10 (T11) · T06 (T12) | bucla de valoare + diferențiatorul AI |
 | 7 | T13 Planificator itinerar · T14 Admin (web) | T05+T08+T12 (T13) · T09+T10+T11 (T14) | ultimele piese mari |
-| 8 | T19 Transport în comun · T18 Rol Voluntar | T08 (T19) · T11 (T18) | din designul final; după ce bucla de bază e verde |
+| 8 | T19 Transport în comun · T18 Rol Voluntar · T22 Transport live CTP | T08 (T19) · T11 (T18) · T05+T06 (T22; stratul de hartă după T08) | din designul final; după ce bucla de bază e verde |
 | 9 | T15 Aplicația mobilă Android + iOS (obligatoriu), i18n · T20 Web = prezentare + panouri · T17 Google Places (opțional) | ecranele existente | aplicația instalabilă pe ambele platforme e livrabilul; T17 doar dacă rămâne timp |
 | 10 | T16 Deploy final, seed, demo (T16a/T16b) | toate | duminică dimineață |
 
@@ -210,7 +210,7 @@ CORS_ORIGINS=http://localhost:5173
 - `composables/useGeo.ts`: `navigator.geolocation` cu fallback pe centrul Aradului (46.1866, 21.3123).
 - FE mobil S7: hartă full-screen, căutare, chips Azi/Weekend/7 zile, filtre Locuri/Evenimente/Oferte, categorii; tap pe pin → card preview jos → „Arată traseul” (pe jos/mașină) / „Deschide”. „Indicații” din S3/E3/oferte deschide S7 centrat cu traseu. Web: fără hartă publică (W9 nu se face; site-ul de prezentare poate avea o captură).
 - Opțional: buton „Deschide în Google Maps” (`https://www.google.com/maps/dir/?api=1&destination=lat,lng`) — util real pe telefon.
-- **Opțional, date reale (7 nov): transport public CTP — urmează în T21 (propus, vezi STATUS), după T08** — stratul „Transport” pe hartă cu cele 299 de stații și tramvaiele / autobuzele **live**, plus „Stația cea mai apropiată · tramvaiul 1 în 4 min” pe E3/S3. Sursa: API-ul public Telelink (fără cheie, CORS ok pentru producție și Android) + exportul static de linii și stații; recomandat prin BE (stațiile seed, live cu cache 20–30 s, rezervă statică). Detalii și reguli de folosire: `docs/ARAD-DATA.md` §Alte date deschise.
+- **Opțional, date reale (7 nov): transport public CTP — T22 (mai jos)** — stratul „Transport” pe hartă cu cele 299 de stații și tramvaiele / autobuzele **live**, plus „Stația cea mai apropiată · tramvaiul 1 în 4 min” pe E3/S3. Sursa: API-ul public Telelink (fără cheie, CORS ok pentru producție și Android) + exportul static de linii și stații; recomandat prin BE (stațiile seed, live cu cache 20–30 s, rezervă statică). Detalii și reguli de folosire: `docs/ARAD-DATA.md` §Alte date deschise.
 
 **Verificare:** pin-urile corespund filtrelor; traseul se desenează între locația mea și pin; fără internet la OSRM se afișează linia dreaptă fără eroare în consolă.
 
@@ -321,6 +321,15 @@ CORS_ORIGINS=http://localhost:5173
 - Migrarea V11 (`users.phone`, `otp_codes`, numere de demo pe conturile din seed, `tickets.email` opțional); secretul `aradex/twilio` în Terraform, cheile le pune Zoltan cu `AradEx-Infrastructure/scripts/set-twilio-keys.sh`.
 
 **Verificare:** contul demo `0799 000 001` intră cu codul de pe ecran și își vede biletele; un număr demo nou își creează cont; un cod greșit de 5 ori blochează codul; `visitor@demo.ro` nu mai intră cu parola (403); un număr real primește SMS după ce sunt puse cheile Twilio.
+
+### T22 · Transport public live CTP Arad (P1)
+**Depinde de:** T05, T06 (rândul de pe S3/E3); stratul de hartă: T08
+- **BE:** `V12__transit.sql` + seed-ul `V12_1` (29 de linii, 299 de stații, variantele cu opririle ordonate și traseul) din exportul static (`docs/tools/ctp-transit-seed.mjs`, rulat o dată). `TransitApi`, public: `GET /transit/stops`, `/transit/routes`, `/transit/vehicles`, `/transit/stops/{id}/arrivals`, `/transit/nearest?lat&lng` (`docs/API.md` §Transport public live CTP).
+- **Live prin BE, nu din telefon:** API-ul public Telelink prin `RestClient`, un cache comun de 25 s, fără cereri suprapuse, backoff 60 → 120 s; vehiculele mai vechi de 120 s = `stale`; fără sursă → `live:false` cu stația și liniile ei, niciodată 500. Atribuire „Date: CTP Arad / Telelink”.
+- **FE (`src/shared`):** `types/transit.ts`, `api/transit.ts`, `composables/useTransit.ts` (vehiculele la 30 s doar cât ecranul e vizibil, sosiri, stația cea mai apropiată, `transitMarkers()` în formatul markerelor din `MapView`), `components/transit/NearestStop.vue` — rândul „Stația cea mai apropiată · Tramvaiul 1 în 4 min” pe S3 (eveniment) și E3 (ghid), doar până la 1,5 km.
+- **Rămâne pentru T08:** stratul „Transport” pe hartă (stațiile + vehiculele live cu `transitMarkers()`, liniile din `/transit/routes`); pentru T13/T19: transport `PUBLIC` și tab-ul Transport pot folosi aceleași date.
+
+**Verificare:** `/api/v1/transit/vehicles` în producție are vehicule cu `live:true` (sau `live:false` curat dacă Telelink pică); `/transit/nearest` lângă Primărie dă o stație la ~100 m cu sosiri; cu sursa oprită răspunsul vine în ≤ 4 s cu `live:false`, apoi imediat (pauză); S3 și E3 arată rândul cu stația și „Date: CTP Arad / Telelink”.
 
 ### T17 · (opțional) Rating & recenzii Google pentru obiective și firme
 **Depinde de:** T05, T09 · **Doar dacă rămâne timp și există cheie Google cu billing.**

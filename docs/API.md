@@ -187,6 +187,28 @@ Rolul `VOLUNTEER` e deja în `Role` (BE + FE) și în `SecurityConfig` din T03 (
 ## Transport (T19) — fără endpoint-uri
 Liniile de tramvai CTP Arad (OSM, ODbL) și orarele de exemplu sunt date statice în FE (`shared/data/tram.ts`, din `design/final/shared/tram.js`); traseele pe jos prin OSRM, ca la T08.
 
+## Transport public live CTP (T22)
+Rețeaua CTP Arad (29 de linii: 8 tramvai, 21 autobuz; 299 de stații; 77 de variante) e în DB din seed-ul `V12_1` (exportul static, snapshot 7 nov 2026); vehiculele și sosirile vin **live** din API-ul public Telelink, prin BE (`TransitLiveService`): **un cache comun de 25 s** pentru toți utilizatorii, **niciodată două cereri simultane** spre Telelink, **pauză 60 → 120 s după erori**; dacă sursa nu răspunde, răspunsul are `live: false` (fără vehicule / sosiri, dar cu stația și liniile ei) — **niciodată 500**. Vehiculele cu poziția mai veche de 120 s sunt `stale`. Id-urile sunt cele din Telelink: `routeId` ≠ numărul afișat (`routeId 13` = tramvaiul 3), de aceea DTO-urile au și `routeShortName`. **Atribuire obligatorie: „Date: CTP Arad / Telelink”** (câmpul `attribution` din răspunsurile live; în aplicație, sub rândul cu stația). Sursa și regulile de folosire: `docs/ARAD-DATA.md` §Alte date deschise.
+| Metodă | Rută | Auth | Cerere → Răspuns |
+|---|---|---|---|
+| GET | `/transit/stops` | pub | → `TransitStopDto[]` (299, ordonate după id) |
+| GET | `/transit/routes` | pub | → `TransitRouteDto[]` (tramvaiele întâi, apoi autobuzele, în ordinea numerelor), cu variantele: opririle ordonate + traseul `[lat, lng]` (simplificat la ~5 m; ~70 KB în total) |
+| GET | `/transit/vehicles` | pub | → `TransitVehiclesDto` (cache 25 s). FE: o cerere la 30 s, doar cât ecranul e vizibil |
+| GET | `/transit/stops/{id}/arrivals` | pub | → `StopArrivalsDto` (cel mult 8 sosiri, după oră; cache 25 s per stație); 404 dacă stația nu e în seed |
+| GET | `/transit/nearest?lat&lng` | pub | → `StopArrivalsDto` cu `distanceKm`: stația cea mai apropiată + sosirile ei și ale peronului de vizavi (același nume, ≤ 400 m, cel mult 3 peroane); 400 fără `lat`/`lng` valide. Oricât de departe e stația, răspunsul vine; FE arată rândul doar până la 1,5 km |
+
+```ts
+type TransitMode = 'TRAM' | 'BUS'
+type TransitStopDto = { id: number; name: string; code?: string; lat: number; lng: number; routeIds: number[]; lines: string[] /*numerele afișate, tramvaiele întâi: ["1","3","21"]*/ }
+type TransitPatternDto = { index: number /*poate fi negativ, unic doar în linie*/; fromStopId?: number; toStopId?: number; stopIds: number[] /*în ordine; o stație poate apărea de 2 ori într-o buclă*/; path: [number, number][] /*[lat, lng]*/ }
+type TransitRouteDto = { id: number /*routeId Telelink*/; shortName: string /*"1", "39b"*/; longName: string; mode: TransitMode; color?: string /*#rrggbb*/; textColor?: string; patterns: TransitPatternDto[] }
+type TransitVehicleDto = { id: string; label?: string; routeId: number; routeShortName?: string; mode?: TransitMode; color?: string /*lipsesc pentru o linie necunoscută*/; headsign?: string; lat: number; lng: number; heading?: number; delaySeconds?: number; nextStopId?: number; nextStopArrival?: string; lastUpdated?: string; stale: boolean /*poziție > 120 s*/ }
+type TransitVehiclesDto = { live: boolean; updatedAt?: string /*ultima citire reușită*/; attribution: string; vehicles: TransitVehicleDto[] /*goală dacă live=false*/ }
+type TransitArrivalDto = { routeId: number; routeShortName?: string; mode?: TransitMode; color?: string; headsign?: string; stopId: number; at: string /*program + întârziere*/; minutes: number /*0 = acum*/; delaySeconds: number; realtime: boolean /*false = doar ora din program*/ }
+type StopArrivalsDto = { stop: TransitStopDto; distanceKm?: number /*doar la nearest*/; live: boolean; updatedAt?: string; attribution: string; arrivals: TransitArrivalDto[] /*goală dacă live=false*/ }
+```
+FE: `shared/types/transit.ts`, `shared/api/transit.ts`, `shared/composables/useTransit.ts` (`useTransitVehicles`, `useStopArrivals`, `useNearestStop`, `loadTransitStops`, `transitMarkers()` → markere `{ id: 'stop:<id>' | 'vehicle:<id>', lat, lng, kind: 'stop' | 'vehicle', label }` pentru `MapView`), `shared/components/transit/NearestStop.vue` (pe S3 și E3).
+
 ## Poze (media, T05+)
 Pozele încărcate din panou stau în S3 (bucket privat `aradex-media-…`, `AradEx-Infrastructure/terraform/modules/api/media.tf`); local, fără `MEDIA_BUCKET`, pe disc (`MEDIA_LOCAL_DIR`, implicit `uploads/`). API-ul le servește el (fără CloudFront).
 | Metodă | Rută | Auth | Cerere → Răspuns |
