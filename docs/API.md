@@ -112,16 +112,20 @@ FE folosește `GET /events?near=`, `GET /places?near=`, `GET /offers?near=`, `GE
 ## Oferte (T10, puncte în T11)
 | Metodă | Rută | Auth | Cerere → Răspuns |
 |---|---|---|---|
-| GET | `/offers?category&localProduct=true&near=lat,lng&q` | pub | → `OfferSummary[]` (doar `PUBLISHED`, valabile azi) |
-| GET | `/offers/{id}` | pub | → `OfferDto` (+ `myRedemption` dacă e logat) |
-| POST | `/offers/{id}/redeem` | auth | → `RedemptionDto` (409 dacă există una `ISSUED`; 409 `insufficient_points` dacă `pointsPrice` > sold) |
-| GET | `/me/redemptions` | auth | → `RedemptionDto[]` |
-| GET / POST | `/business/offers` | BUSINESS | `OfferCreate { title, description, discountLabel, localProduct, validFrom, validUntil, pointsPrice?, imageUrl? }` → `OfferDto` |
-| PUT / DELETE | `/business/offers/{id}` | BUSINESS | |
-| POST | `/business/redemptions/use` | BUSINESS | `{ code }` → `RedemptionDto` cu `USED` (404 cod necunoscut, 409 deja folosit / nu e al firmei) |
-| GET | `/business/redemptions?status` | BUSINESS | → `RedemptionDto[]` |
+| GET | `/offers?category&localProduct=true&points=true&near=lat,lng&q` | pub | → `OfferSummary[]` (doar `PUBLISHED`, valabile azi în ora Aradului; `category` = `OfferCategory`; `localProduct=true` = „Făcut în Arad” (`localProduct` sau `category=LOCAL`); `points=true` = „Cu puncte” (au `pointsPrice`); cu `near` se completează `distanceKm` (față de firmă) și se sortează după distanță; 400 dacă `near` nu e `lat,lng`) |
+| GET | `/offers/{id}` | pub | → `OfferDto` (+ `myRedemption` = ultimul meu cod pentru ofertă, dacă sunt logat; incrementează `viewsCount`); 404 dacă nu e `PUBLISHED` |
+| POST | `/offers/{id}/redeem` | auth | → 201 `RedemptionDto` (`ISSUED`); 404 ofertă inexistentă / nepublicată; 409 „You already have an active code for this offer”; 409 „This offer is not valid today”; **T11:** 409 `insufficient_points` dacă `pointsPrice` > sold (până atunci revendicarea e gratuită, `pointsSpent` = 0) |
+| GET | `/me/redemptions` | auth | → `RedemptionDto[]` (cele mai noi primele) |
+| GET | `/business/offers` | BUSINESS | → `OfferDto[]` (ale firmei mele, inclusiv ciorne; fără cele ascunse) |
+| POST | `/business/offers` | BUSINESS | `OfferCreate` → 201 `OfferDto` (`DRAFT` dacă firma nu e verificată); 400 dacă `validUntil` < `validFrom` sau `status=HIDDEN` |
+| PUT | `/business/offers/{id}` | BUSINESS (proprietar; ADMIN orice) | `OfferCreate` → `OfferDto` (pauză = `status: DRAFT`); 403 dacă e a altei firme |
+| DELETE | `/business/offers/{id}` | BUSINESS (proprietar; ADMIN orice) | → 204; dacă oferta are deja coduri emise, devine `HIDDEN` (istoricul codurilor rămâne); 403 dacă e a altei firme |
+| POST | `/business/redemptions/use` | BUSINESS | `{ code }` (litere mici și spațiile se acceptă) → `RedemptionDto` cu `USED` + `usedAt`; 404 „Unknown code”; 409 „Code already used” / „This code belongs to another business” / „Code cancelled”. Atomic: două scanări simultane → doar una reușește |
+| GET | `/business/redemptions?status` | BUSINESS | → `RedemptionDto[]` (codurile ofertelor mele, ultimele 100, cele mai noi primele) |
 
-Cod ofertă: `AX-O{offerId}-{6}`.
+`OfferCategory = 'CAFE'|'RESTAURANT'|'LOCAL'|'EVENT'|'OTHER'` (T10; cercurile Cafenele / Restaurante / Făcut în Arad / Evenimente). `OfferSummary` primește `category`; `validUntil` lipsește = ofertă permanentă.
+`OfferCreate = { title (≤120), description (≤2000), discountLabel (≤30), category?, localProduct, validFrom?, validUntil?, pointsPrice? (1–10000), imageUrl?, status?: 'DRAFT'|'PUBLISHED' }` — `category` lipsă = din categoria firmei (CAFE→CAFE, RESTAURANT→RESTAURANT, PRODUCER/WINERY→LOCAL, altfel OTHER), `validFrom` lipsă = azi, `validUntil` lipsă = permanentă.
+Cod ofertă: `AX-O{offerId}-{6}` (alfabetul fără 0/O/1/I). În pagina firmei (`GET /businesses/{id}`) `offers` = ofertele ei active; `stats.codesUsed` = suma `usedCount`; `activity` conține `CODE_USED` și `OFFER_REDEEMED`.
 
 ## Comunitate & puncte (T11)
 | Metodă | Rută | Auth | Cerere → Răspuns |
