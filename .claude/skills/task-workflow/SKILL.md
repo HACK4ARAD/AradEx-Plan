@@ -6,10 +6,10 @@ description: Cum se începe, se implementează, se verifică și se închide un 
 # Task workflow (AradExperience)
 
 Layout: 5 repo-uri surori în același folder (organizația HACK4ARAD): `AradEx-Plan` (acesta: `docs/`, `design/`, `CLAUDE.md`, `STRUCTURE.md`, toate skill-urile), `AradEx-Backend` (Spring: `api` = contract, `app` = aplicație), `AradEx-Frontend` (Vue), `AradEx-Infrastructure` (Postgres local, deploy — doar P1) și `AradEx-Ops` (agenții Paperclip). Fiecare are git-ul lui; comenzile se dau din `AradEx-Plan` cu `../AradEx-Backend`, `../AradEx-Frontend` (sau din worktree-ul task-ului).
-Skill-uri (toate aici, în `.claude/skills/`): `be-module`, `seed-data`, `fe-feature`, `review-pr`. Cine ce fișiere atinge:.
+Skill-uri (toate aici, în `.claude/skills/`): `be-module`, `seed-data`, `fe-feature`, `review-pr`. Cine ce fișiere atinge: `CLAUDE.md` §„Fără conflicte între story-uri”. Memoria proiectului (ce e gata, decizii, probleme cunoscute): `docs/STATUS.md`. Mediul local și problemele lui: `docs/SETUP.md`.
 
 ## 1. Start
-1. Citește task-ul din `docs/PLAN.md`, secțiunile aferente din `docs/API.md`, `docs/DATA-MODEL.md`, `docs/FEATURES.md`.md` (dependențele trebuie să fie deja în `origin/main`). Ecranele: `design/screens/`.
+1. Citește `docs/STATUS.md` (ce e deja gata, deciziile luate, problemele cunoscute), apoi task-ul din `docs/PLAN.md` și secțiunile aferente din `docs/API.md`, `docs/DATA-MODEL.md`, `docs/FEATURES.md` (dependențele trebuie să fie deja în `origin/main`). Ecranele: `design/final/` (`mobile.html`, `web.html`, planșele în `design/final/screens/`).
 2. În fiecare repo atins (`AradEx-Backend`, `AradEx-Frontend`, `AradEx-Plan` dacă se schimbă API/docs): `git -C ../<Repo> fetch origin && git -C ../<Repo> worktree add ../_wt/<Repo>-Txx -b feat/Txx-nume-scurt origin/main` — **același nume de branch** peste tot (fără worktree: `git switch -c feat/Txx-nume-scurt origin/main`). Baza de date a task-ului: `createdb -h localhost -U arad aradexperience_txx` și `POSTGRES_URL` spre ea în `.env`-ul worktree-ului.
 3. Scrie în 5–10 rânduri planul concret: fișiere pe care le creezi/modifici (BE: interfața + DTO-urile în `api/`, layerele în `app/`; FE: tipuri, api, componente, view-uri), migrarea (numărul rezervat culoarului tău în), endpoint-urile, ecranele. Arată-l omului **înainte** de a scrie cod dacă task-ul atinge și BE și FE; altfel mergi direct.
 4. Deschide PR-ul din `AradEx-Plan` ca draft.
@@ -24,10 +24,11 @@ Skill-uri (toate aici, în `.claude/skills/`): `be-module`, `seed-data`, `fe-fea
 
 ## 3. Verificare (înainte de PR) — checklist
 Rulează efectiv, nu presupune:
-- [ ] `./gradlew test` verde în worktree-ul de BE; `npm run build && npm run test` verde în worktree-ul de FE; fără erori în consola browserului.
+- [ ] `./gradlew test` verde în worktree-ul de BE **fără teste sărite** (`AppSmokeTest` sărit = Docker oprit); `npm run build && npm run test` verde în worktree-ul de FE; fără erori în consola browserului.
 - [ ] Fiecare punct din secțiunea „Verificare” a task-ului, executat manual: pe **mobil** (Chrome device toolbar 390×844 + telefon real dacă există) și pe **web** (≥1280px) unde task-ul are ambele.
 - [ ] Endpoint-urile noi apar în Swagger și răspund conform `docs/API.md` (status-uri 400/401/403/404/409 incluse — încearcă-le).
-- [ ] Rolurile: un cont cu rol greșit primește 403, nu 500. Guest-ul vede doar ce e public.
+- [ ] Rolurile: un cont cu rol greșit primește 403, nu 500. Guest-ul vede doar ce e public. Regulile pe rute sunt deja în `SecurityConfig` (T03) și testate în `config/SecurityRulesTest`.
+- [ ] Ecranele de mobil merg și în aplicația Android (`npm run android:run` pe emulator, `adb reverse tcp:8080 tcp:8080`; vezi `docs/SETUP.md`).
 - [ ] Stări de listă: loading, gol, eroare — nu ecran alb.
 - [ ] Texte în română cu diacritice, în `ro.json`. Fără „lorem ipsum”, fără `console.log` rămase, fără `TODO` fără explicație.
 - [ ] Feature-ul tău merge cap-coadă pe mobil și web (fluxul complet din `docs/DEMO.md` se verifică doar la final).
@@ -41,4 +42,5 @@ Cere review cu skill-ul `review-pr` sau: „Fă review la PR-ul pentru Txx: caut
 1. În fiecare repo atins: `git push -u origin feat/Txx-...` și `gh pr create` (titlu `Txx: ...`, în descriere ce ai testat + link-urile PR-urilor pereche). **Fără `Co-Authored-By:` în commit-uri și fără „Generated with Claude Code” în PR.** Merge-ul (squash, ordinea BE → FE → Plan) îl face QA & Demo după review, nu tu; după merge: `git worktree remove ../_wt/<Repo>-Txx`.
 2. În descrierea PR-ului: ce s-a făcut, decizii, probleme cunoscute.
 3. `docs/API.md` actualizat dacă s-a schimbat ceva. Dacă ai adăugat un ecran care nu era în designul final, spune-o în PR (designul se schimbă în `design/final/`).
-4. Spune în chat, în 3 rânduri: ce merge, ce nu, ce urmează.
+4. **`docs/STATUS.md` actualizat** în PR-ul din `AradEx-Plan`: rândul story-ului (stare, link-urile PR-urilor), deciziile noi la „Decizii luate”, ce a rămas la „Probleme cunoscute”. Dacă ai schimbat modul de lucru (o convenție nouă, o capcană descoperită), actualizează și skill-ul afectat din `.claude/skills/`; o problemă nouă de mediu → `docs/SETUP.md` §5.
+5. Spune în chat, în 3 rânduri: ce merge, ce nu, ce urmează.
