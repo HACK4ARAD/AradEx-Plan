@@ -32,7 +32,7 @@ Migrarea `V2__users_businesses.sql` + seed-ul `V2_1__seed_users.sql` (5 conturi 
 
 ### places (T05, V3)
 `id, name, slug UNIQUE, type, description TEXT, address, lat, lng, image_url, image_credit NULL, opening_hours TEXT NULL, visit_minutes INT, tags VARCHAR (csv: "istorie,familie"), rating NUMERIC(2,1) NULL, parking_hint TEXT NULL, exterior_only BOOL DEFAULT false (Cetatea, Turnul de Apă), source_url VARCHAR(300) NULL (fișa sursă visitarad.ro, pentru atribuire — V3_2; încă nu e în entitate / DTO), google_place_id VARCHAR NULL (T17), created_at`
-Migrarea `V3__places.sql` + seed-ul `V3_1__seed_places.sql` (12 locuri reale, 33 puncte de ghid) **există deja** în `AradEx-Backend` (modulul `app`) și trec pe Postgres 16. **`V3_2__places_visitarad.sql`** (7 nov) adaugă `source_url`, corectează coordonatele celor 12 (verificate pe OSM) și inserează **223 de locuri reale** din exportul visitarad.ro (obiective, muzee, crame, cafenele, restaurante; fără cazare) — id-uri din secvență, idempotent prin `slug`; **`V4_3__seed_event_venues.sql`** mută evenimentele din seed pe coordonatele corecte ale sălilor. Detalii: `docs/ARAD-DATA.md`.
+Migrarea `V3__places.sql` + seed-ul `V3_1__seed_places.sql` (12 locuri reale, 33 puncte de ghid) **există deja** în `AradEx-Backend` (modulul `app`) și trec pe Postgres 16. **`V3_2__places_visitarad.sql`** (7 nov) adaugă `source_url`, corectează coordonatele celor 12 (verificate pe OSM) și inserează **223 de locuri reale** din exportul visitarad.ro (obiective, muzee, crame, cafenele, restaurante; fără cazare) — id-uri din secvență, idempotent prin `slug`; **`V5_2__seed_event_venues.sql`** mută evenimentele din seed pe coordonatele corecte ale sălilor. Detalii: `docs/ARAD-DATA.md`.
 
 ### guide_points (T05, V3)
 `id, place_id FK places ON DELETE CASCADE, position INT, title, text TEXT, image_url NULL, audio_url NULL, lat NULL, lng NULL, duration_sec INT NULL`
@@ -57,11 +57,12 @@ Derivat în DTO: `isHot = participants_count >= 50 OR saves_count >= 20`; `dista
 `id, business_id FK, title, body TEXT, image_url NULL, status DEFAULT 'PUBLISHED', created_at`
 
 ### offers (T10, V7)
-`id, business_id FK, title, description TEXT, discount_label ('-20%','2+1','Gratuit'), local_product BOOL DEFAULT false, valid_from DATE, valid_until DATE, points_price INT NULL, image_url NULL, status DEFAULT 'PUBLISHED', views_count INT DEFAULT 0, redemptions_count INT DEFAULT 0, used_count INT DEFAULT 0, created_at`
+`id, business_id FK, title VARCHAR(120), description TEXT, discount_label ('-20%','2+1','Gratuit','40 p'), category ('CAFE'|'RESTAURANT'|'LOCAL'|'EVENT'|'OTHER', DEFAULT 'OTHER'), local_product BOOL DEFAULT false, valid_from DATE DEFAULT azi, valid_until DATE NULL (= permanentă), points_price INT NULL (> 0), image_url NULL, status DEFAULT 'PUBLISHED', views_count INT DEFAULT 0, redemptions_count INT DEFAULT 0, used_count INT DEFAULT 0, created_at`
+`category` adăugat în T10 pentru cercurile din tab-ul Oferte (designul final); CHECK `valid_until >= valid_from`. Index: `(business_id)`, `(status, valid_until)`.
 
 ### offer_redemptions (T10, V7)
 `id, offer_id FK, user_id FK, code UNIQUE ('AX-O{offerId}-XXXXXX'), points_spent INT DEFAULT 0, status DEFAULT 'ISSUED', issued_at, used_at NULL, used_by_user_id FK users NULL`
-Regulă: o singură revendicare cu status `ISSUED` per (offer_id, user_id).
+Regulă: o singură revendicare cu status `ISSUED` per (offer_id, user_id) — garantată de indexul unic parțial `uq_redemptions_active (offer_id, user_id) WHERE status = 'ISSUED'`. După ce codul e folosit, utilizatorul poate revendica din nou. Seed: `V7_1__seed_offers.sql` (8 oferte FICTIVE, 2 ciorne la firmele neverificate, 4 coduri).
 
 ### community_actions (T11, V8)
 `id, title, description TEXT, category, start_at, end_at, location_name, address, lat, lng, points_reward INT, capacity INT, registered_count INT DEFAULT 0, confirmed_count INT DEFAULT 0, image_url NULL, status DEFAULT 'PUBLISHED', created_by FK users, created_at`
