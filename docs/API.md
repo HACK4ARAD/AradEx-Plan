@@ -16,8 +16,9 @@ type Role = 'VISITOR'|'LOCAL'|'BUSINESS'|'CITY_HALL'|'ADMIN'|'VOLUNTEER'   // VO
 type UserDto = { id: number; email: string; displayName: string; role: Role; locale: 'ro'|'en'; pointsBalance: number; business?: BusinessSummary }
 type BusinessSummary = { id: number; name: string; category: string; verified: boolean; imageUrl?: string }
 type GeoPoint = { lat: number; lng: number }
-type PlaceSummary = { id: number; name: string; type: string; imageUrl?: string; lat: number; lng: number; visitMinutes: number; tags: string[]; distanceKm?: number }
-type PlaceDto = PlaceSummary & { slug: string; description: string; address: string; openingHours?: string; rating?: number; parkingHint?: string; imageCredit?: string; exteriorOnly: boolean; guidePoints: GuidePointDto[]; google?: GoogleInfoDto }
+type PlaceType = 'ATTRACTION'|'MUSEUM'|'VENUE'|'WINERY'|'NATURE'|'PARK'|'RESTAURANT'|'CAFE'
+type PlaceSummary = { id: number; name: string; type: PlaceType; imageUrl?: string; lat: number; lng: number; visitMinutes: number; tags: string[]; distanceKm?: number; guidePointsCount: number; guideMinutes: number; exteriorOnly: boolean }   // T05: guidePointsCount/guideMinutes/exteriorOnly = badge-urile din liste
+type PlaceDto = PlaceSummary & { slug: string; description: string; address?: string; openingHours?: string; rating?: number; parkingHint?: string; imageCredit?: string; guidePoints: GuidePointDto[]; google?: GoogleInfoDto }   // google: T17
 type GuidePointDto = { id: number; position: number; title: string; text: string; imageUrl?: string; audioUrl?: string; lat?: number; lng?: number; durationSec?: number }
 type EventSummary = { id: number; title: string; category: string; startAt: string; endAt?: string; locationName: string; lat: number; lng: number; imageUrl?: string; ticketType: 'FREE'|'IN_APP'|'EXTERNAL'; priceFrom?: number; isHot: boolean; isDemo: boolean; participantsCount: number; organizerName: string; organizerType: string; distanceKm?: number; saved?: boolean; ratingAvg?: number; ratingCount: number }
 type EventDto = EventSummary & { description: string; address: string; placeId?: number; organizerBusinessId?: number; priceAdult?: number; priceChild?: number; externalUrl?: string; capacity?: number; spotsLeft?: number; savesCount: number; status: string }
@@ -51,12 +52,22 @@ Securitate (T03, `config/SecurityConfig`): regulile din coloana „Auth” pentr
 ## Locuri & ghid (T05)
 | Metodă | Rută | Auth | Cerere → Răspuns |
 |---|---|---|---|
-| GET | `/places?type&q&near=lat,lng&tags` | pub | → `PlaceSummary[]` (fără paginare, < 100) |
-| GET | `/places/{id}` | pub | → `PlaceDto` cu `guidePoints` ordonate |
-| POST/PUT/DELETE | `/city/places`, `/city/places/{id}` | CITY_HALL, ADMIN | `PlaceDto` fără id/guidePoints |
-| POST/PUT/DELETE | `/city/places/{id}/guide-points`, `/{gpId}` | CITY_HALL, ADMIN | `GuidePointDto` |
+| GET | `/places?type&q&near=lat,lng&tags` | pub | → `PlaceSummary[]` (fără paginare, < 100). `type` = un `PlaceType` (altfel 400); `q` caută în nume, descriere și etichete, fără diacritice; `tags` = csv, potrivire pe oricare; `near` adaugă `distanceKm` și sortează după distanță (400 dacă nu e `lat,lng`); fără `near`, ordinea e după id |
+| GET | `/places/{id}?near=lat,lng` | pub | → `PlaceDto` cu `guidePoints` ordonate după `position` (404 dacă nu există); `near` opțional → `distanceKm` („Ești aici” ≤ 0,15 km) |
+| POST | `/city/places` | CITY_HALL, ADMIN | `PlaceRequest` → `PlaceDto` (201; 409 dacă `slug` e ocupat; fără `slug` se generează din nume, cu `-2`, `-3` la nevoie) |
+| PUT | `/city/places/{id}` | CITY_HALL, ADMIN | `PlaceRequest` → `PlaceDto` (404; 409 slug; `slug` lipsă = rămâne cel vechi) |
+| DELETE | `/city/places/{id}` | CITY_HALL, ADMIN | 204 (șterge și punctele de ghid; 404; 409 dacă are evenimente legate) |
+| POST | `/city/places/{id}/guide-points` | CITY_HALL, ADMIN | `GuidePointRequest` → `GuidePointDto` (201; fără `position` = la final; 409 dacă poziția e ocupată; 404) |
+| PUT | `/city/places/{id}/guide-points/{gpId}` | CITY_HALL, ADMIN | `GuidePointRequest` → `GuidePointDto` (o poziție ocupată de alt punct = schimb de poziții, pentru „mută sus/jos”; 404 dacă punctul nu e al locului) |
+| DELETE | `/city/places/{id}/guide-points/{gpId}` | CITY_HALL, ADMIN | 204 (404) |
 | POST | `/ai/tts` (opțional) | auth | `{ text, voice? }` → `audio/mpeg` (cache după hash) |
 | GET | `/places/{id}/google`, `/businesses/{id}/google` (opțional, T17) | pub | → `GoogleInfoDto` din Google Places API (New) Place Details, prin backend, cache 24 h; 404 dacă nu există `googlePlaceId`; afișat cu „Powered by Google” |
+
+Cererile din „Obiective & ghiduri” (`CityPlacesApi`):
+```ts
+type PlaceRequest = { name: string /*≤160*/; slug?: string /*a-z0-9-*/; type: PlaceType; description: string; address?: string; lat: number; lng: number; imageUrl?: string; imageCredit?: string; openingHours?: string; visitMinutes?: number /*5–600, implicit 60*/; tags?: string[] /*≤12×30, se salvează cu litere mici*/; rating?: number /*0–5*/; parkingHint?: string; exteriorOnly: boolean }
+type GuidePointRequest = { position?: number /*1–99*/; title: string /*≤160*/; text: string /*≤4000*/; imageUrl?: string; audioUrl?: string; lat?: number; lng?: number; durationSec?: number /*5–1800; lipsă = estimat din text, ~140 cuvinte/min*/ }
+```
 
 ## Evenimente (T06) & bilete (T07)
 | Metodă | Rută | Auth | Cerere → Răspuns |
@@ -138,7 +149,7 @@ Cod înscriere: `AX-C{actionId}-{6}`. Punctele se scriu **doar** prin `PointsSer
 | GET | `/itineraries/{idOrShareCode}` | pub | → `ItineraryDto` |
 | GET | `/me/itineraries` | auth | → `ItineraryDto[]` |
 
-Răspunsul modelului e forțat cu `response_format: json_schema` (schema în `ai/schemas/*.json`); BE validează id-urile și normalizează orele. Timeout 20 s, apoi fallback din `ai/fallback/*.json` cu `offline: true`.
+AI-ul e **Claude** (Anthropic API, SDK-ul oficial Java, modelul din `ANTHROPIC_MODEL`, implicit `claude-haiku-5-5`). Răspunsul modelului e forțat cu structured outputs (`outputConfig` cu schema JSON; schemele în `ai/schemas/*.json`); BE validează id-urile și normalizează orele. Timeout 20 s, apoi fallback din `ai/fallback/*.json` cu `offline: true`.
 
 ## Admin (T14)
 | Metodă | Rută | Auth | Cerere → Răspuns |

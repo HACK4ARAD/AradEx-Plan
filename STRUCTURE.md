@@ -48,7 +48,7 @@ AradEx-Backend/                       REPO 2 — backend (Spring Boot 3, Java 21
 ├─ gradle.properties · gradlew · gradle/wrapper/   wrapper Gradle 8.14 (nu trebuie Gradle instalat)
 ├─ Dockerfile                         build multi-stage (gradle:8.14-jdk21 → :app:bootJar → temurin 21 jre); imaginea de producție (ECR aradex-api → ECS)
 ├─ .github/workflows/deploy.yml       la merge pe main: ./gradlew test → imagine în ECR → deploy ECS (al lui P1; singurul workflow)
-├─ .env.example                       variabilele BE (POSTGRES_*, JWT_SECRET, OPENAI_API_KEY, CORS_ORIGINS); .env e ignorat de git
+├─ .env.example                       variabilele BE (POSTGRES_*, JWT_SECRET, ANTHROPIC_API_KEY, ANTHROPIC_MODEL, CORS_ORIGINS); .env e ignorat de git
 ├─ api/                               MODULUL `api` = CONTRACTUL REST (bibliotecă Java simplă; app depinde de ea)
 │  ├─ build.gradle                    java-library; spring-web (adnotări), jakarta.validation, swagger-annotations; test: JUnit, Jackson, validator
 │  └─ src/main/java/aradexperience/
@@ -123,7 +123,7 @@ AradEx-Infrastructure/                REPO 4 — infrastructură (doar P1)
 ├─ terraform/                         producția pe AWS (eu-north-1), state în S3: root (variabile, provider-e, module) + bootstrap/ (bucket-ul de state)
 │  ├─ modules/                        network (VPC fără NAT) · data (RDS Postgres 16, secrete) · api (ALB public HTTPS + rutare, ECR + ECS API) · web (nginx cu PWA-ul) · edge (zona DNS, certificat) · github_deploy (utilizatori IAM pentru GitHub Actions) · monitoring (alarme, buget)
 │  └─ tests/                          terraform test cu provider simulat (fără credențiale)
-├─ scripts/                           set-openai-key.sh · github-keys.sh (cheile de deploy direct în secretele GitHub) · redeploy.sh · destroy.sh
+├─ scripts/                           set-anthropic-key.sh · github-keys.sh (cheile de deploy direct în secretele GitHub) · redeploy.sh · destroy.sh
 ├─ docs/superpowers/                  designul (specs/) și planul de implementare (plans/) al infrastructurii
 └─ .githooks/ · .claude/settings.json
 

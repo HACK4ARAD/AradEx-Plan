@@ -39,7 +39,7 @@ cd ../AradEx-Frontend && npm run dev                          # APP :5173 ( / �
 cd ../AradEx-Frontend && npm run build && npm run test
 cd ../AradEx-Frontend && npm run android:run                 # aplicația Android pe emulator (Capacitor; docs/SETUP.md)
 powershell -ExecutionPolicy Bypass -File .\setup-windows.ps1  # Windows: verifică/instalează uneltele
-cp ../AradEx-Backend/.env.example ../AradEx-Backend/.env      # secretele BE (OPENAI_API_KEY, JWT_SECRET) — nu intră în git
+cp ../AradEx-Backend/.env.example ../AradEx-Backend/.env      # secretele BE (ANTHROPIC_API_KEY, JWT_SECRET) — nu intră în git
 cp ../AradEx-Frontend/.env.example ../AradEx-Frontend/.env    # VITE_API_URL, VITE_DEMO
 ```
 
@@ -54,7 +54,7 @@ cp ../AradEx-Frontend/.env.example ../AradEx-Frontend/.env    # VITE_API_URL, VI
 - Când ceva din PLAN/API nu se poate face exact așa, alege varianta cea mai simplă care ține feature-ul funcțional, notează decizia în descrierea PR-ului și mergi mai departe. Nu reproiecta.
 
 ## Reguli
-- **Niciodată** secrete în cod, în FE sau în git: cheia OpenAI e doar în BE (`AradEx-Backend/.env`, `OPENAI_API_KEY`). `.env` e ignorat de git peste tot.
+- **Niciodată** secrete în cod, în FE sau în git: cheia Claude API e doar în BE (`AradEx-Backend/.env`, `ANTHROPIC_API_KEY`; în producție în Secrets Manager). `.env` e ignorat de git peste tot.
 - Schema DB se schimbă **doar** prin migrări Flyway noi (`AradEx-Backend/app/src/main/resources/db/migration`), cu numerele rezervate culoarului tău; nu se editează migrări deja pe `main`.
 - BE: contractul (interfețe + DTO-uri) în modulul `api`, logica în `service`, controllerele fără logică, mapper-ele clase utilitare adnotate cu `@UtilityClass` (Lombok), folosite prin import static. `app` depinde de `api`, niciodată invers.
 - FE: tot ce e refolosit stă în `src/shared` (componente în `components/ui` sau `components/<feature>`); `mobile/` și `web/` au doar layout-uri și view-uri pe feature. Nu duplica logică între ele.
