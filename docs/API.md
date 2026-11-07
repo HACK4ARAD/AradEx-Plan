@@ -82,7 +82,7 @@ type GuidePointRequest = { position?: number /*1–99*/; title: string /*≤160*
 | PUT / DELETE | `/events/{id}` | creator sau ADMIN | PUT = același `EventCreate`; DELETE ascunde evenimentul (`HIDDEN`), biletele rămân valide → 204 |
 | POST / DELETE | `/events/{id}/save` | auth | → 204 (idempotent) |
 | GET | `/me/saved-events` | auth | → `EventSummary[]` |
-| POST | `/events/{id}/tickets` | auth | `{ qtyAdult, qtyChild, email? }` (T21: emailul de contact e opțional) (0–10 fiecare, cel puțin 1) → 201 `TicketDto`. IN_APP: total din prețuri. FREE cu `capacity`: înscriere a unei persoane (`qtyAdult=1`), una per utilizator (409 la a doua); FREE fără `capacity` → 400 (intrare liberă). 409 „Sold out” / „Only N spots left”; 400 pentru EXTERNAL și pentru evenimente încheiate; 404 pentru ciorne |
+| POST | `/events/{id}/tickets` | auth | `{ qtyAdult, qtyChild, email? }` (T21: emailul de contact e opțional) (0–10 fiecare, cel puțin 1) → 201 `TicketDto`. IN_APP: total din prețuri. FREE cu `capacity`: înscriere a unei persoane (`qtyAdult=1`), una per utilizator (409 la a doua); FREE fără `capacity` → 400 (intrare liberă). 409 „Sold out” / „Only N spots left”; 400 pentru EXTERNAL și pentru evenimente încheiate; 404 pentru ciorne. **T25:** când plata cu cardul (Stripe, mod test) e pornită, o comandă cu total > 0 primește **402 „Card payment required”** — se plătește prin `POST /events/{id}/tickets/checkout` (§Plăți); înscrierile gratuite merg direct |
 | GET | `/me/tickets?upcoming=true\|false` | auth | → `TicketDto[]` — `true`: cele care nu s-au terminat, după dată; `false`: trecute, cele recente primele; fără parametru: toate |
 | GET | `/tickets/{code}` | proprietar/organizator/ADMIN | → `TicketDto` |
 | POST | `/tickets/{code}/use` | organizator/ADMIN | → `TicketDto` (409 dacă e deja USED). Organizator = creatorul evenimentului sau firma organizatoare |
@@ -159,6 +159,18 @@ Cod înscriere: `AX-C{actionId}-{6}`. Punctele se scriu **doar** prin `PointsSer
 | GET | `/me/itineraries` | auth | → `ItineraryDto[]` |
 
 AI-ul e **Claude** (Anthropic API, SDK-ul oficial Java, modelul din `ANTHROPIC_MODEL`, implicit `claude-haiku-5-5`). Răspunsul modelului e forțat cu structured outputs (`outputConfig` cu schema JSON; schemele în `ai/schemas/*.json`); BE validează id-urile și normalizează orele. Timeout 20 s, apoi fallback din `ai/fallback/*.json` cu `offline: true`.
+
+## Plăți (T25) — Stripe, DOAR mod test
+Plata biletelor IN_APP cu cardul prin Stripe în **mod test**: niciun ban real, carduri de test (`4242 4242 4242 4242`, orice dată din viitor, orice CVC; `4000 0025 0000 3155` cere 3-D Secure; `4000 0000 0000 9995` e refuzat). Backend-ul pornește plata doar cu chei de test (`sk_test_…` + `pk_test_…`) și **ignoră cheile live**. Fără chei, `enabled = false` și biletele au plata demonstrativă din T07 (`POST /events/{id}/tickets` direct). Cheia secretă stă doar în backend; aplicația primește cheia publică din `/payments/config` și încarcă Stripe.js de pe `js.stripe.com` (Payment Element, doar card, fără redirect).
+
+| Metodă | Rută | Auth | Cerere → Răspuns |
+|---|---|---|---|
+| GET | `/payments/config` | pub | → `{ enabled, publishableKey?, currency: 'ron', testMode: true }` |
+| POST | `/events/{id}/tickets/checkout` | auth | `TicketRequest { qtyAdult, qtyChild, email? }` → 201 `{ paymentIntentId, clientSecret, amount, currency }`. Aceleași verificări ca `POST /events/{id}/tickets` (locuri 409, eveniment încheiat 400, EXTERNAL 400); suma (lei) vine din prețurile evenimentului, nu din cerere; comanda (eveniment, utilizator, bilete) stă în `metadata` PaymentIntent-ului. 400 dacă comanda e gratuită; 503 „Card payments are unavailable” fără chei |
+| POST | `/payments/{paymentIntentId}/confirm` | auth | `{ email? }` (opțional) → `TicketDto`. Backend-ul întreabă Stripe dacă plata e `succeeded`: 409 „Payment not completed” altfel; 403 dacă plata e a altui cont; 404 pentru un PaymentIntent care nu e al nostru. **Idempotent**: a doua cerere (sau webhook-ul) primește același bilet (`tickets.payment_intent_id` unic). Dacă locurile s-au epuizat între plată și bilet → plata se **rambursează** automat și 409 „… — payment refunded” |
+| POST | `/payments/stripe/webhook` | pub (semnat) | Corpul brut al evenimentului Stripe + header `Stripe-Signature` (HMAC-SHA256 cu `STRIPE_WEBHOOK_SECRET`, toleranță 5 min) → 200. Pe `payment_intent.succeeded` (al nostru) emite biletul, dacă aplicația nu l-a cerut deja (s-a închis după plată). 400 semnătură greșită; 503 fără `whsec_…`. Celelalte evenimente se ignoră |
+
+Configurare (backend): `STRIPE_SECRET_KEY` (`sk_test_…`), `STRIPE_PUBLISHABLE_KEY` (`pk_test_…`), `STRIPE_WEBHOOK_SECRET` (`whsec_…`, opțional: fără el biletul vine doar din confirmarea aplicației). În producție: secretul `aradex/stripe` (Terraform), pus cu `AradEx-Infrastructure/scripts/set-stripe-keys.sh`. Webhook-ul în Dashboard-ul Stripe (Test mode → Developers → Webhooks): `https://aradexperience.site/api/v1/payments/stripe/webhook`, evenimentul `payment_intent.succeeded`. Local: `stripe listen --forward-to localhost:8080/api/v1/payments/stripe/webhook` dă un `whsec_…` temporar.
 
 ## Admin (T14)
 | Metodă | Rută | Auth | Cerere → Răspuns |
