@@ -187,6 +187,20 @@ Rolul `VOLUNTEER` e deja în `Role` (BE + FE) și în `SecurityConfig` din T03 (
 ## Transport (T19) — fără endpoint-uri
 Liniile de tramvai CTP Arad (OSM, ODbL) și orarele de exemplu sunt date statice în FE (`shared/data/tram.ts`, din `design/final/shared/tram.js`); traseele pe jos prin OSRM, ca la T08.
 
+## Poze (media, T05+)
+Pozele încărcate din panou stau în S3 (bucket privat `aradex-media-…`, `AradEx-Infrastructure/terraform/modules/api/media.tf`); local, fără `MEDIA_BUCKET`, pe disc (`MEDIA_LOCAL_DIR`, implicit `uploads/`). API-ul le servește el (fără CloudFront).
+| Metodă | Rută | Auth | Cerere → Răspuns |
+|---|---|---|---|
+| POST | `/city/media` | CITY_HALL, ADMIN | `multipart/form-data`, câmpul `file` → `MediaDto` (201). JPEG, PNG, WebP sau GIF (tipul se verifică după conținut), max 10 MB; altfel 400. URL-ul primit se pune în `imageUrl` și se salvează cu obiectivul |
+| POST | `/city/media/import-places?limit=10` | CITY_HALL, ADMIN | → `MediaImportDto`. Copiază în S3 pozele obiectivelor și ale punctelor de ghid care sunt pe alte site-uri (visitarad.ro…) și pune URL-ul nostru în `image_url`; câte `limit` (1–25) pe cerere, panoul repetă până `remaining = 0`. `image_credit` rămâne. Pozele care nu se pot descărca sunt sărite până la repornirea API-ului |
+| GET | `/media/{folder}/{name}` | pub | → poza (`Cache-Control: public, max-age=31536000, immutable`; cheile nu se refolosesc). `folder` = `uploads` (din panou), `places`, `guide` (din import); 404 altfel |
+
+```ts
+type MediaDto = { url: string /*public, absolut*/; key: string /*ex. uploads/3f9a1c0b7d2e4a51.jpg*/; contentType: string; size: number }
+type MediaImportDto = { imported: number; failed: number; remaining: number }
+```
+URL-ul public: `MEDIA_PUBLIC_URL` (în AWS `https://<domeniu>/api/v1/media`), altfel adresa cererii + `/api/v1/media`.
+
 ## Diverse
 | Metodă | Rută | Auth | Răspuns |
 |---|---|---|---|
