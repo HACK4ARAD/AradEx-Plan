@@ -4,7 +4,7 @@ Toate funcționalitățile, împărțite în **story-uri de mărime medie** (câ
 
 **Designul final** (ecranele pe care le implementăm): `design/final/` — `mobile.html` (aplicația) și `web.html` (din el se folosesc doar panourile și landing-ul ca bază pentru site-ul de prezentare), planșele în `design/final/screens/`, descrierea în `design/final/README.md`.
 
-> **Decizie (7 nov): produsul e aplicația mobilă.** Vizitatorii și localnicii folosesc **doar aplicația de telefon** — **Android (APK/AAB)** și **iOS (bundle din Xcode)**, construite cu Capacitor din același cod Vue (`/m`). **Web-ul** (`/w`) are doar două părți: **site-ul de prezentare** (ce e AradExperience, funcțiile, rolurile, „Descarcă aplicația” Android/iOS, contact) și **panourile** Primăriei, firmelor și Adminului (`/w/city/*`, `/w/business/*`, `/w/admin/*`, cu login-ul lor W0). Paginile publice web din designul final (W5–W15: agendă, obiective, hartă, oferte, comunitate, chat, planificator, Contul meu, pagina publică a firmei) **nu se mai fac**; conținutul lor există doar în aplicație. Story-urile de mai jos se citesc așa: „FE mobil” = aplicația; „FE web” = doar panouri sau site-ul de prezentare.
+> **Decizie (7 nov): produsul e aplicația mobilă.** Vizitatorii și localnicii folosesc **doar aplicația de telefon** — **Android (APK/AAB)** și **iOS (bundle din Xcode)**, construite cu Capacitor din același cod Vue. **Web-ul** (`https://aradexperience.site`) e site-ul de prezentare al aplicației: **prezentarea** (ce e AradExperience, funcțiile, rolurile, „Descarcă aplicația” Android/iOS, contact), **Comunitate** doar de citit, **Confidențialitate** și **panourile** Primăriei, firmelor și Adminului (`/city/*`, `/business/*`, `/admin/*`, cu login-ul lor W0). Paginile publice web din designul final (W5–W15: agendă, obiective, hartă, oferte, comunitate, chat, planificator, Contul meu, pagina publică a firmei) **nu se mai fac**; conținutul lor există doar în aplicație. Story-urile de mai jos se citesc așa: „FE mobil” = aplicația; „FE web” = doar panouri sau site-ul de prezentare. **Rutele nu mai au prefix** (`/m`, `/w` au dispărut în T20): fiecare aplicație are routerul ei, ales la pornire (`docs/API.md` §Rute FE).
 
 Convenție: `T05` = story; `S3`, `E2`, `W6` = codurile ecranelor (vezi planșele din `design/final/screens/` și tabelul din `design/README.md`).
 Contractul de API este în `docs/API.md`, modelul de date în `docs/DATA-MODEL.md`, povestea de demo în `docs/DEMO.md` (toate în repo-ul `AradEx-Plan`, folderul `docs/`).
@@ -106,7 +106,7 @@ CORS_ORIGINS=http://localhost:5173
 ### T02 · APP skeleton (Vue 3)
 **Scop:** proiectul Vue cu cele două „aplicații” (mobil + web), design tokens Clean Ink, client API, PWA.
 **Depinde de:** T00
-**Stare:** ✅ schelet + pregătirea anti-conflict (FE #8): view per rută (și per secțiune în panourile web), cochilii pentru Acasă / `/m/panel` / landing / Contul meu, i18n/types/api pe module, `AppSheet`, `QrCode`, `QrScanner`, `useGeo`. Cine ce fișiere are: `AradEx-Frontend/CLAUDE.md` §Culoare; deciziile în `docs/STATUS.md`.
+**Stare:** ✅ schelet + pregătirea anti-conflict (FE #8): view per rută (și per secțiune în panourile web), cochilii pentru Acasă / `/panel` / landing / Contul meu, i18n/types/api pe module, `AppSheet`, `QrCode`, `QrScanner`, `useGeo`. Cine ce fișiere are: `AradEx-Frontend/CLAUDE.md` §Culoare; deciziile în `docs/STATUS.md`.
 
 - Proiect Vite + vue-ts la rădăcina repo-ului; adaugi: vue-router, pinia, tailwindcss, vue-i18n, @vueuse/core, leaflet + @types/leaflet, qrcode, html5-qrcode, vite-plugin-pwa; dev: vitest, @vue/test-utils, eslint + prettier.
 - Structură:
@@ -117,7 +117,7 @@ CORS_ORIGINS=http://localhost:5173
                  composables/ (useGeo, useTts, useFormat)  i18n/ (ro.json, en.json)  styles/tokens.css
     mobile/      layouts/MobileLayout.vue (top bar + bottom tabs)  views/…
     web/         layouts/WebLayout.vue (sidebar + content)         views/…
-    router/      index.ts (rute /m/* și /w/*; `/` redirecționează după lățime: <768px → /m, altfel /w; query `?ui=m|w` forțează)
+    router/      app.ts (ce aplicație rulează: nativ → mobil, `?app=`, implicit web) · mobile.ts / web.ts (rutele fără prefix) · index.ts (guard)
   ```
 - Tokens (din `design/final/shared/ui.css`): fundal `#FAFAF7`, ink `#111111`, text secundar `#5C5C5C`, border `#E8E8E3`, soft `#F1F1EC`, accent `#FF5A36`, verde comunitate `#3B6D11` / închis `#1F3A12` / soft `#E4EFDA`, galben oferte `#FFC244`, piersică `#FFE8E2`; panouri web: fundal `#F6F6F3`, sidebar `#0E0E10`; card `#FFFFFF` radius 16, buton primar negru radius 14 h48, chip radius 999. Font Inter (Google Fonts), icon-uri Material Symbols Outlined.
 - `shared/api/client.ts`: `fetch` wrapper cu `VITE_API_URL`, header `Authorization: Bearer`, parsare ProblemDetail → `ApiError`, 401 → logout + redirect login.
@@ -144,7 +144,7 @@ CORS_ORIGINS=http://localhost:5173
 - Security: regulile pentru **toate** endpoint-urile din `docs/API.md` (coloana „Auth”) se scriu acum în `config/SecurityConfig`, ca celelalte culoare să nu mai atingă fișierul. Selectorul de limbă RO/EN (Profil + `WebLayout`) tot aici.
 - Security: `JwtAuthFilter` (Bearer), `SecurityConfig` stateless, BCrypt, reguli: `/auth/**`, `/health`, `/swagger-ui/**`, `/v3/api-docs/**`, `GET /places/**`, `GET /events/**`, `GET /offers/**`, `GET /community/**`, `GET /businesses/**` publice; restul autentificat; `/business/**` → BUSINESS, `/city/**` → CITY_HALL|ADMIN, `/admin/**` → ADMIN. `@AuthenticationPrincipal` → `CurrentUser(id, role)`.
 - Seed `V2_1__seed_users.sql`: `visitor@demo.ro`, `local@demo.ro`, `firma@demo.ro` (+ business „Cafeneaua din Pasaj”, verified), `primaria@demo.ro`, `admin@demo.ro`, toate cu parola `demo1234` (hash BCrypt generat o dată și pus în SQL).
-- FE: `stores/auth.ts` (token în localStorage, `user`, `login/register/logout/fetchMe`), guard-uri pe rute (`meta.roles`), ecran login/înregistrare mobil (S12 adaptat: email + parolă + alegere rol Vizitator/Localnic/Firmă) și web (`/w/login`). Buton „Conturi demo” care completează rapid fiecare cont (doar în dev/demo).
+- FE: `stores/auth.ts` (token în localStorage, `user`, `login/register/logout/fetchMe`), guard-uri pe rute (`meta.roles`), ecran login/înregistrare mobil (S12 adaptat: email + parolă + alegere rol Vizitator/Localnic/Firmă) și web (`/login`). Buton „Conturi demo” care completează rapid fiecare cont (doar în dev/demo).
 - Profil (S11): afișează contul, rolul, limba; „Deconectare”.
 
 **Verificare:** register + login din ambele UI; `GET /me` cu token; acces refuzat (403) la `/city/**` cu cont de vizitator; teste: `AuthServiceTest` (register duplicat → 409, parolă greșită → 401), `JwtServiceTest` (emitere/validare/expirare).
@@ -170,7 +170,7 @@ CORS_ORIGINS=http://localhost:5173
 
 - BE (`V3__places.sql`): `places`, `guide_points`. Endpoint-uri publice: `GET /places?type&q`, `GET /places/{id}` (include `guidePoints[]` ordonate). Editare (Primăria și Adminul, „Obiective & ghiduri”): `POST/PUT/DELETE /city/places`, `POST/PUT/DELETE /city/places/{id}/guide-points`.
 - **Gata:** `V3__places.sql` + `V3_1__seed_places.sql` (12 locuri reale, 33 puncte de ghid, coloana `exterior_only` pentru Cetate/Turnul de Apă — vezi `docs/ARAD-DATA.md`). **Pozele** (Wikimedia Commons, cu licență și credit) sunt în `design/assets/loc-*.jpg` și în `AradEx-Frontend/public/img/`, legate de locuri și de evenimentele din aceleași săli prin `V4_2__seed_images.sql` (11 din 12; Podgoria Miniș n-are încă poză liberă). Rămâne eventual EN. Locurile: Cetatea Aradului, Palatul Cultural (Filarmonica + Muzeul), Teatrul Clasic „Ioan Slavici”, Palatul Administrativ (Primăria), Biserica Roșie, Catedrala „Sfânta Treime”, Catedrala „Sf. Anton de Padova”, Turnul de Apă, Faleza Mureșului, Pădurea Ceala, Podgoria Miniș, Castelul Macea. Fiecare: coordonate corecte, program, durată de vizită, 3–6 puncte de ghid de câte 60–120 de cuvinte (generate cu Claude/GPT, verificate sumar).
-- FE mobil `/m/places/:id` (E3): hero, „Ghid virtual · N puncte · M min”, bară audio (play/pauză, punctul curent, viteză), lista punctelor cu text; „Următorul punct”; „Indicații” (→ T08). Web: doar panoul Primăriei „Obiective & ghiduri” (`/w/city/places`, W25); ghidul nu are pagini publice pe web (W7/W8 nu se fac).
+- FE mobil `/places/:id` (E3): hero, „Ghid virtual · N puncte · M min”, bară audio (play/pauză, punctul curent, viteză), lista punctelor cu text; „Următorul punct”; „Indicații” (→ T08). Web: doar panoul Primăriei „Obiective & ghiduri” (`/city/places`, W25); ghidul nu are pagini publice pe web (W7/W8 nu se fac).
 - `composables/useTts.ts`: `speechSynthesis` cu `lang = 'ro-RO'` (fallback `en-US`), play/pause/stop, evidențiază punctul curent. Opțional mai târziu: `POST /ai/tts` cu un serviciu TTS (Claude API nu are TTS; cheia AI a proiectului e de Claude) care returnează mp3 (cache pe disc) — doar dacă vocea din browser e slabă pe telefonul de demo.
 
 **Verificare:** detaliul unui loc arată toate punctele; audio pornește/oprește pe Android și iOS (iOS cere tap pe buton — nu autoplay); `PlaceServiceTest` (not found → 404, ordonarea punctelor).
@@ -222,7 +222,7 @@ CORS_ORIGINS=http://localhost:5173
 **Depinde de:** T03, T06
 
 - BE (`V6__business_posts.sql`): `announcements` (+ `events.organizer_business_id` există din V4). `GET /businesses/{id}` (profil + evenimente viitoare + oferte active + anunțuri), `GET /business/me` (firma mea + `stats {views, codesUsed, pointsPayments, upcomingEvents}`), `PUT /business/me`, `POST/PUT/DELETE /business/events`, `GET /business/events`, `POST/DELETE /business/announcements`, `GET /business/activity` (ultimele 20: cod folosit, ofertă salvată, înscriere la eveniment). Firma neverificată poate crea, dar conținutul rămâne `DRAFT` până la verificare (T14) — pentru demo firma din seed e verificată.
-- FE web `/w/business`: dashboard (3 statistici), tab-uri **Oferte / Evenimente / Anunțuri / Coduri**, formulare de creare (sheet pe mobil, pagină pe web), activitate recentă. FE mobil `/m/panel` (E5): aceleași tab-uri simplificate + butonul „Validează cod”. Pagina publică a firmei doar în aplicație: `/m/businesses/:id` (W15 nu se mai face; `/w/businesses/:id` dispare în T20).
+- FE web `/business`: dashboard (3 statistici), tab-uri **Oferte / Evenimente / Anunțuri / Coduri**, formulare de creare (sheet pe mobil, pagină pe web), activitate recentă. FE mobil `/panel` (E5): aceleași tab-uri simplificate + butonul „Validează cod”. Pagina publică a firmei doar în aplicație: `/businesses/:id` (W15 nu se mai face; `/businesses/:id` dispare în T20).
 - Evenimentele firmei apar în S1/S2 ca orice eveniment, cu „Organizat de {firmă}”.
 
 **Verificare:** o firmă creează un eveniment și îl vede în lista publică; anunțul apare pe pagina firmei; firma nu poate edita evenimentul altei firme (403); `BusinessServiceTest`.
@@ -246,7 +246,7 @@ CORS_ORIGINS=http://localhost:5173
 - Primărie: `POST/PUT /city/actions`, `GET /city/actions`, `GET /city/actions/{id}/registrations`, `POST /city/registrations/confirm {code}` (din scanner), `POST /city/registrations/{id}/confirm`, `POST /city/registrations/{id}/reject` — confirmarea acordă `pointsReward` o singură dată (idempotent).
 - Plata cu puncte: `POST /offers/{id}/redeem` debitează `pointsPrice` prin `PointsService.spend` (completează T10).
 - Seed `V8_1__seed_community.sql`: 3 acțiuni (plantare pe Faleză 7 nov +50, curățenie Pădurea Ceala 8 nov +40, donare de sânge 10 nov +80), înscriși fictivi și tranzacții ca să existe un clasament.
-- FE mobil (localnic): tab Comunitate pe S1 (card puncte, streak, locul în clasament, acțiuni), detaliu acțiune (+puncte, locuri, pași „cum primești punctele”, „Mă înscriu” → QR-ul meu), clasament (Luna/Anul + premii), în Oferte: „Plătește cu N puncte”. FE web `/w/city` (Primărie): acțiunile mele + înscriși, formular acțiune nouă, **Validare** (listă cu Confirmă/Respinge/Confirmă toți + confirmare manuală a unui cod + cardul „Voluntarii care scanează”; **fără scanner în web**), clasament. Mobil `/m/panel` pentru Primărie: doar Scanează QR + lista de azi (pe teren); scanarea la acțiuni o fac voluntarii (T18).
+- FE mobil (localnic): tab Comunitate pe S1 (card puncte, streak, locul în clasament, acțiuni), detaliu acțiune (+puncte, locuri, pași „cum primești punctele”, „Mă înscriu” → QR-ul meu), clasament (Luna/Anul + premii), în Oferte: „Plătește cu N puncte”. FE web `/city` (Primărie): acțiunile mele + înscriși, formular acțiune nouă, **Validare** (listă cu Confirmă/Respinge/Confirmă toți + confirmare manuală a unui cod + cardul „Voluntarii care scanează”; **fără scanner în web**), clasament. Mobil `/panel` pentru Primărie: doar Scanează QR + lista de azi (pe teren); scanarea la acțiuni o fac voluntarii (T18).
 
 **Verificare:** fluxul D din prototip cap-coadă cu două telefoane (localnic + primărie): QR-ul localnicului scanat de primărie → sold +50 → clasamentul se actualizează → oferta cu puncte se plătește și soldul scade; confirmarea de două ori nu dublează punctele; `PointsServiceTest`, `CommunityServiceTest` (capacitate, dublă înscriere 409, confirmare idempotentă).
 
@@ -282,7 +282,7 @@ CORS_ORIGINS=http://localhost:5173
 **Depinde de:** T09, T10, T11
 
 - BE `admin`: `GET /admin/stats` (users pe roluri, evenimente, bilete, oferte revendicate, puncte acordate), firmele partenere pe `/city/businesses` (Primăria **și** Adminul: listă, `POST /city/businesses` cont nou + invitație, `POST /city/businesses/{id}/verify`, `POST /city/businesses/{id}/reject`), `PATCH /admin/events/{id}/status`, `PATCH /admin/offers/{id}/status`, `PATCH /admin/actions/{id}/status`, `GET /admin/users?role`.
-- FE web: Adminul vede tot panoul Primăriei (`/w/city/*`: Evenimente, Obiective & ghiduri, Acțiuni, Validare, Voluntari, Mesaje, Clasament, Firme partenere cu Verifică/Respinge) plus grupul **Administrare**: `/w/admin` (Dashboard cu statistici), `/w/admin/content` (Conținut & moderare: tabele cu filtru + publică/ascunde pentru evenimente, oferte, acțiuni), `/w/admin/users` (rol, puncte, dezactivare), `/w/admin/settings`.
+- FE web: Adminul vede tot panoul Primăriei (`/city/*`: Evenimente, Obiective & ghiduri, Acțiuni, Validare, Voluntari, Mesaje, Clasament, Firme partenere cu Verifică/Respinge) plus grupul **Administrare**: `/admin` (Dashboard cu statistici), `/admin/content` (Conținut & moderare: tabele cu filtru + publică/ascunde pentru evenimente, oferte, acțiuni), `/admin/users` (rol, puncte, dezactivare), `/admin/settings`.
 
 **Verificare:** firma nouă înregistrată apare la verificat → verificată → ofertele ei devin publice; vizitatorul primește 403 pe `/admin/**`.
 
@@ -290,7 +290,7 @@ CORS_ORIGINS=http://localhost:5173
 **Depinde de:** ecranele existente
 **Stare:** Android ✅ merge-uit în `main` (FE #7): Capacitor 6, `android/`, `npm run android:run`, rulează pe emulator (vezi `docs/SETUP.md`). Rămân iOS, iconița/splash, build-urile de livrare, EN pe module.
 
-- **Aplicația e produsul** (vezi decizia de sus): același build `dist` pornește pe `/m`, fără service worker în nativ.
+- **Aplicația e produsul** (vezi decizia de sus): același build `dist` pornește mereu ca aplicație mobilă (`app.ts`), fără service worker în nativ.
 - **Android:** iconiță + splash, `versionCode`/`versionName`, APK de debug pentru demo + AAB semnat (cheia de semnare NU intră în git), URL-ul API de producție în build.
 - **iOS:** `npx cap add ios` (`ios/` în repo), `cap sync`, rulează pe simulator din Xcode (doar pe macOS), bundle id `ro.aradexperience.app`, iconiță/splash, permisiuni în `Info.plist` (cameră pentru QR, localizare pentru „Lângă mine”), `NSAppTransportSecurity` doar dacă e nevoie de HTTP în dev; build pe telefon cu un cont Apple de dezvoltator (TestFlight dacă există cont plătit).
 - **Specific nativ:** verificat pe ambele: TTS-ul ghidului (WebView-ul Android poate să nu aibă `speechSynthesis` → plugin `@capacitor-community/text-to-speech` sau `/ai/tts`), camera pentru QR (`html5-qrcode` sau plugin nativ), geolocația, link-urile externe (Google Maps, site organizator) deschise în browserul sistemului.
@@ -301,9 +301,11 @@ CORS_ORIGINS=http://localhost:5173
 
 ### T20 · Web = site de prezentare + panouri (P1)
 **Depinde de:** T02, T03
-- `/` pe web → **site-ul de prezentare** (pornește din landing-ul W1): ce e AradExperience, cele 4 roluri, funcțiile principale cu capturi din aplicație, „Descarcă aplicația” (Android / iOS), „Ești Primărie sau firmă? Intră în panou” → W0, contact.
-- Router + `WebLayout` (fișierele lui P1): bara de sus a site-ului doar cu secțiunile prezentării + „Intră în panou”; rutele publice web (`/w/events`, `/w/places`, `/w/map`, `/w/offers`, `/w/community`, `/w/chat`, `/w/plan`, `/w/account`, `/w/businesses/:id`) se scot și redirecționează spre prezentare; panourile și W0 rămân. View-urile web publice deja făcute (T09 W15) se scot în același PR.
-- `/m` rămâne codul aplicației (îl încarcă Capacitor); în browser pe telefon, `/` duce tot la prezentare, cu butoanele de descărcare.
+- **Rutare (gata, PR „routes without /m and /w”):** două routere alese la pornire, fără prefix; web-ul are doar `/`, `/community`, `/privacy`, `/login` și panourile; linkurile vechi `/m/…`, `/w/…` duc la aceeași cale fără prefix; panourile deschid ecranele aplicației (obiectiv, eveniment, pagina firmei) cu `?preview=mobile`.
+- `/` pe web → **site-ul de prezentare** (pornește din landing-ul W1): hero cu „Descarcă aplicația” (Android / iOS), „Ce poți face” (6 funcții), „Acum în Arad” (3 evenimente reale, doar de privit), o bandă Comunitate, cele 4 roluri, „Ești Primărie sau firmă? Intră în panou” → W0, subsol cu contact și Confidențialitate.
+- `/community` → acțiunile care urmează + clasamentul lunii, doar de citit; „Mă înscriu” → „Descarcă aplicația”.
+- `WebLayout` (fișierul lui P1): bara de sus a site-ului: Funcții · Comunitate · Pentru firme & Primărie · Descarcă aplicația · Intră în panou.
+- În browser, pe telefon, `/` duce tot la prezentare, cu butoanele de descărcare; aplicația mobilă se testează în browser cu `/?app=mobile` (înapoi: `/?app=web`).
 
 **Verificare:** pe desktop și pe telefon `/` arată prezentarea; niciun link din site nu duce într-o pagină publică scoasă; panourile merg ca înainte pentru Primărie, Firmă, Admin.
 

@@ -16,10 +16,10 @@ Aplicația Android de demo: `npm run android:run` construiește APK-ul de debug 
 ### Ce rulează unde: aplicația mobilă vs web
 | | Ce e | Cine o folosește | Unde rulează |
 |---|---|---|---|
-| **Aplicația mobilă** — produsul | Vue `/m` împachetat cu Capacitor: **Android** (APK/AAB) și **iOS** (Xcode), toate ecranele pentru vizitator și localnic (evenimente, bilete, locuri + ghid, hartă, oferte, comunitate, chat, itinerar) | vizitatori, localnici, voluntari; firma / Primăria doar pentru operațiunile de teren | pe telefon (se instalează, nu se găzduiește pe AWS — T15); apelează API-ul `https://aradexperience.site/api/v1` |
-| **Web** — prezentare + panouri | `https://aradexperience.site`: **site-ul de prezentare** (cu „Descarcă aplicația”) și **panourile** Primăriei, firmelor și Adminului (`/w/login`, `/w/city/*`, `/w/business/*`, `/w/admin/*`) | Primăria, firmele, Adminul; vizitatorii văd doar prezentarea | AWS, containerul nginx `aradex-web` |
+| **Aplicația mobilă** — produsul | aplicația mobilă din codul Vue, împachetată cu Capacitor: **Android** (APK/AAB) și **iOS** (Xcode), toate ecranele pentru vizitator și localnic (evenimente, bilete, locuri + ghid, hartă, oferte, comunitate, chat, itinerar) | vizitatori, localnici, voluntari; firma / Primăria doar pentru operațiunile de teren | pe telefon (se instalează, nu se găzduiește pe AWS — T15); apelează API-ul `https://aradexperience.site/api/v1` |
+| **Web** — prezentare + panouri | `https://aradexperience.site`: **site-ul de prezentare** (cu „Descarcă aplicația”), Comunitate doar de citit, Confidențialitate și **panourile** Primăriei, firmelor și Adminului (`/login`, `/city/*`, `/business/*`, `/admin/*`) | Primăria, firmele, Adminul; vizitatorii văd doar prezentarea | AWS, containerul nginx `aradex-web` |
 
-Paginile publice web (W5–W15) nu se fac; ce e pentru public e doar în aplicație (decizia din `docs/PLAN.md`, T20). Imaginea web conține tot build-ul Vite, deci `/m` merge și în browser, dar doar pentru test și ca rezervă, nu ca produs.
+Paginile publice web (W5–W15) nu se fac; ce e pentru public e doar în aplicație (decizia din `docs/PLAN.md`, T20). Imaginea web conține tot build-ul Vite, deci aplicația mobilă se poate deschide și în browser cu `https://aradexperience.site/?app=mobile` (se ține minte; înapoi: `?app=web`), dar doar pentru test și ca rezervă, nu ca produs. Rutele nu au prefix: linkurile vechi `/m/…` și `/w/…` duc la aceeași cale fără prefix.
 
 **URL:** https://aradexperience.site (`www.` redirecționează aici) · API: `https://aradexperience.site/api/v1` · health: `https://aradexperience.site/api/v1/health` · Swagger: `https://aradexperience.site/swagger-ui.html`
 
