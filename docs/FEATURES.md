@@ -21,7 +21,7 @@ Document de referință pentru implementare: fiecare funcționalitate are **cine
 | Publică oferte, evenimente, anunțuri; validează coduri | — | — | **da** | — | da (orice) |
 | Creează acțiuni, confirmă participanți, clasament | — | — | — | **da** | da |
 | Verifică firme, moderează conținut, utilizatori, obiective & ghiduri | — | — | — | — | **da** |
-Reguli: e-mail + parolă (min. 8), JWT 24 h; rolul se alege la înregistrare (Vizitator/Localnic/Firmă) și se schimbă doar de Admin; ADMIN are acces peste tot. Ecrane: S12 (mobil), W0 (web). Profil S11 / W14 cu limbă și deconectare.
+Reguli (T21): **Vizitatorul și Localnicul intră doar în aplicația mobilă, cu numărul de telefon și un cod de 6 cifre prin SMS** (numerele de demo `0799000xxx` primesc codul pe ecran); numărul nou cere apoi numele și rolul. Firma, Primăria și Adminul intră cu e-mail + parolă (min. 8). JWT 24 h; rolul se alege la înregistrare (Vizitator/Localnic/Firmă) și se schimbă doar de Admin; ADMIN are acces peste tot. Ecrane: S12 (mobil), W0 (web). Profil S11 / W14 cu limbă și deconectare.
 
 ## 2. Evenimente (T06) — vizitator, localnic
 - **Listă** cu filtre: perioadă (Azi / Weekendul acesta / Următoarele 7 zile / dată), categorie (Concerte, Teatru și film, Familie, Expoziții, Sport, În aer liber, Târguri, Gastronomie), preț (gratuite / bilete în aplicație / pe site-ul organizatorului), organizator (instituții / firme / Primărie), distanță („lângă mine”, rază). Sortare după dată sau distanță. Paginare (web 9/pagină, mobil infinite scroll).

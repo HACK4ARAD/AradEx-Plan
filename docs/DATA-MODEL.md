@@ -6,7 +6,7 @@ Fiecare tabel are migrarea lui în task-ul care îl introduce (`V{n}__{modul}.sq
 Nu se modifică o migrare deja aplicată pe `main` — se adaugă una nouă.
 
 ## Enum-uri
-- `Role`: `VISITOR, LOCAL, BUSINESS, CITY_HALL, ADMIN, VOLUNTEER` (`VOLUNTEER` e în Java și în `SecurityConfig` — `/vol/**` — din T03; CHECK-ul din `users.role` îl primește în V10, T18). Emailurile din `users` se stochează cu litere mici (trim + lowercase).
+- `Role`: `VISITOR, LOCAL, BUSINESS, CITY_HALL, ADMIN, VOLUNTEER` (`VOLUNTEER` e în Java și în `SecurityConfig` — `/vol/**` — din T03; CHECK-ul din `users.role` îl primește în V10, T18). Emailurile din `users` se stochează cu litere mici (trim + lowercase); telefoanele în E.164 (`+40…`, T21).
 - `BusinessCategory`: `CAFE, RESTAURANT, PRODUCER, WINERY, SHOP, OTHER`
 - `PlaceType`: `ATTRACTION, MUSEUM, VENUE, WINERY, NATURE, PARK, RESTAURANT, CAFE`
 - `EventCategory`: `CONCERT, THEATRE, FAMILY, EXHIBITION, SPORT, OUTDOOR, FAIR, FOOD`
@@ -25,7 +25,10 @@ Nu se modifică o migrare deja aplicată pe `main` — se adaugă una nouă.
 
 ### users (T03, V2)
 Migrarea `V2__users_businesses.sql` + seed-ul `V2_1__seed_users.sql` (5 conturi demo + 7 localnici + 5 firme fictive) **există deja**.
-`id, email UNIQUE, password_hash, display_name, role, locale('ro'|'en'), points_balance INT DEFAULT 0, avatar_url NULL, created_at`
+`id, email UNIQUE NULL, phone UNIQUE NULL (T21, E.164), password_hash NULL, display_name, role, locale('ro'|'en'), points_balance INT DEFAULT 0, avatar_url NULL, created_at` · `CHECK (email IS NOT NULL OR phone IS NOT NULL)`. Conturile personale (Vizitator, Localnic) au telefon și intră cu cod OTP; firmele, Primăria și Adminul au email + parolă.
+
+### otp_codes (T21, V11)
+`id, phone, provider ('LOCAL'|'TWILIO'), code_hash NULL, attempts INT DEFAULT 0, expires_at, consumed_at NULL, created_at` · index `(phone, created_at)`. LOCAL = codul numerelor de demo `+40799000xxx`, păstrat doar ca hash BCrypt; TWILIO = SMS prin Twilio Verify (codul îl ține Twilio). Rândurile servesc și la limite (60 s între cereri, 5 pe zi, 5 încercări pe cod). V11 dă numere de demo conturilor personale din seed: visitor `+40799000001`, local `+40799000002`, localnicii 6–12 `+40799000003`–`009`, și face `tickets.email` opțional.
 
 ### businesses (T03, V2)
 `id, owner_user_id FK users UNIQUE, name, category, description, address, lat DOUBLE, lng DOUBLE, phone NULL, website NULL, image_url NULL, verified BOOL DEFAULT false, views_count INT DEFAULT 0, created_at`
