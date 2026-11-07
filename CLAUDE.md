@@ -76,4 +76,4 @@ cp ../AradEx-Frontend/.env.example ../AradEx-Frontend/.env    # VITE_API_URL, VI
 Build + teste verzi în BE și FE · criteriile din „Verificare” ale story-ului bifate în aplicație (browser 390×844 + emulator/simulator) și, pentru panouri, pe web · web-ul (prezentare, Comunitate, panouri) e **adaptiv**: se folosește pe telefon la 390px fără scroll orizontal pe pagină (sub `lg` sidebar-ul panourilor e meniu ☰, sub `md` tabelele devin carduri; detalii în `AradEx-Frontend/CLAUDE.md` §Reguli, „Web adaptiv”) și se verifică la 390×844 și la ≥1280 · feature-ul din PR e funcțional cap-coadă (nu se verifică tot fluxul de demo la fiecare PR; fluxul complet se verifică la final) · `docs/API.md` actualizat dacă s-a schimbat.
 
 ## Conturi demo
-`visitor@demo.ro`, `local@demo.ro`, `firma@demo.ro`, `primaria@demo.ro`, `admin@demo.ro` — parola `demo1234`.
+Conturile personale intră cu telefonul (T21): Vizitator `0799 000 001`, Localnic `0799 000 002` — codul apare în aplicație, fără SMS (orice număr `0799000xxx` e de demo). Firme / Primărie / Admin: `firma@demo.ro`, `primaria@demo.ro`, `admin@demo.ro` — parola `demo1234`.
