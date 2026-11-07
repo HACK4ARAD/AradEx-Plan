@@ -207,7 +207,7 @@ type TransitVehiclesDto = { live: boolean; updatedAt?: string /*ultima citire re
 type TransitArrivalDto = { routeId: number; routeShortName?: string; mode?: TransitMode; color?: string; headsign?: string; stopId: number; at: string /*program + întârziere*/; minutes: number /*0 = acum*/; delaySeconds: number; realtime: boolean /*false = doar ora din program*/ }
 type StopArrivalsDto = { stop: TransitStopDto; distanceKm?: number /*doar la nearest*/; live: boolean; updatedAt?: string; attribution: string; arrivals: TransitArrivalDto[] /*goală dacă live=false*/ }
 ```
-FE: `shared/types/transit.ts`, `shared/api/transit.ts`, `shared/composables/useTransit.ts` (`useTransitVehicles`, `useStopArrivals`, `useNearestStop`, `loadTransitStops`, `transitMarkers()` → markere `{ id: 'stop:<id>' | 'vehicle:<id>', lat, lng, kind: 'stop' | 'vehicle', label }` pentru `MapView`), `shared/components/transit/NearestStop.vue` (pe S3 și E3).
+FE: `shared/types/transit.ts`, `shared/api/transit.ts`, `shared/composables/useTransit.ts` (`useTransitVehicles`, `useStopArrivals`, `useNearestStop`, `loadTransitStops`, `transitMarkers(stops, vehicles)` → `MapMarker`-e `{ id: 'stop:<id>' | 'vehicle:<id>', lat, lng, kind: 'stop' | 'vehicle', label }` pentru `MapView`, `label` = textul din pin: numărul liniei la vehicule, gol la stații; `vehicleTitle()` → „Tramvaiul 3 → Gara”), `shared/components/transit/NearestStop.vue` (pe S3 și E3).
 
 ## Poze (media, T05+)
 Pozele încărcate din panou stau în S3 (bucket privat `aradex-media-…`, `AradEx-Infrastructure/terraform/modules/api/media.tf`); local, fără `MEDIA_BUCKET`, pe disc (`MEDIA_LOCAL_DIR`, implicit `uploads/`). API-ul le servește el (fără CloudFront).
