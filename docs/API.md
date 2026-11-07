@@ -161,6 +161,16 @@ Cod înscriere: `AX-C{actionId}-{6}`. Punctele se scriu **doar** prin `PointsSer
 
 AI-ul e **Claude** (Anthropic API, SDK-ul oficial Java, modelul din `ANTHROPIC_MODEL`, implicit `claude-haiku-5-5`). Răspunsul modelului e forțat cu structured outputs (`outputConfig` cu schema JSON; schemele în `ai/schemas/*.json`); BE validează id-urile și normalizează orele. Timeout 20 s, apoi fallback din `ai/fallback/*.json` cu `offline: true`.
 
+## Plăți (T25) — webhook Stripe și configurația publică
+Completează plata cu Stripe în modul de test de la §Evenimente & bilete (`POST /events/{id}/tickets/payment`, apoi `POST /events/{id}/tickets` cu `paymentIntentId`).
+
+| Metodă | Rută | Auth | Cerere → Răspuns |
+|---|---|---|---|
+| GET | `/payments/config` | pub | → `{ cardPayments, currency: 'ron', testMode: true }` — dacă biletele se plătesc cu cardul (Stripe, mod test) sau cu plata demonstrativă; aplicația schimbă după asta textele de lângă bilete. Cheia publică vine tot din `/tickets/payment` |
+| POST | `/payments/stripe/webhook` | pub (semnat) | Corpul brut al evenimentului Stripe + header `Stripe-Signature` (HMAC-SHA256 cu `STRIPE_WEBHOOK_SECRET`, toleranță 5 min) → 200. Pe `payment_intent.succeeded` al nostru (`metadata.app = aradexperience`) emite biletul din `metadata` (eveniment, utilizator, cantități), cu aceleași verificări ca `POST /events/{id}/tickets` — dacă aplicația s-a închis după plată. Un PaymentIntent = un bilet: dacă aplicația cere biletul după webhook, primește același bilet (nu 409). Locuri epuizate → rambursare, fără bilet. 400 semnătură greșită; 503 fără `whsec_…` sau fără Stripe; alte evenimente se ignoră |
+
+Configurare (backend): `STRIPE_SECRET_KEY` (`sk_test_…`), `STRIPE_PUBLISHABLE_KEY` (`pk_test_…`), opțional `STRIPE_WEBHOOK_SECRET` (`whsec_…`). În producție: secretul `aradex/stripe` (Terraform), pus cu `AradEx-Infrastructure/scripts/set-stripe-keys.sh`; webhook-ul în Dashboard-ul Stripe (Test mode → Developers → Webhooks): `https://aradexperience.site/api/v1/payments/stripe/webhook`, evenimentul `payment_intent.succeeded`. Local: `stripe listen --forward-to localhost:8080/api/v1/payments/stripe/webhook`.
+
 ## Admin (T14)
 | Metodă | Rută | Auth | Cerere → Răspuns |
 |---|---|---|---|

@@ -416,3 +416,10 @@ Tab „Transport” în navbar (în locul lui Salvate; Salvate rămâne în Prof
 - **De știut:** Mac-ul trebuie să fie pornit și iPhone-ul aproape; SMS-ul ajunge în 5–15 s; multe SMS-uri de pe un număr personal pot fi filtrate de operator.
 
 **Verificare:** un număr real cere cod în aplicație → SMS-ul vine de pe telefonul gateway-ului în ≤ 15 s → codul merge; cu tokenul gol, codul pleacă prin Twilio (sau 503 dacă nici Twilio nu are chei).
+
+### T25 · Plata biletelor cu cardul prin Stripe — DOAR mod test
+**Depinde de:** T07
+**Stare:** ✅ plata e pe `main` (BE #27, FE #45, Plan #36): `POST /events/{id}/tickets/payment` → PaymentIntent de test (doar card) pentru totalul calculat de server → Payment Element în aplicație și pe web → `POST /events/{id}/tickets` cu `paymentIntentId`, verificat la Stripe; cheile live sunt refuzate; fără chei rămâne plata demonstrativă. **Completări** (BE #28, FE #46, Infra #10, Plan #37): webhook-ul semnat `POST /payments/stripe/webhook` (biletul se emite și dacă aplicația s-a închis după plată), `GET /payments/config` (textele de lângă bilete), eroarea cu „Reîncearcă” când formularul de card nu se încarcă, secretul `aradex/stripe` (`STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`) pus de Zoltan cu `scripts/set-stripe-keys.sh`.
+
+**Verificare:** cu cheile de test: un bilet plătit cu `4242 4242 4242 4242` apare în Biletele mele și ca plată „Succeeded” în Dashboard-ul Stripe (Test mode); `4000 0000 0000 9995` e refuzat cu mesajul Stripe; `4000 0025 0000 3155` cere 3-D Secure; cu aplicația închisă imediat după plată, biletul apare oricum (webhook); fără chei, plata demonstrativă merge ca înainte.
+
