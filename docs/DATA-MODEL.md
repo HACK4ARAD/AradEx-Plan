@@ -31,8 +31,8 @@ Migrarea `V2__users_businesses.sql` + seed-ul `V2_1__seed_users.sql` (5 conturi 
 `id, owner_user_id FK users UNIQUE, name, category, description, address, lat DOUBLE, lng DOUBLE, phone NULL, website NULL, image_url NULL, verified BOOL DEFAULT false, views_count INT DEFAULT 0, created_at`
 
 ### places (T05, V3)
-`id, name, slug UNIQUE, type, description TEXT, address, lat, lng, image_url, image_credit NULL, opening_hours TEXT NULL, visit_minutes INT, tags VARCHAR (csv: "istorie,familie"), rating NUMERIC(2,1) NULL, parking_hint TEXT NULL, exterior_only BOOL DEFAULT false (Cetatea, Turnul de Apă), google_place_id VARCHAR NULL (T17), created_at`
-Migrarea `V3__places.sql` + seed-ul `V3_1__seed_places.sql` (12 locuri reale, 33 puncte de ghid) **există deja** în `AradEx-Backend` (modulul `app`) și trec pe Postgres 16.
+`id, name, slug UNIQUE, type, description TEXT, address, lat, lng, image_url, image_credit NULL, opening_hours TEXT NULL, visit_minutes INT, tags VARCHAR (csv: "istorie,familie"), rating NUMERIC(2,1) NULL, parking_hint TEXT NULL, exterior_only BOOL DEFAULT false (Cetatea, Turnul de Apă), source_url VARCHAR(300) NULL (fișa sursă visitarad.ro, pentru atribuire — V3_2; încă nu e în entitate / DTO), google_place_id VARCHAR NULL (T17), created_at`
+Migrarea `V3__places.sql` + seed-ul `V3_1__seed_places.sql` (12 locuri reale, 33 puncte de ghid) **există deja** în `AradEx-Backend` (modulul `app`) și trec pe Postgres 16. **`V3_2__places_visitarad.sql`** (7 nov) adaugă `source_url`, corectează coordonatele celor 12 (verificate pe OSM) și inserează **223 de locuri reale** din exportul visitarad.ro (obiective, muzee, crame, cafenele, restaurante; fără cazare) — id-uri din secvență, idempotent prin `slug`; **`V4_3__seed_event_venues.sql`** mută evenimentele din seed pe coordonatele corecte ale sălilor. Detalii: `docs/ARAD-DATA.md`.
 
 ### guide_points (T05, V3)
 `id, place_id FK places ON DELETE CASCADE, position INT, title, text TEXT, image_url NULL, audio_url NULL, lat NULL, lng NULL, duration_sec INT NULL`
