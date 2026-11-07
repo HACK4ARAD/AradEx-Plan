@@ -43,7 +43,7 @@ type ItineraryDto = { id?: number; shareCode?: string; title: string; summary: s
 |---|---|---|---|
 | POST | `/auth/register` | pub | **Din T21 doar firme** (`VISITOR`/`LOCAL` → 400, se fac cu telefonul) · `{ email, password(≥8), displayName, role: 'BUSINESS', business?: { name, category, address, lat?, lng? } }` → `{ token, user: UserDto }` (201; 409 dacă emailul există; 400 dacă rolul nu e VISITOR/LOCAL/BUSINESS, dacă `business` lipsește la BUSINESS sau e trimis la alt rol, dacă `category` nu e din `BusinessCategory`, email > 190 caractere, lat/lng în afara intervalelor). BUSINESS creează și firma cu `verified=false` |
 | POST | `/auth/login` | pub | Firme, Primărie, Admin · `{ email, password }` → `{ token, user }` (401 la date greșite, același mesaj pentru email inexistent și parolă greșită; T21: 403 „Personal accounts sign in with their phone number” pentru Vizitator/Localnic, doar după parola corectă) |
-| POST | `/auth/otp/request` | pub | T21 · `{ phone }` (orice formă uzuală: `0744 123 456`, `+40…`) → 202 `{ retryAfterSeconds: 60, demoCode? }`. Numerele de demo `0799000xxx` nu primesc SMS: `demoCode` vine în răspuns. Numerele de demo n-au limite (codul e public), iar orice cod demo încă valabil merge (mai mulți oameni pe același cont). Celelalte primesc SMS prin Twilio Verify, **doar numere românești `+40`** (altfel 400), cu limită globală de 300 SMS pe zi (503) și 503 „SMS unavailable” până sunt puse cheile sau dacă Twilio refuză configurația. 400 număr invalid sau care nu poate primi SMS; 429 `{ retryAfterSeconds }` dacă s-a cerut un cod în ultimele 60 s sau deja 5 în ultimele 24 h |
+| POST | `/auth/otp/request` | pub | T21 · `{ phone }` (orice formă uzuală: `0744 123 456`, `+40…`) → 202 `{ retryAfterSeconds: 60, demoCode? }`. Numerele de demo `0799000xxx` nu primesc SMS: `demoCode` vine în răspuns. Numerele de demo n-au limite (codul e public), iar orice cod demo încă valabil merge (mai mulți oameni pe același cont). Celelalte primesc SMS prin gateway-ul de pe telefonul lui Zoltan (T24, dacă `SMS_GATEWAY_TOKEN` e setat) sau prin Twilio Verify, **doar numere românești `+40`** (altfel 400), cu limită globală de 300 SMS pe zi (503) și 503 „SMS unavailable” până sunt puse cheile sau dacă Twilio refuză configurația. 400 număr invalid sau care nu poate primi SMS; 429 `{ retryAfterSeconds }` dacă s-a cerut un cod în ultimele 60 s sau deja 5 în ultimele 24 h |
 | POST | `/auth/otp/verify` | pub | T21 · `{ phone, code }` → `{ token, user }` dacă numărul are cont, altfel `{ signupToken }` (15 min). 401 „Invalid or expired code” (cod greșit, expirat după 5 min, folosit sau, la numerele reale, după 5 încercări greșite) |
 | POST | `/auth/otp/register` | pub | T21 · `{ signupToken, displayName, role: 'VISITOR'\|'LOCAL' }` → 201 `{ token, user }`; 401 token expirat, 409 numărul are deja cont, 400 alt rol |
 | GET | `/me` | auth | → `UserDto` (401 dacă tokenul e valid dar contul nu mai există) |
@@ -216,6 +216,17 @@ type TransitArrivalDto = { routeId: number; routeShortName?: string; mode?: Tran
 type StopArrivalsDto = { stop: TransitStopDto; distanceKm?: number /*doar la nearest*/; live: boolean; updatedAt?: string; attribution: string; arrivals: TransitArrivalDto[] /*goală dacă live=false*/ }
 ```
 FE: `shared/types/transit.ts`, `shared/api/transit.ts`, `shared/composables/useTransit.ts` (`useTransitVehicles`, `useStopArrivals`, `useNearestStop`, `loadTransitStops`, `transitMarkers(stops, vehicles)` → `MapMarker`-e `{ id: 'stop:<id>' | 'vehicle:<id>', lat, lng, kind: 'stop' | 'vehicle', label }` pentru `MapView`, `label` = textul din pin: numărul liniei la vehicule, gol la stații; `vehicleTitle()` → „Tramvaiul 3 → Gara”), `shared/components/transit/NearestStop.vue` (pe S3 și E3).
+
+## SMS gateway (T24)
+Pentru scriptul de pe Mac-ul lui Zoltan (`AradEx-Ops/sms-gateway`), care trimite codurile OTP prin aplicația Mesaje (iPhone cu redirecționare SMS). Fără cont: header `X-Gateway-Token` = tokenul din secretul `aradex/sms-gateway` (gol = gateway oprit → numerele reale merg prin Twilio); altfel 401.
+
+| Metodă | Rută | Auth | Descriere |
+|---|---|---|---|
+| POST | `/sms-gateway/claim` | token | → `[{ id, phone, body }]`, max 10. Un SMS luat și neconfirmat în 60 s se dă din nou (max 3 ori, apoi FAILED); ce nu pleacă în 4 minute expiră (codul ține 5). |
+| POST | `/sms-gateway/messages/{id}/sent` | token | → 204; textul (cu codul) se șterge din DB |
+| POST | `/sms-gateway/messages/{id}/failed` | token | → 204; textul se șterge; omul cere alt cod |
+
+Codul e generat de API și ținut doar ca hash (`otp_codes.provider = GATEWAY`), cu aceleași limite ca T21 (60 s, 5 pe zi pe număr, 300 SMS reale pe zi în total, 5 încercări). Textul SMS-ului stă în `sms_outbox` (V14) doar până la trimitere și nu apare în log.
 
 ## Poze (media, T05+)
 Pozele încărcate din panou stau în S3 (bucket privat `aradex-media-…`, `AradEx-Infrastructure/terraform/modules/api/media.tf`); local, fără `MEDIA_BUCKET`, pe disc (`MEDIA_LOCAL_DIR`, implicit `uploads/`). API-ul le servește el (fără CloudFront).
