@@ -20,7 +20,7 @@ type PlaceType = 'ATTRACTION'|'MUSEUM'|'VENUE'|'WINERY'|'NATURE'|'PARK'|'RESTAUR
 type PlaceSummary = { id: number; name: string; type: PlaceType; imageUrl?: string; lat: number; lng: number; visitMinutes: number; tags: string[]; distanceKm?: number; guidePointsCount: number; guideMinutes: number; exteriorOnly: boolean }   // T05: guidePointsCount/guideMinutes/exteriorOnly = badge-urile din liste
 type PlaceDto = PlaceSummary & { slug: string; description: string; address?: string; openingHours?: string; rating?: number; parkingHint?: string; imageCredit?: string; guidePoints: GuidePointDto[]; google?: GoogleInfoDto }   // google: T17
 type GuidePointDto = { id: number; position: number; title: string; text: string; imageUrl?: string; audioUrl?: string; lat?: number; lng?: number; durationSec?: number }
-type EventSummary = { id: number; title: string; category: string; startAt: string; endAt?: string; locationName: string; lat: number; lng: number; imageUrl?: string; ticketType: 'FREE'|'IN_APP'|'EXTERNAL'; priceFrom?: number; isHot: boolean; isDemo: boolean; participantsCount: number; organizerName: string; organizerType: string; distanceKm?: number; saved?: boolean; ratingAvg?: number; ratingCount: number }
+type EventSummary = { id: number; title: string; category: string; startAt: string; endAt?: string; locationName: string; lat: number; lng: number; imageUrl?: string; ticketType: 'FREE'|'IN_APP'|'EXTERNAL'; priceFrom?: number; isHot: boolean; isDemo: boolean; participantsCount: number; organizerName: string; organizerType: string; distanceKm?: number; saved?: boolean; ratingAvg?: number; ratingCount: number; capacity?: number; spotsLeft?: number }   // capacity/spotsLeft: „Gratuit · înscriere” și „Bilete epuizate” pe card (lipsă = fără limită)
 type EventDto = EventSummary & { description: string; address: string; placeId?: number; organizerBusinessId?: number; priceAdult?: number; priceChild?: number; externalUrl?: string; capacity?: number; spotsLeft?: number; savesCount: number; status: 'DRAFT'|'PUBLISHED'|'HIDDEN'; imageCredit?: string }
 type EventCreate = { title: string; description: string; category: EventCategory; placeId?: number; locationName?: string; address?: string; lat?: number; lng?: number; startAt: string; endAt?: string; ticketType: 'FREE'|'IN_APP'|'EXTERNAL'; priceAdult?: number; priceChild?: number; externalUrl?: string; capacity?: number; imageUrl?: string; priceFrom?: number; status?: 'DRAFT'|'PUBLISHED' }
 type ReviewDto = { id: number; eventId: number; userName: string; stars: number; text?: string; createdAt: string; mine?: boolean }
@@ -112,16 +112,20 @@ FE folosește `GET /events?near=`, `GET /places?near=`, `GET /offers?near=`, `GE
 ## Oferte (T10, puncte în T11)
 | Metodă | Rută | Auth | Cerere → Răspuns |
 |---|---|---|---|
-| GET | `/offers?category&localProduct=true&near=lat,lng&q` | pub | → `OfferSummary[]` (doar `PUBLISHED`, valabile azi) |
-| GET | `/offers/{id}` | pub | → `OfferDto` (+ `myRedemption` dacă e logat) |
-| POST | `/offers/{id}/redeem` | auth | → `RedemptionDto` (409 dacă există una `ISSUED`; 409 `insufficient_points` dacă `pointsPrice` > sold) |
-| GET | `/me/redemptions` | auth | → `RedemptionDto[]` |
-| GET / POST | `/business/offers` | BUSINESS | `OfferCreate { title, description, discountLabel, localProduct, validFrom, validUntil, pointsPrice?, imageUrl? }` → `OfferDto` |
-| PUT / DELETE | `/business/offers/{id}` | BUSINESS | |
-| POST | `/business/redemptions/use` | BUSINESS | `{ code }` → `RedemptionDto` cu `USED` (404 cod necunoscut, 409 deja folosit / nu e al firmei) |
-| GET | `/business/redemptions?status` | BUSINESS | → `RedemptionDto[]` |
+| GET | `/offers?category&localProduct=true&points=true&near=lat,lng&q` | pub | → `OfferSummary[]` (doar `PUBLISHED`, valabile azi în ora Aradului; `category` = `OfferCategory`; `localProduct=true` = „Făcut în Arad” (`localProduct` sau `category=LOCAL`); `points=true` = „Cu puncte” (au `pointsPrice`); cu `near` se completează `distanceKm` (față de firmă) și se sortează după distanță; 400 dacă `near` nu e `lat,lng`) |
+| GET | `/offers/{id}` | pub | → `OfferDto` (+ `myRedemption` = ultimul meu cod pentru ofertă, dacă sunt logat; incrementează `viewsCount`); 404 dacă nu e `PUBLISHED` |
+| POST | `/offers/{id}/redeem` | auth | → 201 `RedemptionDto` (`ISSUED`); 404 ofertă inexistentă / nepublicată; 409 „You already have an active code for this offer”; 409 „This offer is not valid today”; **T11 — plata cu puncte:** `?withPoints=true` plătește `pointsPrice` din punctele comunitare (`pointsSpent` = prețul; 409 `insufficient_points` dacă soldul nu ajunge și atunci nu se emite niciun cod; 400 dacă oferta n-are `pointsPrice`); ofertele doar pe puncte (eticheta „N p”, ca `offerBadge` din FE) se plătesc mereu cu puncte; fără parametru, oferta normală se revendică gratuit |
+| GET | `/me/redemptions` | auth | → `RedemptionDto[]` (cele mai noi primele) |
+| GET | `/business/offers` | BUSINESS | → `OfferDto[]` (ale firmei mele, inclusiv ciorne; fără cele ascunse) |
+| POST | `/business/offers` | BUSINESS | `OfferCreate` → 201 `OfferDto` (`DRAFT` dacă firma nu e verificată); 400 dacă `validUntil` < `validFrom` sau `status=HIDDEN` |
+| PUT | `/business/offers/{id}` | BUSINESS (proprietar; ADMIN orice) | `OfferCreate` → `OfferDto` (pauză = `status: DRAFT`); 403 dacă e a altei firme |
+| DELETE | `/business/offers/{id}` | BUSINESS (proprietar; ADMIN orice) | → 204; dacă oferta are deja coduri emise, devine `HIDDEN` (istoricul codurilor rămâne); 403 dacă e a altei firme |
+| POST | `/business/redemptions/use` | BUSINESS | `{ code }` (litere mici și spațiile se acceptă) → `RedemptionDto` cu `USED` + `usedAt`; 404 „Unknown code”; 409 „Code already used” / „This code belongs to another business” / „Code cancelled”. Atomic: două scanări simultane → doar una reușește |
+| GET | `/business/redemptions?status` | BUSINESS | → `RedemptionDto[]` (codurile ofertelor mele, ultimele 100, cele mai noi primele) |
 
-Cod ofertă: `AX-O{offerId}-{6}`.
+`OfferCategory = 'CAFE'|'RESTAURANT'|'LOCAL'|'EVENT'|'OTHER'` (T10; cercurile Cafenele / Restaurante / Făcut în Arad / Evenimente). `OfferSummary` primește `category`; `validUntil` lipsește = ofertă permanentă.
+`OfferCreate = { title (≤120), description (≤2000), discountLabel (≤30), category?, localProduct, validFrom?, validUntil?, pointsPrice? (1–10000), imageUrl?, status?: 'DRAFT'|'PUBLISHED' }` — `category` lipsă = din categoria firmei (CAFE→CAFE, RESTAURANT→RESTAURANT, PRODUCER/WINERY→LOCAL, altfel OTHER), `validFrom` lipsă = azi, `validUntil` lipsă = permanentă.
+Cod ofertă: `AX-O{offerId}-{6}` (alfabetul fără 0/O/1/I). În pagina firmei (`GET /businesses/{id}`) `offers` = ofertele ei active; `stats.codesUsed` = suma `usedCount`; `activity` conține `CODE_USED` și `OFFER_REDEEMED`.
 
 ## Comunitate & puncte (T11)
 | Metodă | Rută | Auth | Cerere → Răspuns |
