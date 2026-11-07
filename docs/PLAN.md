@@ -75,8 +75,8 @@ POSTGRES_USER=arad
 POSTGRES_PASSWORD=arad
 JWT_SECRET=schimba-ma-cu-32-caractere-minim-random
 JWT_EXPIRATION_HOURS=24
-OPENAI_API_KEY=sk-...
-OPENAI_MODEL=gpt-4o-mini
+ANTHROPIC_API_KEY=sk-ant-...
+ANTHROPIC_MODEL=claude-haiku-5-5
 CORS_ORIGINS=http://localhost:5173
 ```
 `AradEx-Frontend/.env.example`: `VITE_API_URL=http://localhost:8080/api/v1`, `VITE_DEMO=true`.
@@ -169,7 +169,7 @@ CORS_ORIGINS=http://localhost:5173
 - BE (`V3__places.sql`): `places`, `guide_points`. Endpoint-uri publice: `GET /places?type&q`, `GET /places/{id}` (include `guidePoints[]` ordonate). Editare (Primăria și Adminul, „Obiective & ghiduri”): `POST/PUT/DELETE /city/places`, `POST/PUT/DELETE /city/places/{id}/guide-points`.
 - **Gata:** `V3__places.sql` + `V3_1__seed_places.sql` (12 locuri reale, 33 puncte de ghid, coloana `exterior_only` pentru Cetate/Turnul de Apă — vezi `docs/ARAD-DATA.md`). **Pozele** (Wikimedia Commons, cu licență și credit) sunt în `design/assets/loc-*.jpg` și în `AradEx-Frontend/public/img/`, legate de locuri și de evenimentele din aceleași săli prin `V4_2__seed_images.sql` (11 din 12; Podgoria Miniș n-are încă poză liberă). Rămâne eventual EN. Locurile: Cetatea Aradului, Palatul Cultural (Filarmonica + Muzeul), Teatrul Clasic „Ioan Slavici”, Palatul Administrativ (Primăria), Biserica Roșie, Catedrala „Sfânta Treime”, Catedrala „Sf. Anton de Padova”, Turnul de Apă, Faleza Mureșului, Pădurea Ceala, Podgoria Miniș, Castelul Macea. Fiecare: coordonate corecte, program, durată de vizită, 3–6 puncte de ghid de câte 60–120 de cuvinte (generate cu Claude/GPT, verificate sumar).
 - FE mobil `/m/places/:id` (E3): hero, „Ghid virtual · N puncte · M min”, bară audio (play/pauză, punctul curent, viteză), lista punctelor cu text; „Următorul punct”; „Indicații” (→ T08). Web `/w/places/:id` cu aceeași structură pe lățime mare.
-- `composables/useTts.ts`: `speechSynthesis` cu `lang = 'ro-RO'` (fallback `en-US`), play/pause/stop, evidențiază punctul curent. Opțional mai târziu: `POST /ai/tts` cu OpenAI TTS care returnează mp3 (cache pe disc) — doar dacă vocea din browser e slabă pe telefonul de demo.
+- `composables/useTts.ts`: `speechSynthesis` cu `lang = 'ro-RO'` (fallback `en-US`), play/pause/stop, evidențiază punctul curent. Opțional mai târziu: `POST /ai/tts` cu un serviciu TTS (Claude API nu are TTS; cheia AI a proiectului e de Claude) care returnează mp3 (cache pe disc) — doar dacă vocea din browser e slabă pe telefonul de demo.
 
 **Verificare:** detaliul unui loc arată toate punctele; audio pornește/oprește pe Android și iOS (iOS cere tap pe buton — nu autoplay); `PlaceServiceTest` (not found → 404, ordonarea punctelor).
 
@@ -254,7 +254,7 @@ CORS_ORIGINS=http://localhost:5173
 **Scop:** S8: asistent care răspunde la „ce fac în weekend cu copiii?” cu evenimente reale din DB.
 **Depinde de:** T06
 
-- BE modul `ai`: `OpenAiClient` (HTTP, `OPENAI_API_KEY`, `OPENAI_MODEL`, timeout 20 s, retry 1). `POST /ai/chat {messages[], locale}` → `{reply, suggestedEventIds[], quickReplies[]}`. Prompt de sistem: rol, limbă, data curentă, **catalogul compact** al evenimentelor din următoarele 14 zile (id, titlu, categorie, dată, loc, preț, maxim ~60 rânduri) și regula: răspunde scurt, pune o întrebare de clarificare dacă lipsesc ziua/compania, returnează JSON `{reply, suggestedEventIds, quickReplies}` (response_format json_schema). Fără plăți, fără date inventate — doar id-uri din catalog (BE filtrează id-urile inexistente).
+- BE modul `ai`: `ClaudeClient` peste SDK-ul oficial Anthropic pentru Java (`com.anthropic:anthropic-java:3.2.0`; cheia `ANTHROPIC_API_KEY`, modelul `ANTHROPIC_MODEL` = `claude-haiku-5-5`, din `app.anthropic.*`; timeout 20 s, retry 1, `maxTokens` setat explicit). `POST /ai/chat {messages[], locale}` → `{reply, suggestedEventIds[], quickReplies[]}`. Prompt de sistem: rol, limbă, data curentă, **catalogul compact** al evenimentelor din următoarele 14 zile (id, titlu, categorie, dată, loc, preț, maxim ~60 rânduri) și regula: răspunde scurt, pune o întrebare de clarificare dacă lipsesc ziua/compania, returnează JSON `{reply, suggestedEventIds, quickReplies}` (structured outputs: `outputConfig` cu schema JSON). Fără plăți, fără date inventate — doar id-uri din catalog (BE filtrează id-urile inexistente).
 - **Plasă de siguranță pentru demo:** dacă API-ul pică/timeout → răspuns pre-scris pentru 3 întrebări tipice (`ai/fallback.json`) + mesaj „răspuns offline”.
 - FE mobil S8: istoric mesaje, chips de clarificare (`quickReplies`), carduri de evenimente sub răspuns (`EventCard` compact) → S3. Chat nou. Web: panou de chat în `/w` (dreapta) sau pagină `/w/chat`.
 
@@ -264,7 +264,7 @@ CORS_ORIGINS=http://localhost:5173
 **Scop:** vizitatorul spune cât timp are, cum se deplasează și ce îl interesează → program cu obiective, ore, traseu pe hartă, ghid audio la fiecare oprire.
 **Depinde de:** T05, T08, T12
 
-- BE (`V9__itineraries.sql`): `itineraries`. `POST /ai/itinerary {date, startTime, hours | days, transport: WALK|CAR|PUBLIC, interests[], freeText, start?{lat,lng}}` → prompt cu **catalogul locurilor** (id, nume, tip, tag-uri, durată de vizită, program, coordonate, distanța față de centru) + oferte/evenimente din ziua respectivă (ca opriri opționale) → JSON `{title, summary, stops:[{order, placeId|eventId|offerId, arriveAt, leaveAt, note, parkingHint?}]}` (json_schema). BE validează id-urile, recalculează orele dacă se suprapun, estimează deplasarea între opriri (haversine × factor pe mod de transport), apoi `POST /itineraries` salvează și întoarce `id` + `shareCode`. `GET /itineraries/{id}`, `GET /me/itineraries`. Fallback: 2 itinerarii pre-generate (pe jos 1 zi, mașină 1 zi) dacă OpenAI pică.
+- BE (`V9__itineraries.sql`): `itineraries`. `POST /ai/itinerary {date, startTime, hours | days, transport: WALK|CAR|PUBLIC, interests[], freeText, start?{lat,lng}}` → prompt cu **catalogul locurilor** (id, nume, tip, tag-uri, durată de vizită, program, coordonate, distanța față de centru) + oferte/evenimente din ziua respectivă (ca opriri opționale) → JSON `{title, summary, stops:[{order, placeId|eventId|offerId, arriveAt, leaveAt, note, parkingHint?}]}` (structured outputs, ca la T12). BE validează id-urile, recalculează orele dacă se suprapun, estimează deplasarea între opriri (haversine × factor pe mod de transport), apoi `POST /itineraries` salvează și întoarce `id` + `shareCode`. `GET /itineraries/{id}`, `GET /me/itineraries`. Fallback: 2 itinerarii pre-generate (pe jos 1 zi, mașină 1 zi) dacă Claude API pică.
 - FE mobil: **E1** wizard (timp: 3 h / jumătate de zi / o zi / 2 zile + data; transport: Pe jos / Mașină / Transport public; interese: Istorie, Crame & vin, Muzee, Natură, Familie, Gastronomie; text liber; „Generează programul” cu stare de încărcare 5–15 s), **E2** rezultat (rezumat, timeline cu opriri, durată, „ghid disponibil”, oferta din traseu, butoane Vezi pe hartă / Pornește ghidul / Salvează / Regenerează), **E4** hartă cu pin-uri numerotate + traseu OSRM înlănțuit + sheet „Oprirea 2 din 5 · 8 min pe jos” (+ „Parcare: …” la mașină). „Pornește ghidul” → E3 al locului curent. Web `/w/plan`: wizard în stânga, rezultat + hartă în dreapta.
 
 **Verificare:** 3 combinații (pe jos 3 h istorie / mașină 1 zi crame / familie jumătate de zi) dau programe coerente cu ore plauzibile și toate opririle pe hartă; itinerarul salvat se redeschide după refresh; `ItineraryServiceTest` (id invalid eliminat, ore fără suprapunere).
@@ -318,7 +318,7 @@ CORS_ORIGINS=http://localhost:5173
 ## Direcții viitoare (după hackathon) — de pus în pitch la „ce urmează”
 - Plăți reale (Stripe/Netopia) și anularea biletelor; notificări push (PWA) pentru mementouri și acțiuni noi.
 - Sincronizare bidirecțională cu Google Calendar (OAuth) și import automat al evenimentelor instituțiilor (scraping/API-uri: Filarmonica, Teatrul Clasic, Primăria).
-- Rating & recenzii Google (T17), recenzii la obiective, traducere automată RO→EN/HU a ghidului și voce naturală (OpenAI TTS).
+- Rating & recenzii Google (T17), recenzii la obiective, traducere automată RO→EN/HU a ghidului și voce naturală (un serviciu TTS).
 - Transport public în itinerar (orare CTP Arad, tramvaiul Arad–Ghioroc), parcări în timp real.
 - Parteneriate reale cu firme (program de puncte al orașului), rapoarte pentru Primărie (participare, impact), gamificare pentru vizitatori (badge-uri la obiective).
 
@@ -328,7 +328,7 @@ CORS_ORIGINS=http://localhost:5173
 **Repo-uri separate:** 5 repo-uri surori în organizația GitHub HACK4ARAD: `AradEx-Plan` (planul comun), `AradEx-Backend`, `AradEx-Frontend`, `AradEx-Infrastructure` (Postgres local, producția AWS în Terraform), `AradEx-Ops` (agenți). Căile `AradEx-Backend/...` din plan sunt relative la folderul comun.
 
 ### T16a · Deploy final & seed de producție
-**Notă (T04):** producția e pe AWS (`docs/DEPLOY.md`); migrările + seed-ul rulează automat la pornirea API-ului, deci T16a = verificarea fluxului din `docs/DEMO.md` pe https://aradexperience.site, cheile (`OPENAI_API_KEY`) și ștergerea de luni (`AradEx-Infrastructure/scripts/destroy.sh`).
+**Notă (T04):** producția e pe AWS (`docs/DEPLOY.md`); migrările + seed-ul rulează automat la pornirea API-ului, deci T16a = verificarea fluxului din `docs/DEMO.md` pe https://aradexperience.site, cheile (`ANTHROPIC_API_KEY`) și ștergerea de luni (`AradEx-Infrastructure/scripts/destroy.sh`).
 Partea tehnică din T16: migrări + seed pe DB-ul de producție, conturi demo verificate, poze, chei, `docs/DEPLOY.md` cu URL-urile reale.
 **Verificare:** fluxul din `docs/DEMO.md` merge pe URL-urile publice, de pe două telefoane.
 

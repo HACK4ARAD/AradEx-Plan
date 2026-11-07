@@ -149,7 +149,7 @@ Cod înscriere: `AX-C{actionId}-{6}`. Punctele se scriu **doar** prin `PointsSer
 | GET | `/itineraries/{idOrShareCode}` | pub | → `ItineraryDto` |
 | GET | `/me/itineraries` | auth | → `ItineraryDto[]` |
 
-Răspunsul modelului e forțat cu `response_format: json_schema` (schema în `ai/schemas/*.json`); BE validează id-urile și normalizează orele. Timeout 20 s, apoi fallback din `ai/fallback/*.json` cu `offline: true`.
+AI-ul e **Claude** (Anthropic API, SDK-ul oficial Java, modelul din `ANTHROPIC_MODEL`, implicit `claude-haiku-5-5`). Răspunsul modelului e forțat cu structured outputs (`outputConfig` cu schema JSON; schemele în `ai/schemas/*.json`); BE validează id-urile și normalizează orele. Timeout 20 s, apoi fallback din `ai/fallback/*.json` cu `offline: true`.
 
 ## Admin (T14)
 | Metodă | Rută | Auth | Cerere → Răspuns |
