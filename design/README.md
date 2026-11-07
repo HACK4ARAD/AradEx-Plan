@@ -19,40 +19,40 @@
 | Cod | Ecran | Rută FE | Task |
 |---|---|---|---|
 | S0 | Limba | (onboarding) | T15 |
-| S12 | Login / cont | `/m/login`, `/w/login` | T03 |
-| S1 (+E6) | Acasă: Evenimente / Oferte / Comunitate | `/m` | T06, T10, T11 |
-| S2 | Căutare + filtre | `/m/search` | T06 |
-| S3 | Detaliu eveniment | `/m/events/:id` | T06 |
-| S4, S5, S6 | Bilete, plată simulată, confirmare | `/m/events/:id/tickets`, `/m/checkout`, `/m/confirm/:code` | T07 |
-| S7 | Hartă | `/m/map` | T08 |
-| S8 | Chat AI | `/m/chat` | T12 |
-| S9, S10 | Biletele mele, bilet cu QR | `/m/tickets`, `/m/tickets/:code` | T07 |
-| S11 | Profil + rol | `/m/profile` | T03 |
-| S1b, S1c, S1g | Oferte, detaliu, cod revendicat | `/m/offers`, `/m/offers/:id` | T10 |
-| S1d, S1e, S1f | Comunitate, acțiune, clasament | `/m/community`, `/m/community/actions/:id`, `/m/community/leaderboard` | T11 |
-| S11c, S11d, E5 | Panou firmă (mobil), ofertă/eveniment nou | `/m/panel` | T09, T10 |
-| S11e, S11f, S11g, E7 | Panou primărie (mobil), validare, scanner, acțiune nouă | `/m/panel` | T11 |
-| E1, E2, E4 | Planificator, itinerar, hartă traseu | `/m/plan`, `/m/itinerary/:id`, `/m/itinerary/:id/map` | T13 |
-| E3 | Ghid virtual (scris + audio) | `/m/places/:id` (+ lista `/m/places`) | T05 |
-| — | Itinerariile mele | `/m/itineraries` | T13 |
-| — | Transport: destinație → trasee → hartă cu tot drumul, linie, călătorie | `/m/transport`, `/m/transport/lines/:id/:dir`, `/m/transport/trip/:to` | T19 |
-| — | Voluntar: cod, acțiuni, scanner, mesaje | `/m/vol/login`, `/m/vol/actions`, `/m/vol/scan`, `/m/vol/messages` | T18 |
-| W1 | Landing web | `/w` | T06, T08 |
-| W2 | Panou Primărie web | `/w/city` | T11 |
-| W3 | Admin web | `/w/admin` | T14 |
-| W4 | Panou Firmă web | `/w/business` | T09, T10 |
-| W5, W6 | Evenimente, detaliu + bilete | `/w/events`, `/w/events/:id` | T06, T07 |
-| W7, W8 | Obiective, ghid virtual | `/w/places`, `/w/places/:id` | T05 |
-| W9 | Hartă | `/w/map` | T08 |
-| W10 | Planificator | `/w/plan` | T13 |
-| W11 | Oferte | `/w/offers` | T10 |
-| W12 | Comunitate | `/w/community` | T11 |
-| W13 | Chat | `/w/chat` | T12 |
-| W14 | Contul meu (bilete, salvate, puncte, oferte, itinerarii, setări) | `/w/account` | T07, T10, T11, T13 |
-| W15 | Pagina publică a firmei | `/w/businesses/:id` | T09 |
-| W16–W19 | Firmă: oferte, evenimente, anunțuri, validează coduri (manual), recenzii, profil | `/w/business/*` | T09, T10 |
-| W20–W22 | Primărie (și Admin): panou, evenimente, obiective & ghiduri, acțiuni, validare (fără scanner), voluntari, mesaje, clasament, firme partenere | `/w/city/*` | T11, T05, T09, T18 |
-| W23–W26 | Doar Admin: dashboard, conținut & moderare, utilizatori, setări | `/w/admin/*` | T14 |
+| S12 | Login / cont | `/login`, `/login` | T03 |
+| S1 (+E6) | Acasă: Evenimente / Oferte / Comunitate | `/` (aplicația) | T06, T10, T11 |
+| S2 | Căutare + filtre | `/search` | T06 |
+| S3 | Detaliu eveniment | `/events/:id` | T06 |
+| S4, S5, S6 | Bilete, plată simulată, confirmare | `/events/:id/tickets`, `/checkout`, `/confirm/:code` | T07 |
+| S7 | Hartă | `/map` | T08 |
+| S8 | Chat AI | `/chat` | T12 |
+| S9, S10 | Biletele mele, bilet cu QR | `/tickets`, `/tickets/:code` | T07 |
+| S11 | Profil + rol | `/profile` | T03 |
+| S1b, S1c, S1g | Oferte, detaliu, cod revendicat | `/offers`, `/offers/:id` | T10 |
+| S1d, S1e, S1f | Comunitate, acțiune, clasament | `/community`, `/community/actions/:id`, `/community/leaderboard` | T11 |
+| S11c, S11d, E5 | Panou firmă (mobil), ofertă/eveniment nou | `/panel` | T09, T10 |
+| S11e, S11f, S11g, E7 | Panou primărie (mobil), validare, scanner, acțiune nouă | `/panel` | T11 |
+| E1, E2, E4 | Planificator, itinerar, hartă traseu | `/plan`, `/itinerary/:id`, `/itinerary/:id/map` | T13 |
+| E3 | Ghid virtual (scris + audio) | `/places/:id` (+ lista `/places`) | T05 |
+| — | Itinerariile mele | `/itineraries` | T13 |
+| — | Transport: destinație → trasee → hartă cu tot drumul, linie, călătorie | `/transport`, `/transport/lines/:id/:dir`, `/transport/trip/:to` | T19 |
+| — | Voluntar: cod, acțiuni, scanner, mesaje | `/vol/login`, `/vol/actions`, `/vol/scan`, `/vol/messages` | T18 |
+| W1 | Landing web | `/` (web) | T06, T08 |
+| W2 | Panou Primărie web | `/city` | T11 |
+| W3 | Admin web | `/admin` | T14 |
+| W4 | Panou Firmă web | `/business` | T09, T10 |
+| W5, W6 | Evenimente, detaliu + bilete | `/events`, `/events/:id` | T06, T07 |
+| W7, W8 | Obiective, ghid virtual | `/places`, `/places/:id` | T05 |
+| W9 | Hartă | `/map` | T08 |
+| W10 | Planificator | `/plan` | T13 |
+| W11 | Oferte | `/offers` | T10 |
+| W12 | Comunitate | `/community` | T11 |
+| W13 | Chat | `/chat` | T12 |
+| W14 | Contul meu (bilete, salvate, puncte, oferte, itinerarii, setări) | `/account` | T07, T10, T11, T13 |
+| W15 | Pagina publică a firmei | `/businesses/:id` | T09 |
+| W16–W19 | Firmă: oferte, evenimente, anunțuri, validează coduri (manual), recenzii, profil | `/business/*` | T09, T10 |
+| W20–W22 | Primărie (și Admin): panou, evenimente, obiective & ghiduri, acțiuni, validare (fără scanner), voluntari, mesaje, clasament, firme partenere | `/city/*` | T11, T05, T09, T18 |
+| W23–W26 | Doar Admin: dashboard, conținut & moderare, utilizatori, setări | `/admin/*` | T14 |
 
 ## Stil „Clean Ink” (tokens)
 Valorile finale sunt în `final/shared/ui.css` (`assets/clean-ink.css` e varianta veche, doar pentru prototipurile istorice). Fundal `#FAFAF7` · ink `#111111` · text secundar `#5C5C5C` · bordură `#E8E8E3` · soft `#F1F1EC` · accent `#FF5A36` · verde comunitate `#3B6D11` / închis `#1F3A12` / soft `#E4EFDA` · galben oferte `#FFC244` · piersică `#FFE8E2` · panouri web: fundal `#F6F6F3`, sidebar întunecat `#0E0E10` · carduri albe radius 16 · buton primar negru radius 14, h 48–50 · chips radius 999 · font Inter (400–700) · icon-uri Material Symbols Outlined (wght 300).

@@ -8,7 +8,7 @@ Acesta e repo-ul cu tot ce e comun (umbrela din kitul v3): documentația (`docs/
 |---|---|
 | **AradEx-Plan** (acesta) | plan, contract API, docs, design, skill-uri Claude, `setup.sh` |
 | [AradEx-Backend](https://github.com/HACK4ARAD/AradEx-Backend) | Spring Boot 3 / Java 21, Gradle multi-modul: `api` = contractul REST, `app` = aplicația + migrări Flyway |
-| [AradEx-Frontend](https://github.com/HACK4ARAD/AradEx-Frontend) | Vue 3 + Capacitor: aplicația mobilă (`/m`, Android + iOS) + web (`/w`: prezentare + panouri) |
+| [AradEx-Frontend](https://github.com/HACK4ARAD/AradEx-Frontend) | Vue 3 + Capacitor: aplicația mobilă (Android + iOS) + web (prezentare + panouri), fără prefix în URL |
 | [AradEx-Infrastructure](https://github.com/HACK4ARAD/AradEx-Infrastructure) | Postgres local (docker compose), producția pe AWS (Terraform) |
 | [AradEx-Ops](https://github.com/HACK4ARAD/AradEx-Ops) | agenții Paperclip (instrucțiuni, task-uri, `setup-lane.mjs`) |
 
