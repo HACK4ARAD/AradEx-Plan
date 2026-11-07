@@ -234,6 +234,7 @@ CORS_ORIGINS=http://localhost:5173
 ### T11 · Comunitate & puncte (Primărie + Localnic)
 **Scop:** bucla principală a demo-ului: acțiune comunitară → înscriere → QR → validare de Primărie → puncte → clasament → plată cu puncte la o firmă.
 **Depinde de:** T03, T10
+**Stare:** 🟡 tot în afară de plata cu puncte, pe `feat/T11-community` (BE/FE/Plan): V8 + seed, `PointsService` (`award`/`spend`/`adjust`), endpoint-urile publice + `/city/**` + `/city/dashboard`, ecranele mobil (S1d, acțiune, clasament, `/m/panel` pe teren) și web (W12, Puncte în Contul meu, Panou / Acțiuni / Validare / Clasament la Primărie). API aliniat la design (ciorne, `organizer`, categoriile din design). Se merge-uiește după V5–V7; „Plătește cu puncte” după T10. Detalii: `docs/STATUS.md`.
 
 - BE (`V8__community_points.sql`): `community_actions`, `community_registrations`, `points_transactions`; `users.points_balance` ținut sincron de `PointsService` (singurul loc care scrie puncte: `award(userId, amount, refType, refId)`, `spend(...)` cu 409 dacă soldul e insuficient).
 - Public: `GET /community/actions?upcoming=true`, `GET /community/actions/{id}` (include `goingPreview[]` — 3 prenume + număr). Localnic: `POST /community/actions/{id}/register` → `code = AX-C{actionId}-{6}`, `DELETE` (anulare), `GET /me/community/registrations`, `GET /me/points` (sold + tranzacții), `GET /community/leaderboard?period=month|year` → top 50 + poziția mea.
