@@ -14,10 +14,10 @@ Căile de cod sunt relative la rădăcina repo-ului `AradEx-Backend` (sau a work
 3. **Repository** `repository/<f>/XRepository extends JpaRepository<X, Long>` (+ `JpaSpecificationExecutor` pentru filtre).
 4. **DTO-uri** în `api/…/dto/<f>/`: `XDto`, `XSummary` (răspuns), `XCreate`/`XRequest` (cerere, validări jakarta). Record-uri; numele câmpurilor = exact `API.md`. Enum-uri noi în `api/…/enums/`.
 5. **Interfața** `api/…/api/<F>Api`: `@Tag`, `@RequestMapping("/api/v1/…")` pe tip; pe metode `@GetMapping`/`@PostMapping` + `@Operation`, `@ResponseStatus(CREATED)` la creare, `@Valid @RequestBody`, `@PathVariable`, `@RequestParam`. Fără tipuri din `app`.
-6. **Mapper** `mapper/<f>/XMapper` — clasă utilitară adnotată cu `@UtilityClass` (Lombok): `toDto`, `toSummary`, `toEntity`. Câmpurile calculate vin ca parametri (`toSummary(ev, distanceKm, saved)`). Se folosește cu `import static`.
+6. **Mapper** `mapper/<f>/XMapper` — clasă utilitară adnotată cu `@UtilityClass` (Lombok): `toDto`, `toSummary`, `toEntity`, **declarate explicit `public static`** (javac nu vede la `import static` metodele făcute statice de Lombok) și **fără constructor** (Lombok îl generează). Câmpurile calculate vin ca parametri (`toSummary(ev, distanceKm, saved)`). Se folosește cu `import static`. Exemplu real: `mapper/users/UserMapper`.
 7. **Service** `service/<f>/XService`: `@Service @RequiredArgsConstructor @Transactional(readOnly = true)`; metodele care scriu au `@Transactional`. Aici stau regulile (capacitate, idempotență, proprietar). Primește `CurrentUser` ca parametru. Aruncă excepțiile din `aradexperience.exceptions`.
 8. **Controller** `controller/<f>/XController implements <F>Api` (`@RestController @RequiredArgsConstructor`): `AuthContext.require()` → service → mapper. Zero logică.
-9. **Security**: `config/SecurityConfig` e al lui P1 și are din T03 regulile pentru toate rutele din API.md (`/business/**` BUSINESS, `/city/**` CITY_HALL, `/admin/**` ADMIN, GET-urile publice). Dacă ruta ta nu e acoperită, cere-i lui P1 regula — nu o adăuga tu.
+9. **Security**: `config/SecurityConfig` e al lui P1 și are din T03 regulile pentru toate rutele din API.md (`/business/**` BUSINESS, `/city/**` CITY_HALL, `/admin/**` ADMIN, `/vol/**` VOLUNTEER, `POST /events` CITY_HALL, `POST /community/actions/*/register` LOCAL/VISITOR, GET-urile publice, `/ai/chat` + `/ai/itinerary` + `POST /itineraries` publice, restul = logat). Matricea e testată în `config/SecurityRulesTest`. Verificările de proprietar (creatorul, organizatorul, firma) sunt ale tale, în service (`ForbiddenException`). Dacă ruta ta nu e acoperită, cere-i lui P1 regula — nu o adăuga tu.
 10. **Teste**: `api`: JSON + test de serializare pentru DTO-urile noi (`src/test/resources/dto/<f>/x.json`, șablon `UserDtoTest`), un caz în `DtoValidationTest` pentru cereri cu reguli; `app`: `mock/<F>Mock` (date de test: entități + DTO-uri), `service/<f>/XServiceTest` (Mockito) pentru fiecare regulă din „Verificare”, `controller/<f>/XControllerTest` (șablon `HealthControllerTest`, cererea din `src/test/resources/requests/<f>/*.json`).
 11. `./gradlew test`, apoi `./gradlew :app:bootRun` și verifică în Swagger cererea reală, inclusiv erorile (400/401/403/404/409).
 
@@ -41,8 +41,7 @@ public interface TicketsApi {
 ```java
 // app/…/mapper/tickets/TicketMapper.java
 @lombok.experimental.UtilityClass
-public final class TicketMapper {
-  private TicketMapper() {}
+public class TicketMapper {          // fără constructor și fără `final` — le pune Lombok
   public static TicketDto toDto(Ticket t) { return new TicketDto(t.getId(), t.getCode(), t.getEventId(), t.getQtyAdult(), t.getQtyChild(), t.getStatus(), t.getCreatedAt()); }
   public static Ticket toEntity(TicketRequest req, Event ev, long userId) { Ticket t = new Ticket(); /* set fields */ return t; }
 }
@@ -123,3 +122,7 @@ class TicketServiceTest {
 - Nu expune entități; paginează listele publice (`Pages.of`); `fetch = LAZY` implicit.
 - Orice scriere de puncte trece prin `PointsService`.
 - Un DTO nou din `api` apare în FE în `src/shared/types/api.ts` în același PR (sau îl anunți).
+- Erori: 400 `BadRequestException`, 401 `UnauthorizedException`, 403 `ForbiddenException`, 404 `NotFoundException`, 409 `ConflictException` (toate în `api/exceptions`). Un `UNIQUE` din DB care poate fi lovit de două cereri simultane: `saveAndFlush` + `catch (DataIntegrityViolationException)` → `ConflictException` (altfel iese 500). Limitele `@Size` din DTO = lungimea coloanei din migrare.
+- Utilizatorul curent: `AuthContext.require()` (rute protejate) / `AuthContext.current()` (rute publice cu conținut personalizat) → `CurrentUser(id, email, role)`. Utilizatori noi (ex. voluntari în T18): emailul se scrie normalizat (`trim().toLowerCase(Locale.ROOT)`, ca în `AuthService.normalize`) — login-ul caută exact.
+- Teste `@SpringBootTest` cu `TestRestTemplate` care așteaptă 401 pe un POST: setează `JdkClientHttpRequestFactory` (vezi `AppSmokeTest`); clientul implicit aruncă „cannot retry due to server authentication”.
+- Gradle dă *PKIX path building failed* / timeout la descărcare → `docs/SETUP.md` §5.

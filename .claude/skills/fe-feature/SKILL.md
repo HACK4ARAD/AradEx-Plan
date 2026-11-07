@@ -7,6 +7,8 @@ description: Cum se adaugă un ecran sau o funcționalitate în AradEx-Frontend 
 
 Căile sunt relative la rădăcina repo-ului `AradEx-Frontend` (sau a worktree-ului tău `../_wt/AradEx-Frontend-Txx`); documentele sunt în `AradEx-Plan/docs/`. Lucrezi doar în fișierele feature-ului tău. Citește `AradEx-Frontend/CLAUDE.md`, rutele din `AradEx-Plan/docs/API.md` §Rute FE, regulile ecranului din `AradEx-Plan/docs/FEATURES.md` și ecranul din planșele `AradEx-Plan/design/final/screens/` (istoric: `AradEx-Plan/design/screens/` (S = prototip original, E/W = extensii, W5+ = paginile web). Un feature `<f>` (ex. `events`) atinge: `shared/types/<f>.ts`, `shared/api/<f>.ts`, `shared/composables/use<F>.ts`, `shared/components/<f>/`, `mobile/views/<f>/`, `web/views/<f>/`, `shared/i18n/ro/<f>.json` + `en/<f>.json` (după T02 toate există ca fișiere ale culoarului tău; `router/index.ts` și `types/api.ts` nu le atingi).
 
+> **Starea fișierelor pe module:** pregătirea anti-conflict din T02 (`types/<modul>.ts`, `api/<modul>.ts`, `i18n/ro|en/<modul>.json`, câte un view per rută) **nu e făcută încă** (vezi `docs/STATUS.md`). Până atunci: tipurile în `src/shared/types/api.ts`, clientul în `src/shared/api/<f>.ts` (fișier nou al tău), textele în `src/shared/i18n/ro.json` + `en.json` ca **un grup per modul, pe o singură linie** (nu reformata tot fișierul — diff-ul trebuie să atingă doar linia grupului tău), iar ruta o ceri lui P1.
+
 ## Ordinea
 1. **Tipuri** în `src/shared/types/<f>.ts` (fișierul modulului tău; `api.ts` doar re-exportă, nu-l edita) — copiază DTO-urile din `docs/API.md` pentru endpoint-urile pe care le folosești (nu inventa câmpuri). Multe există deja.
 2. **Client API** `src/shared/api/<f>.ts` — un fișier per interfață din BE (`EventsApi` → `events.ts`), o funcție per endpoint, tipată, prin `client.get/post/...`:
@@ -24,7 +26,12 @@ Căile sunt relative la rădăcina repo-ului `AradEx-Frontend` (sau a worktree-u
 7. **Rută**: după T02 (P1) fiecare rută arată deja spre fișierul ei de view din `views/<f>/` (cu `meta: { roles?, title, screen, task }`) și navigația e completă — tu doar înlocuiești conținutul view-ului tău. Dacă îți trebuie o rută nouă sau o intrare în navigație, o ceri lui P1.
 8. **i18n**: toate textele în `src/shared/i18n/ro/<f>.json` (cheia `<f>.ecran.element`) și aceleași chei în `en/<f>.json` (până la T15 pot avea textul românesc).
 9. **Test** (vitest, lângă fișier): composable-ul cu logică (`useTickets.test.ts`: total, validare) și componenta cu reguli vizibile (`EventCard.test.ts`: badge Popular, preț/gratuit).
-10. Rulează `npm run dev`, verifică în Chrome device toolbar 390×844 și la 1280px; `npm run build` și `npm run test`.
+10. Rulează `npm run dev`, verifică în Chrome device toolbar 390×844 și la 1280px; `npm run build` și `npm run test`. Ecranele de mobil le verifici și în **aplicația Android** pe emulator: `npm run dev -- --host 127.0.0.1`, `adb reverse tcp:8080 tcp:8080`, `npm run android:run` (detalii și probleme: `docs/SETUP.md`). Cod doar pentru nativ: `Capacitor.isNativePlatform()` din `@capacitor/core`.
+
+## Auth & roluri (din T03) — folosește, nu reimplementa
+- `useAuthStore()`: `user`, `isLoggedIn`, `role`, `hasRole(...roles)` (ADMIN trece peste tot), `changeLocale(l)`; ruta protejată = `meta.roles` (guard-ul trimite la login cu `?next=`). Un 401 pe o cerere cu token face logout singur.
+- `shared/composables/useAuthForm`: `homeFor(role, ui)` / `landingFor(...)` (unde ajunge fiecare rol), `DEMO_ENABLED` (scurtături demo doar în dev / `VITE_DEMO`). `useBack(fallback)` pentru butonul „înapoi” din top bar.
+- Erorile: `ui.error(err)` afișează `detail`; pentru mesaje în română pe statusuri cunoscute vezi `authErrorMessage` ca model.
 
 ## Stări obligatorii pe orice listă/detaliu
 ```vue
@@ -53,3 +60,6 @@ Erorile API → `ui.error(err)` (toast cu `detail`) + buton „Reîncearcă”. 
 - `speechSynthesis` pornește doar dintr-un handler de tap; pe iOS vocile se încarcă asincron (`onvoiceschanged`).
 - Datele vin ca ISO cu offset — formatează cu `useFormat`, nu cu `toLocaleString` direct.
 - `import.meta.env` nu merge în template — citește-l în `<script setup>` într-o constantă.
+- vue-i18n: `@` și `|` în texte au sens special — scrie `{'@'}` pentru „@” (ex. `nume{'@'}exemplu.ro`).
+- Un component comun pe care îl comanzi din părinte (ex. „completează formularul”): `defineExpose` + template ref, nu un prop „prefill” cu watch.
+- `AppSheet`, `QrCode`, `QrScanner`, `MapView`, `useGeo` nu există încă — le creează primul story care are nevoie de ele (în `shared/`), restul le importă.

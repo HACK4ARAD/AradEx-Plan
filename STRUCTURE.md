@@ -9,6 +9,7 @@ AradEx-Plan/                          REPO 1 — planul comun (= umbrela din kit
 ├─ STRUCTURE.md                       acest fișier
 ├─ README.md                          pornire rapidă (5 repo-uri surori, setup.sh, comenzi)
 ├─ setup.sh                           clonează lângă el repo-urile surori care lipsesc / git pull în toate 5; activează hook-ul de commit
+├─ setup-windows.ps1                  Windows: verifică JDK 21, Node, Docker, Android Studio/SDK 34/emulator, gh; cu -Install le pune cu winget
 ├─ .gitignore                         .env, fișiere de IDE/OS
 ├─ .githooks/commit-msg               scoate `Co-Authored-By:` / „Generated with Claude Code” din mesajele de commit (în toate 5 repo-urile)
 ├─ .claude/skills/
@@ -18,7 +19,9 @@ AradEx-Plan/                          REPO 1 — planul comun (= umbrela din kit
 │  ├─ seed-data/SKILL.md              datele demo (migrări de seed, locurile reale, conturi, poze)
 │  └─ fe-feature/SKILL.md             ecran/feature în AradEx-Frontend (tipuri → api → composable → componente → view-uri → i18n → test)
 ├─ docs/                              documentația echipei (se schimbă prin PR în AradEx-Plan)
-│  ├─ PLAN.md                         T00–T17: task-uri medii, ordonate pe dependențe; fiecare cu Scop / BE / FE / Seed / Verificare
+│  ├─ STATUS.md                       memoria proiectului: starea fiecărui story, PR-uri, decizii luate, probleme cunoscute (actualizat de fiecare PR din Plan)
+│  ├─ SETUP.md                        ce instalezi (JDK 21, Node, Docker, Android Studio…), prima pornire, probleme de mediu și rezolvări
+│  ├─ PLAN.md                         T00–T19: task-uri medii, ordonate pe dependențe; fiecare cu Scop / BE / FE / Seed / Verificare (+ „Stare”)
 │  ├─ API.md                          contractul REST (endpoint-uri, DTO-uri, roluri, rute FE) — legea comună BE ↔ FE
 │  ├─ DATA-MODEL.md                   tabele, enum-uri, convenții de migrări Flyway, ce seed trebuie să existe
 │  ├─ FEATURES.md                     funcționalitățile pe roluri (reguli de business, stări, mobil vs web)
@@ -40,7 +43,6 @@ AradEx-Backend/                       REPO 2 — backend (Spring Boot 3, Java 21
 ├─ CLAUDE.md                          regulile BE: cele două module, layerele, convenții, teste obligatorii, „Nu”
 ├─ README.md                          comenzi + starea scheletului
 ├─ .githooks/ · .claude/settings.json  hook-ul fără co-autori; atribuirea Claude oprită
-├─ .github/workflows/ci.yml          GitHub Actions: ./gradlew test pe push/PR (cu Docker pentru AppSmokeTest)
 ├─ settings.gradle                    include 'api', 'app' (+ foojay: descarcă JDK 21 dacă lipsește)
 ├─ build.gradle                       părinte: plugin-uri Spring Boot / dependency-management, Java 21, BOM, JUnit pentru ambele module
 ├─ gradle.properties · gradlew · gradle/wrapper/   wrapper Gradle 8.14 (nu trebuie Gradle instalat)
@@ -52,25 +54,25 @@ AradEx-Backend/                       REPO 2 — backend (Spring Boot 3, Java 21
 │     ├─ api/                         interfețele controllerelor, una per feature (HealthApi, AuthApi…): rute, verbe, @Valid, @Operation
 │     ├─ dto/<feature>/               record-uri cerere/răspuns (dto/auth: RegisterRequest, LoginRequest, UpdateMeRequest, AuthResponse, UserDto, BusinessSummary)
 │     ├─ dto/common/                  PageResponse<T>, HealthDto
-│     ├─ enums/                       enum-urile din DTO-uri (Role; vin EventCategory, TicketType…)
+│     ├─ enums/                       enum-urile din DTO-uri (Role cu VOLUNTEER + selfRegistrable(), BusinessCategory; vin EventCategory, TicketType…)
 │     ├─ annotations/                 validări custom (Code: regex pentru AX-T12-7KQ2MZ)
-│     └─ exceptions/                  ApiException (status + mesaj) + BadRequest / NotFound / Conflict / Forbidden — contractul de erori
+│     └─ exceptions/                  ApiException (status + mesaj) + BadRequest / Unauthorized / NotFound / Conflict / Forbidden — contractul de erori
 │     src/test/java/aradexperience/
 │     ├─ api/ApiContractTest          gardă: fiecare interfață are @RequestMapping, fiecare metodă o rută, fără rute duplicate
 │     ├─ dto/DtoJson                  helper: ObjectMapper ca în Spring + citire JSON din resources
 │     ├─ dto/DtoValidationTest        regulile jakarta de pe DTO-urile de cerere
-│     └─ dto/auth/UserDtoTest, RegisterRequestTest   serializare: JSON-ul din src/test/resources/dto/auth/*.json e adevărul (deserializare + round-trip strict)
+│     └─ dto/auth/UserDtoTest, RegisterRequestTest, AuthResponseTest   serializare: JSON-ul din src/test/resources/dto/auth/*.json e adevărul (deserializare + round-trip strict)
 └─ app/                               MODULUL `app` = APLICAȚIA (singurul rulabil)
    ├─ build.gradle                    Spring Boot plugin; project(':api'), starters (web, security, validation, data-jpa, actuator), springdoc, Flyway, Postgres, jjwt, Lombok; bootRun încarcă .env
    └─ src/main/java/aradexperience/
       ├─ Application.java             @SpringBootApplication în pachetul rădăcină (scanare implicită a tot)
-      ├─ controller/<feature>/        XController implements XApi — zero logică: AuthContext → service → mapper → DTO (health/HealthController = șablonul)
+      ├─ controller/<feature>/        XController implements XApi — zero logică: AuthContext → service → mapper → DTO (health/HealthController = șablonul; auth/AuthController din T03)
       ├─ controller/handler/          GlobalExceptionHandler: toate erorile ca ProblemDetail RFC 7807 (400 cu errors[], 401, 403, 404, 409, 500)
-      ├─ service/<feature>/           logica de business, un service per controller (@Service, @Transactional)
-      ├─ repository/<feature>/        un JpaRepository per entitate
-      ├─ entity/<feature>/            entitățile JPA (Lombok); schema vine doar din Flyway
-      ├─ mapper/<feature>/            entity ↔ DTO — clase utilitare statice (import static), layer separat ca să fie refolosite
-      ├─ config/                      AppProps (app.* din yml), SecurityConfig (rute × roluri, CORS, 401/403 ca ProblemDetail), OpenApiConfig (Swagger + Authorize)
+      ├─ service/<feature>/           logica de business, un service per controller (@Service, @Transactional) — auth/AuthService (register, login, /me) din T03
+      ├─ repository/<feature>/        un JpaRepository per entitate (users/UserRepository, business/BusinessRepository din T03)
+      ├─ entity/<feature>/            entitățile JPA (Lombok); schema vine doar din Flyway (users/User, business/Business din T03)
+      ├─ mapper/<feature>/            entity ↔ DTO — clase utilitare statice (import static), layer separat ca să fie refolosite (users/UserMapper)
+      ├─ config/                      AppProps (app.* din yml), SecurityConfig (regulile pentru TOATE rutele din API.md, din T03; CORS; 401/403 ca ProblemDetail), OpenApiConfig (Swagger + Authorize)
       ├─ security/                    JwtService (emite/validează), JwtAuthFilter (Bearer → SecurityContext), CurrentUser, AuthContext (utilizatorul curent pentru controllere)
       └─ util/                        Codes (coduri AX-…), Geo (haversine), Pages (Page → PageResponse) — utilitare statice
       src/main/resources/
@@ -78,10 +80,11 @@ AradEx-Backend/                       REPO 2 — backend (Spring Boot 3, Java 21
       ├─ application-prod.yml         profilul prod (Render)
       └─ db/migration/                V1 baseline · V2 users+businesses (+V2_1 seed conturi) · V3 places (+V3_1 12 locuri reale, 33 puncte de ghid) · V4 events (+V4_1 30 evenimente) — numerele următoare se iau în ordinea story-urilor din PLAN
       src/test/java/aradexperience/
-      ├─ AppSmokeTest                 @SpringBootTest + Testcontainers Postgres: pornește tot, Flyway, /health, 401 pe rute protejate (se sare fără Docker)
+      ├─ AppSmokeTest                 @SpringBootTest + Testcontainers Postgres: pornește tot, Flyway, /health, 401, login cu toate conturile demo, 409/403 (se sare fără Docker)
+      ├─ config/SecurityRulesTest     matricea rute × roluri din API.md pe SecurityConfig-ul real (public / 401 / 403 / trece)
       ├─ controller/ControllerTest    adnotare compusă: @WebMvcTest + SecurityConfig real + AppProps + JwtService mock — un test de controller = @ControllerTest(X.class) + @MockBean XService
       ├─ controller/health/HealthControllerTest   șablonul de test de controller: 200 public / 401 fără token (ProblemDetail) / 403 rol greșit
-      ├─ service/<feature>/           unit-teste Mockito pe servicii (vin cu task-urile)
+      ├─ service/<feature>/           unit-teste Mockito pe servicii (auth/AuthServiceTest; restul vin cu task-urile)
       ├─ mock/                        date de test refolosite: AuthMock (utilizator în SecurityContext pentru MockMvc), JsonFixtures (JSON din resources), XMock per service
       ├─ security/JwtServiceTest · util/CodesAndGeoTest
       └─ resources/requests/<feature>/*.json   cererile pentru testele de controller (requests/auth/register.json = exemplu)
@@ -90,8 +93,8 @@ AradEx-Frontend/                      REPO 3 — frontend (Vue 3.5, Vite 8, Type
 ├─ CLAUDE.md                          regulile FE: structura pe feature, stack aprobat, stări obligatorii, stil Clean Ink, „Nu”
 ├─ README.md                          comenzi + ce conține scheletul
 ├─ .githooks/ · .claude/settings.json  hook-ul fără co-autori; atribuirea Claude oprită
-├─ .github/workflows/ci.yml          GitHub Actions: npm ci, build, test pe push/PR
 ├─ package.json · vite.config.ts · tsconfig*.json · index.html · .env.example (VITE_API_URL, VITE_DEMO)
+├─ capacitor.config.ts · android/     aplicația Android (Capacitor 6, T15): același build `dist`, pornește pe /m; `npm run android:run`
 ├─ public/                            manifest + icon-uri PWA, fonturi locale (Inter, Material Symbols), _redirects (Netlify SPA), img/ (pozele din seed, copiate din design/assets)
 └─ src/
    ├─ main.ts · App.vue · vite-env.d.ts
@@ -100,13 +103,13 @@ AradEx-Frontend/                      REPO 3 — frontend (Vue 3.5, Vite 8, Type
    │  ├─ types/api.ts                 DTO-urile din API.md în TypeScript (= modulul api din BE)
    │  ├─ api/                         client.ts (fetch + Bearer + ProblemDetail → ApiError + 401 → logout) și un fișier per interfață BE (auth.ts, health.ts, …)
    │  ├─ stores/                      Pinia: auth.ts (token, user, rol, hasRole), ui.ts (toast)
-   │  ├─ composables/                 logica de ecran refolosibilă: useFormat (date/bani/km în ro, cu test); vin useGeo, useTts, useRouteOsrm, useEvents…
+   │  ├─ composables/                 logica de ecran refolosibilă: useFormat (date/bani/km în ro), useAuthForm (validare, unde ajunge fiecare rol după login), useBack — cu teste; vin useGeo, useTts, useRouteOsrm, useEvents…
    │  ├─ components/ui/               componentele generice Clean Ink (AppButton, AppChip, AppCard, AppInput, AppIcon, AppToast, EmptyState, Skeleton, ApiStatus, PlaceholderScreen)
    │  ├─ components/<feature>/        componente de feature comune mobil + web (auth/LoginForm; vin events/EventCard, map/MapView, qr/QrCode…)
    │  ├─ i18n/                        ro.json (toate textele, cu diacritice), en.json
    │  └─ styles/base.css              tokens (culori, radius) + Tailwind
-   ├─ mobile/                         layouts/MobileLayout.vue (tab bar: Evenimente · Chat · Hartă · Bilete/Panou · Salvate) + views/<feature>/ (home/HomeView, auth/LoginView)
-   └─ web/                            layouts/WebLayout.vue (bară sus + sidebar pe panouri) + views/<feature>/ (home/LandingView, auth/LoginView)
+   ├─ mobile/                         layouts/MobileLayout.vue (tab bar: Evenimente · Chat · Hartă · Bilete/Panou · Salvate) + views/<feature>/ (home/HomeView, auth/LoginView S12, profile/ProfileView S11)
+   └─ web/                            layouts/WebLayout.vue (bară sus + sidebar pe panouri, selector RO/EN) + views/<feature>/ (home/LandingView, auth/LoginView W0 — pagină întreagă)
 ```
 
 ```

@@ -6,9 +6,9 @@ Acesta e **planul comun** (de aici se deschide Claude Code și aici e workspace-
 
 | Repo | Ce conține | Cine îl modifică |
 |---|---|---|
-| [AradEx-Plan](https://github.com/HACK4ARAD/AradEx-Plan) | **acesta**: `docs/` (PLAN, API, DATA-MODEL, FEATURES, DEMO, DEPLOY, ARAD-DATA), `design/` (prototipul final în `design/final/`), `CLAUDE.md`, `STRUCTURE.md`, `setup.sh`, `.claude/skills/` | toți, fiecare secțiunea lui din `API.md`; restul prin PR |
+| [AradEx-Plan](https://github.com/HACK4ARAD/AradEx-Plan) | **acesta**: `docs/` (STATUS, SETUP, PLAN, API, DATA-MODEL, FEATURES, DEMO, DEPLOY, ARAD-DATA), `design/` (prototipul final în `design/final/`), `CLAUDE.md`, `STRUCTURE.md`, `setup.sh`, `.claude/skills/` | toți, fiecare secțiunea lui din `API.md`; restul prin PR |
 | [AradEx-Backend](https://github.com/HACK4ARAD/AradEx-Backend) | Spring Boot 3 · Java 21 · Gradle (Groovy) · Postgres · Flyway · JWT — modulele `api` (contractul) și `app` (aplicația) | fiecare doar feature-urile story-ului lui |
-| [AradEx-Frontend](https://github.com/HACK4ARAD/AradEx-Frontend) | Vue 3 + Vite + TS · Pinia · Router · Tailwind 4 · vue-i18n · Leaflet · PWA — `/m` mobil, `/w` web | fiecare doar fișierele story-ului lui |
+| [AradEx-Frontend](https://github.com/HACK4ARAD/AradEx-Frontend) | Vue 3 + Vite + TS · Pinia · Router · Tailwind 4 · vue-i18n · Leaflet · PWA · Capacitor (aplicația Android) — `/m` mobil, `/w` web | fiecare doar fișierele story-ului lui |
 | [AradEx-Infrastructure](https://github.com/HACK4ARAD/AradEx-Infrastructure) | Postgres local (`docker-compose.yml`), config de deploy | doar P1 (Zoltan) |
 | [AradEx-Ops](https://github.com/HACK4ARAD/AradEx-Ops) | agenții Paperclip: instrucțiuni, task-uri, `setup-lane.mjs` | doar P1 (Zoltan) |
 
@@ -19,6 +19,7 @@ Descrierea fiecărui folder și fișier: `STRUCTURE.md`. Căile din documente de
 2. `docs/API.md` — contractul exact al endpoint-urilor și DTO-urilor. BE îl implementează (modulul `api` din `AradEx-Backend`), FE îl consumă (`shared/types/`). Dacă trebuie schimbat, schimbă-l în același task (doar secțiunea modulului tău) și spune explicit ce ai schimbat.
 3. `docs/DATA-MODEL.md` — tabele, enum-uri, convenții de migrări. `docs/FEATURES.md` — regulile pe roluri, mobil vs web.
 4. `docs/DEMO.md` — fluxul de demo, orientativ (se clarifică la final; la un PR verifici doar feature-ul lui). `docs/ARAD-DATA.md` — datele reale din seed și ce e FICTIV.
+5. `docs/STATUS.md` — **memoria proiectului**: ce story-uri sunt gata, deciziile luate (de ce e așa), problemele cunoscute. Citește-l înaintea oricărui story; fiecare PR din `AradEx-Plan` îl actualizează. `docs/SETUP.md` — ce instalezi și problemele de mediu cunoscute.
 **Designul final** (sursa de adevăr pentru ecrane): `design/final/` — prototip funcțional mobil (`mobile.html`, 36 de ecrane) + web (`web.html`: site public și panourile Primărie / Admin / Firmă, 37 de pagini), planșele cu toate ecranele în `design/final/screens/`, descrierea în `design/final/README.md`. Prototipurile vechi (`design/AradExperience*.html`, `design/screens/`) rămân doar ca istoric. Stil „Clean Ink”: fundal `#FAFAF7`, ink `#111`, accent `#FF5A36`, verde comunitate `#1F3A12`/`#3B6D11`, galben oferte `#FFC244`, carduri albe radius 16–20, butoane negre radius 14–16, Inter + Material Symbols.
 
 ## Skill-uri (toate aici, în `.claude/skills/`, un singur loc)
@@ -35,6 +36,8 @@ cd ../AradEx-Backend && ./gradlew :app:bootRun                # API :8080 · Swa
 cd ../AradEx-Backend && ./gradlew test                        # teste BE (api + app)
 cd ../AradEx-Frontend && npm run dev                          # APP :5173 ( / → /m pe telefon, /w pe desktop; ?ui=m|w forțează)
 cd ../AradEx-Frontend && npm run build && npm run test
+cd ../AradEx-Frontend && npm run android:run                 # aplicația Android pe emulator (Capacitor; docs/SETUP.md)
+powershell -ExecutionPolicy Bypass -File .\setup-windows.ps1  # Windows: verifică/instalează uneltele
 cp ../AradEx-Backend/.env.example ../AradEx-Backend/.env      # secretele BE (OPENAI_API_KEY, JWT_SECRET) — nu intră în git
 cp ../AradEx-Frontend/.env.example ../AradEx-Frontend/.env    # VITE_API_URL, VITE_DEMO
 ```
@@ -42,6 +45,7 @@ cp ../AradEx-Frontend/.env.example ../AradEx-Frontend/.env    # VITE_API_URL, VI
 ## Mod de lucru (obligatoriu)
 - Un story din PLAN = un branch `feat/T07-tickets` cu **același nume în fiecare repo atins** (BE, FE și `AradEx-Plan` dacă se schimbă API/docs) = câte un PR spre `main`; în descrierea PR-urilor pui link spre perechile lor. Ordinea de merge: BE → FE → Plan. `main` trebuie să ruleze mereu în toate repo-urile.
 - Folosește skill-ul `task-workflow` la început și la sfârșit de story (plan scurt → implementare → checklist de verificare). Review cu `review-pr`.
+- La închiderea unui story, PR-ul din `AradEx-Plan` actualizează `docs/STATUS.md` (rândul story-ului, PR-urile, deciziile, problemele cunoscute) și, dacă s-a schimbat modul de lucru, skill-ul afectat din `.claude/skills/`.
 - Feature nou în BE → skill `be-module`. Ecran/feature nou în FE → skill `fe-feature`. Date demo → skill `seed-data`.
 - Rulează testele înainte de a declara ceva gata. Nu dezactiva teste ca să treacă.
 - Commit-uri mici, mesaje scurte în engleză (`feat(events): list + filters`, `fix(auth): 401 on expired token`).
@@ -63,7 +67,7 @@ cp ../AradEx-Frontend/.env.example ../AradEx-Frontend/.env    # VITE_API_URL, VI
 ## Fără conflicte între story-uri (4 oameni în paralel)
 - Fiecare story editează doar fișierele feature-ului lui. Dacă îți trebuie o schimbare într-un fișier al altui story, o ceri în PR-ul lui; nu o faci tu. Poți importa și apela codul altuia.
 - BE: fiecare story lucrează în subfolderele feature-urilor lui, în fiecare layer (`api/<F>Api`, `dto/<f>/`, `controller|service|repository|entity|mapper/<f>/`, teste). `config/` (inclusiv `SecurityConfig`), `security/`, `util/`, `exceptions/`, `enums/Role`, `*.gradle` țin de T01/T03 și nu se mai ating după.
-- FE: rutele, navigația, layout-urile, `client.ts` și `components/ui/` țin de T02/T03 și nu se mai ating după — fiecare rută are atunci fișierul ei de view în `views/<feature>/`, iar ceilalți doar completează view-urile lor. i18n, tipuri și API pe fișiere de modul (`shared/i18n/ro/<modul>.json`, `shared/types/<modul>.ts`, `shared/api/<modul>.ts`); importă direct din fișierul modulului, nu adăuga linii în fișiere `index.ts` comune.
+- FE: rutele, navigația, layout-urile, `client.ts`, `components/ui/` și `stores/auth.ts` țin de T02/T03 (`android/` și `capacitor.config.ts` de T15) și nu se mai ating după — fiecare rută are atunci fișierul ei de view în `views/<feature>/`, iar ceilalți doar completează view-urile lor. i18n, tipuri și API pe fișiere de modul (`shared/i18n/ro/<modul>.json`, `shared/types/<modul>.ts`, `shared/api/<modul>.ts`); importă direct din fișierul modulului, nu adăuga linii în fișiere `index.ts` comune.
 - `docs/API.md`: modifici doar secțiunea modulului tău.
 
 ## Definiția lui „gata”

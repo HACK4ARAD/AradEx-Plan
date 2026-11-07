@@ -6,7 +6,7 @@ Fiecare tabel are migrarea lui în task-ul care îl introduce (`V{n}__{modul}.sq
 Nu se modifică o migrare deja aplicată pe `main` — se adaugă una nouă.
 
 ## Enum-uri
-- `Role`: `VISITOR, LOCAL, BUSINESS, CITY_HALL, ADMIN` (+ `VOLUNTEER` în T18)
+- `Role`: `VISITOR, LOCAL, BUSINESS, CITY_HALL, ADMIN, VOLUNTEER` (`VOLUNTEER` e în Java și în `SecurityConfig` — `/vol/**` — din T03; CHECK-ul din `users.role` îl primește în V10, T18). Emailurile din `users` se stochează cu litere mici (trim + lowercase).
 - `BusinessCategory`: `CAFE, RESTAURANT, PRODUCER, WINERY, SHOP, OTHER`
 - `PlaceType`: `ATTRACTION, MUSEUM, VENUE, WINERY, NATURE, PARK, RESTAURANT, CAFE`
 - `EventCategory`: `CONCERT, THEATRE, FAMILY, EXHIBITION, SPORT, OUTDOOR, FAIR, FOOD`
