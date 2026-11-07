@@ -28,7 +28,7 @@ type GoogleInfoDto = { rating?: number; userRatingCount?: number; reviews: { aut
 type TicketDto = { code: string; eventId: number; eventTitle: string; startAt: string; endAt?: string; locationName: string; address?: string; lat: number; lng: number; imageUrl?: string; ticketType: 'FREE'|'IN_APP'|'EXTERNAL'; qtyAdult: number; qtyChild: number; priceAdult?: number; priceChild?: number; total: number; status: 'CONFIRMED'|'CANCELLED'|'USED'; email: string; createdAt: string; usedAt?: string }   // tot ce trebuie ca biletul să se afișeze offline
 type OfferSummary = { id: number; businessId: number; businessName: string; title: string; discountLabel: string; localProduct: boolean; validUntil: string; pointsPrice?: number; imageUrl?: string; distanceKm?: number; rating?: number }
 type OfferDto = OfferSummary & { description: string; validFrom: string; status: string; viewsCount: number; redemptionsCount: number; usedCount: number; myRedemption?: RedemptionDto }
-type RedemptionDto = { id: number; code: string; offerId: number; offerTitle: string; businessName: string; pointsSpent: number; status: 'ISSUED'|'USED'|'CANCELLED'; issuedAt: string; usedAt?: string }
+type RedemptionDto = { id: number; code: string; offerId: number; offerTitle: string; businessName: string; pointsSpent: number; status: 'ISSUED'|'USED'|'CANCELLED'; issuedAt: string; usedAt?: string; offerImageUrl?: string; validUntil?: string }
 type ActionSummary = { id: number; title: string; category: string; startAt: string; endAt: string; locationName: string; lat: number; lng: number; pointsReward: number; capacity: number; registeredCount: number; imageUrl?: string; goingPreview: string[]; myRegistration?: RegistrationDto }
 type ActionDto = ActionSummary & { description: string; address: string; status: string; confirmedCount: number }
 type RegistrationDto = { id: number; actionId: number; actionTitle: string; code: string; status: 'REGISTERED'|'CONFIRMED'|'CANCELLED'|'NO_SHOW'; registeredAt: string; confirmedAt?: string; user?: { id: number; displayName: string } }
@@ -189,13 +189,13 @@ Liniile de tramvai CTP Arad (OSM, ODbL) și orarele de exemplu sunt date statice
 | GET | `/health` | pub | `{ status: 'ok', time, version }` |
 
 ## Rute FE
-Două aplicații din același cod Vue, **fără prefix în URL** (decizia din 7 nov, T20). Aplicația se alege o dată, la pornire (`src/router/app.ts`):
-- aplicația nativă (Capacitor) e mereu **mobilă**;
-- în browser, `?app=mobile` / `?app=web` forțează alegerea și se ține minte (test, dev);
-- `?preview=mobile` și linkurile vechi `/m/…` deschid aplicația mobilă doar în tab-ul curent (rezistă la refresh, nu se țin minte), de exemplu din butoanele de previzualizare din panouri;
-- altfel → **web**.
+Două aplicații **complet separate**, din același repo și cu același backend, **fără prefix în URL** (decizia din 7 nov, T20):
+- **web-ul**: `npm run build` → `dist/`, publicat pe aradexperience.site;
+- **aplicația mobilă**: `npm run build:mobile` → `dist-mobile/`, doar în Capacitor (iOS + Android); local cu `npm run dev:mobile`.
 
-Linkurile vechi `/m/…` și `/w/…` duc la aceeași cale fără prefix, iar orice cale necunoscută duce la `/`. Endpoint-urile API nu se schimbă.
+Build-ul web nu conține nimic din aplicația mobilă (`npm run check:web` verifică asta și la deploy). Aplicația mobilă nu se poate deschide de pe site.
+
+Pe web, linkurile vechi de panou `/w/…` duc la aceeași cale fără prefix; în fiecare aplicație, orice cale necunoscută duce la `/`. Endpoint-urile API nu se schimbă.
 
 **Aplicația mobilă** (iOS + Android, are tot):
 

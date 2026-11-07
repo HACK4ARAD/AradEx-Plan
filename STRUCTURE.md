@@ -95,14 +95,14 @@ AradEx-Frontend/                      REPO 3 — frontend (Vue 3.5, Vite 8, Type
 ├─ README.md                          comenzi + ce conține scheletul
 ├─ .githooks/ · .claude/settings.json  hook-ul fără co-autori; atribuirea Claude oprită
 ├─ package.json · vite.config.ts · tsconfig*.json · index.html · .env.example (VITE_API_URL, VITE_DEMO)
-├─ capacitor.config.ts · android/     aplicația Android (Capacitor 6, T15): același build `dist`, pornește mereu ca aplicație mobilă; `npm run android:run`
-├─ public/                            manifest + icon-uri PWA, fonturi locale (Inter, Material Symbols), _redirects (nefolosit pe AWS), img/ (pozele din seed, copiate din design/assets)
+├─ capacitor.config.ts · android/     aplicația Android (Capacitor 6, T15): build-ul mobil separat (`npm run build:mobile` → `dist-mobile/`); `npm run android:run`
+├─ public/                            icon-uri, fonturi locale (Inter, Material Symbols), _redirects (nefolosit pe AWS), img/ (pozele din seed, copiate din design/assets)
 ├─ deploy/                            Dockerfile + nginx.conf: imaginea web de producție (site de prezentare + panouri; fallback SPA, cache), ECR aradex-web → ECS
 ├─ .dockerignore                      contextul imaginii: doar dist/ și deploy/
 ├─ .github/workflows/deploy.yml       la merge pe main: npm run test + build → imagine nginx în ECR → deploy ECS (al lui P1; singurul workflow)
 └─ src/
    ├─ main.ts · App.vue · vite-env.d.ts
-   ├─ router/index.ts                 app.ts alege aplicația (nativ → mobil, `?app=`, implicit web); mobile.ts / web.ts = rutele fără prefix (din API.md §Rute FE) cu meta {roles, title, screen, task}; index.ts = guard; fiecare rută are view-ul ei (T02), panourile web au o rută pe secțiune; fișierul nu se mai modifică după T03
+   ├─ router/index.ts                 mobile.ts / web.ts = rutele fără prefix (din API.md §Rute FE) cu meta {roles, title, screen, task}; guard.ts = guard-ul comun; routerul fiecărui build e în src/web/router.ts / src/mobile/router.ts (alias Vite `@app`: `npm run build` = web, `npm run build:mobile` = aplicația); fiecare rută are view-ul ei (T02), panourile web au o rută pe secțiune; fișierul nu se mai modifică după T03
    ├─ shared/                         tot ce e comun mobil + web — aici stă logica
    │  ├─ types/<modul>.ts             DTO-urile din API.md în TypeScript, câte un fișier pe modul (common, auth, business, places, events, tickets, offers, community, chat, plan, admin, volunteer); api.ts doar le re-exportă
    │  ├─ api/                         client.ts (fetch + Bearer + ProblemDetail → ApiError + 401 → logout) și un fișier per interfață BE (auth.ts, health.ts, …)

@@ -21,7 +21,7 @@ mkdir -p ~/HACK4ARAD && cd ~/HACK4ARAD && git clone https://github.com/HACK4ARAD
 cd AradEx-Plan && ./setup.sh                                          # clonează celelalte 4 lângă el, activează hook-ul de commit
 (cd ../AradEx-Infrastructure && docker compose up -d)                 # Postgres
 (cd ../AradEx-Backend && cp .env.example .env && ./gradlew :app:bootRun)   # http://localhost:8080/swagger-ui.html
-(cd ../AradEx-Frontend && cp .env.example .env && npm install && npm run dev)   # http://localhost:5173 (/m aplicația, /w prezentare + panouri)
+(cd ../AradEx-Frontend && cp .env.example .env && npm install && npm run dev)   # http://localhost:5173 web (prezentare + panouri); aplicația mobilă: npm run dev:mobile (:5174)
 (cd ../AradEx-Frontend && npm run android:run)                         # aplicația Android pe emulator (Capacitor)
 claude                                                                # Claude Code, din AradEx-Plan
 ```

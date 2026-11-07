@@ -4,7 +4,7 @@ Toate funcționalitățile, împărțite în **story-uri de mărime medie** (câ
 
 **Designul final** (ecranele pe care le implementăm): `design/final/` — `mobile.html` (aplicația) și `web.html` (din el se folosesc doar panourile și landing-ul ca bază pentru site-ul de prezentare), planșele în `design/final/screens/`, descrierea în `design/final/README.md`.
 
-> **Decizie (7 nov): produsul e aplicația mobilă.** Vizitatorii și localnicii folosesc **doar aplicația de telefon** — **Android (APK/AAB)** și **iOS (bundle din Xcode)**, construite cu Capacitor din același cod Vue. **Web-ul** (`https://aradexperience.site`) e site-ul de prezentare al aplicației: **prezentarea** (ce e AradExperience, funcțiile, rolurile, „Descarcă aplicația” Android/iOS, contact), **Comunitate** doar de citit, **Confidențialitate** și **panourile** Primăriei, firmelor și Adminului (`/city/*`, `/business/*`, `/admin/*`, cu login-ul lor W0). Paginile publice web din designul final (W5–W15: agendă, obiective, hartă, oferte, comunitate, chat, planificator, Contul meu, pagina publică a firmei) **nu se mai fac**; conținutul lor există doar în aplicație. Story-urile de mai jos se citesc așa: „FE mobil” = aplicația; „FE web” = doar panouri sau site-ul de prezentare. **Rutele nu mai au prefix** (`/m`, `/w` au dispărut în T20): fiecare aplicație are routerul ei, ales la pornire (`docs/API.md` §Rute FE).
+> **Decizie (7 nov): produsul e aplicația mobilă.** Vizitatorii și localnicii folosesc **doar aplicația de telefon** — **Android (APK/AAB)** și **iOS (bundle din Xcode)**, construite cu Capacitor din același cod Vue. **Web-ul** (`https://aradexperience.site`) e site-ul de prezentare al aplicației: **prezentarea** (ce e AradExperience, funcțiile, rolurile, „Descarcă aplicația” Android/iOS, contact), **Comunitate** doar de citit, **Confidențialitate** și **panourile** Primăriei, firmelor și Adminului (`/city/*`, `/business/*`, `/admin/*`, cu login-ul lor W0). Paginile publice web din designul final (W5–W15: agendă, obiective, hartă, oferte, comunitate, chat, planificator, Contul meu, pagina publică a firmei) **nu se mai fac**; conținutul lor există doar în aplicație. Story-urile de mai jos se citesc așa: „FE mobil” = aplicația; „FE web” = doar panouri sau site-ul de prezentare. **Rutele nu mai au prefix** (`/m`, `/w` au dispărut în T20): web-ul și aplicația mobilă sunt două build-uri complet separate, cu același backend (`docs/API.md` §Rute FE).
 
 Convenție: `T05` = story; `S3`, `E2`, `W6` = codurile ecranelor (vezi planșele din `design/final/screens/` și tabelul din `design/README.md`).
 Contractul de API este în `docs/API.md`, modelul de date în `docs/DATA-MODEL.md`, povestea de demo în `docs/DEMO.md` (toate în repo-ul `AradEx-Plan`, folderul `docs/`).
@@ -117,7 +117,7 @@ CORS_ORIGINS=http://localhost:5173
                  composables/ (useGeo, useTts, useFormat)  i18n/ (ro.json, en.json)  styles/tokens.css
     mobile/      layouts/MobileLayout.vue (top bar + bottom tabs)  views/…
     web/         layouts/WebLayout.vue (sidebar + content)         views/…
-    router/      app.ts (ce aplicație rulează: nativ → mobil, `?app=`, implicit web) · mobile.ts / web.ts (rutele fără prefix) · index.ts (guard)
+    router/      mobile.ts / web.ts (rutele fără prefix) · guard.ts; routerul fiecărui build în web/router.ts și mobile/router.ts (alias `@app`; `npm run build` = web, `npm run build:mobile` = aplicația)
   ```
 - Tokens (din `design/final/shared/ui.css`): fundal `#FAFAF7`, ink `#111111`, text secundar `#5C5C5C`, border `#E8E8E3`, soft `#F1F1EC`, accent `#FF5A36`, verde comunitate `#3B6D11` / închis `#1F3A12` / soft `#E4EFDA`, galben oferte `#FFC244`, piersică `#FFE8E2`; panouri web: fundal `#F6F6F3`, sidebar `#0E0E10`; card `#FFFFFF` radius 16, buton primar negru radius 14 h48, chip radius 999. Font Inter (Google Fonts), icon-uri Material Symbols Outlined.
 - `shared/api/client.ts`: `fetch` wrapper cu `VITE_API_URL`, header `Authorization: Bearer`, parsare ProblemDetail → `ApiError`, 401 → logout + redirect login.
@@ -293,7 +293,7 @@ CORS_ORIGINS=http://localhost:5173
 **Depinde de:** ecranele existente
 **Stare:** Android ✅ merge-uit în `main` (FE #7): Capacitor 6, `android/`, `npm run android:run`, rulează pe emulator (vezi `docs/SETUP.md`). Rămân iOS, iconița/splash, build-urile de livrare, EN pe module.
 
-- **Aplicația e produsul** (vezi decizia de sus): același build `dist` pornește mereu ca aplicație mobilă (`app.ts`), fără service worker în nativ.
+- **Aplicația e produsul** (vezi decizia de sus): build-ul mobil (`npm run build:mobile` → `dist-mobile/`) e separat de web și nu are service worker.
 - **Android:** iconiță + splash, `versionCode`/`versionName`, APK de debug pentru demo + AAB semnat (cheia de semnare NU intră în git), URL-ul API de producție în build.
 - **iOS:** `npx cap add ios` (`ios/` în repo), `cap sync`, rulează pe simulator din Xcode (doar pe macOS), bundle id `ro.aradexperience.app`, iconiță/splash, permisiuni în `Info.plist` (cameră pentru QR, localizare pentru „Lângă mine”), `NSAppTransportSecurity` doar dacă e nevoie de HTTP în dev; build pe telefon cu un cont Apple de dezvoltator (TestFlight dacă există cont plătit).
 - **Specific nativ:** verificat pe ambele: TTS-ul ghidului (WebView-ul Android poate să nu aibă `speechSynthesis` → plugin `@capacitor-community/text-to-speech` sau `/ai/tts`), camera pentru QR (`html5-qrcode` sau plugin nativ), geolocația, link-urile externe (Google Maps, site organizator) deschise în browserul sistemului.
@@ -304,11 +304,11 @@ CORS_ORIGINS=http://localhost:5173
 
 ### T20 · Web = site de prezentare + panouri (P1)
 **Depinde de:** T02, T03
-- **Rutare (gata, PR „routes without /m and /w”):** două routere alese la pornire, fără prefix; web-ul are doar `/`, `/community`, `/privacy`, `/login` și panourile; linkurile vechi `/m/…`, `/w/…` duc la aceeași cale fără prefix; panourile deschid ecranele aplicației (obiectiv, eveniment, pagina firmei) cu `?preview=mobile`.
+- **Rutare (gata):** web-ul și aplicația mobilă sunt două build-uri complet separate (același backend), fără prefix în URL; web-ul are doar `/`, `/community`, `/privacy`, `/login` și panourile și nu conține nimic din aplicație (`npm run check:web`); linkurile vechi de panou `/w/…` duc la aceeași cale fără prefix.
 - `/` pe web → **site-ul de prezentare** (pornește din landing-ul W1): hero cu „Descarcă aplicația” (Android / iOS), „Ce poți face” (6 funcții), „Acum în Arad” (3 evenimente reale, doar de privit), o bandă Comunitate, cele 4 roluri, „Ești Primărie sau firmă? Intră în panou” → W0, subsol cu contact și Confidențialitate.
 - `/community` → acțiunile care urmează + clasamentul lunii, doar de citit; „Mă înscriu” → „Descarcă aplicația”.
 - `WebLayout` (fișierul lui P1): bara de sus a site-ului: Funcții · Comunitate · Pentru firme & Primărie · Descarcă aplicația · Intră în panou.
-- În browser, pe telefon, `/` duce tot la prezentare, cu butoanele de descărcare; aplicația mobilă se testează în browser cu `/?app=mobile` (înapoi: `/?app=web`).
+- În browser, pe telefon, `/` duce tot la prezentare, cu butoanele de descărcare. Aplicația mobilă nu se deschide de pe site: se testează nativ (emulator, telefon) sau local cu `npm run dev:mobile`.
 
 **Verificare:** pe desktop și pe telefon `/` arată prezentarea; niciun link din site nu duce într-o pagină publică scoasă; panourile merg ca înainte pentru Primărie, Firmă, Admin.
 
