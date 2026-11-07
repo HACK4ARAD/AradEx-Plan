@@ -41,7 +41,7 @@ gh auth login                         # o dată, pentru PR-uri
 (cd ../AradEx-Backend && cp .env.example .env && ./gradlew :app:bootRun)                # API :8080, Swagger /swagger-ui.html
 (cd ../AradEx-Frontend && cp .env.example .env && npm install && npm run dev)           # :5173 → /m (mobil) /w (web)
 ```
-În `.env`-ul BE pune un `JWT_SECRET` random de minim 32 de caractere (`openssl rand -hex 32`) și lasă `OPENAI_API_KEY` gol până la T12. Conturi demo: `visitor@demo.ro`, `local@demo.ro`, `firma@demo.ro`, `primaria@demo.ro`, `admin@demo.ro` / `demo1234` (butoanele „Conturi demo” de pe login le completează).
+În `.env`-ul BE pune un `JWT_SECRET` random de minim 32 de caractere (`openssl rand -hex 32`) și lasă `ANTHROPIC_API_KEY` gol până la T12 (cheia Claude API o are P1). Conturi demo: `visitor@demo.ro`, `local@demo.ro`, `firma@demo.ro`, `primaria@demo.ro`, `admin@demo.ro` / `demo1234` (butoanele „Conturi demo” de pe login le completează).
 
 Aplicația Android pe emulator (pornește emulatorul din Android Studio întâi):
 ```

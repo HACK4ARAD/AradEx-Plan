@@ -1,14 +1,15 @@
 # Definirea funcționalităților — ce face aplicația, pentru cine, cu ce reguli
 
-Document de referință pentru implementare: fiecare funcționalitate are **cine** o folosește, **unde** (mobil / web), **ce poate face**, **regulile** și **ecranele**. Task-urile din `docs/PLAN.md` implementează exact ce e aici; `docs/API.md` dă contractul.
+Document de referință pentru implementare: fiecare funcționalitate are **cine** o folosește, **unde** (aplicația mobilă / panourile web), **ce poate face**, **regulile** și **ecranele**. Task-urile din `docs/PLAN.md` implementează exact ce e aici; `docs/API.md` dă contractul.
 
 ## 0. Principii de produs
-- **O singură aplicație, cinci roluri.** Vizitator și Localnic folosesc în principal **mobilul** (PWA, în oraș, pe teren). Firma, Primăria și Adminul folosesc **web-ul** (panouri cu tabele, formulare cu previzualizarea telefonului, statistici); pe mobil au doar operațiunile de teren: firma validează coduri la casă, Primăria confirmă prezențe. **Voluntarul** (cont creat de Primărie) folosește doar mobilul: acțiunile lui, scanner, mesaje. Împărțirea exactă mobil / web public / panouri: tabelul din `design/final/README.md`.
+**Decizie (7 nov): produsul e aplicația mobilă.** Vizitatorii și localnicii folosesc **doar aplicația de telefon** — **Android (APK/AAB)** și **iOS (bundle din Xcode)**, construite cu Capacitor din același cod Vue (`/m`). **Web-ul** (`/w`) are doar două părți: **site-ul de prezentare** (ce e AradExperience, funcțiile, rolurile, „Descarcă aplicația” Android/iOS, contact) și **panourile** Primăriei, firmelor și Adminului (`/w/city/*`, `/w/business/*`, `/w/admin/*`, cu login-ul lor W0). Paginile publice web din designul final (W5–W15: agendă, obiective, hartă, oferte, comunitate, chat, planificator, Contul meu, pagina publică a firmei) **nu se mai fac**; conținutul lor există doar în aplicație. Story-urile de mai jos se citesc așa: „FE mobil” = aplicația; „FE web” = doar panouri sau site-ul de prezentare.
+- **O singură aplicație, cinci roluri.** Vizitator și Localnic folosesc **doar aplicația mobilă** (Android + iOS, în oraș, pe teren). Firma, Primăria și Adminul folosesc **web-ul** (panouri cu tabele, formulare cu previzualizarea telefonului, statistici); pe mobil au doar operațiunile de teren: firma validează coduri la casă, Primăria confirmă prezențe. **Voluntarul** (cont creat de Primărie) folosește doar mobilul: acțiunile lui, scanner, mesaje. Împărțirea exactă mobil / web public / panouri: tabelul din `design/final/README.md`.
 - **Primăria = administrator complet** al conținutului orașului (agendă, acțiuni, validare, voluntari, firme partenere, obiective & ghiduri). **Adminul platformei** are în plus moderare pe tot conținutul, utilizatori și setări. Firmele și voluntarii **nu își fac singuri conturi** active: firma se poate înregistra, dar conținutul ei rămâne ciornă până o verifică Primăria/Adminul; voluntarii sunt creați doar de Primărie.
 - **Bucla de valoare:** Primăria publică acțiuni → localnicii participă → Primăria confirmă cu QR → puncte → clasament + oferte la firme locale → firmele au clienți → firmele publică evenimente/oferte → vizitatorii au ce face. Fiecare rol primește ceva și dă ceva.
 - **Date reale, etichetate.** Evenimentele instituțiilor sunt reale (link spre organizator, `EXTERNAL`); cele cu bilete în aplicație (`IN_APP`) sunt marcate vizibil „Bilete în aplicație / Doar în AradExperience”. Ce e inventat pentru demo e marcat `is_demo` și „(demo)”.
 - **Totul în română cu diacritice**, EN opțional. Textele de ghid sunt scrise pentru citit cu voce tare.
-- **Ecranele** sunt cele din `design/final/` (mobil + web); prototipul e funcțional și arată și comportamentul (stări, sheet-uri, sincronizarea admin ↔ aplicație).
+- **Ecranele** sunt cele din `design/final/` (aplicația din `mobile.html`; din `web.html` doar panourile și landing-ul, ca bază pentru site-ul de prezentare); prototipul e funcțional și arată și comportamentul (stări, sheet-uri, sincronizarea admin ↔ aplicație).
 
 ## 1. Conturi și roluri (T03)
 | | Vizitator | Localnic | Firmă locală | Primărie | Admin |
@@ -102,7 +103,7 @@ Reguli: e-mail + parolă (min. 8), JWT 24 h; rolul se alege la înregistrare (Vi
 - Reguli: confirmarea acordă punctele o singură dată; cont de unică folosință expiră după ultima acțiune.
 
 ## 15. Transversale
-- **PWA** instalabilă (mobil), offline pentru bilete și ultimul itinerar; **i18n** RO (+EN); **notificări** (în afara v1 — pitch); **hărți** Leaflet/OSM; **securitate**: JWT, roluri pe rute, coduri QR = doar text, fără date personale; **erori** ProblemDetail afișate în toast.
+- **Aplicația nativă** Android + iOS (Capacitor; PWA doar ca rezervă în browser), offline pentru bilete și ultimul itinerar; **i18n** RO (+EN); **notificări** (în afara v1 — pitch); **hărți** Leaflet/OSM; **securitate**: JWT, roluri pe rute, coduri QR = doar text, fără date personale; **erori** ProblemDetail afișate în toast.
 - **Mobil vs web — aceleași date, altă așezare**: pe mobil ecranele sunt pe rând cu tab bar (Evenimente · Chat · Hartă · Bilete/Panou · Transport); pe web, liste + detaliu/formular alături (drawer), tabele pentru panouri, „Contul meu” ca hub (W14) pentru ce pe mobil e în Bilete/Salvate/Profil.
 
 ## Ce NU e în v1 (de spus în pitch la „ce urmează”)

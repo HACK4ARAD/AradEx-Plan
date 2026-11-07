@@ -25,13 +25,13 @@ Skill-uri (toate aici, în `.claude/skills/`): `be-module`, `seed-data`, `fe-fea
 ## 3. Verificare (înainte de PR) — checklist
 Rulează efectiv, nu presupune:
 - [ ] `./gradlew test` verde în worktree-ul de BE **fără teste sărite** (`AppSmokeTest` sărit = Docker oprit); `npm run build && npm run test` verde în worktree-ul de FE; fără erori în consola browserului.
-- [ ] Fiecare punct din secțiunea „Verificare” a task-ului, executat manual: pe **mobil** (Chrome device toolbar 390×844 + telefon real dacă există) și pe **web** (≥1280px) unde task-ul are ambele.
+- [ ] Fiecare punct din secțiunea „Verificare” a task-ului, executat manual: în **aplicație** (Chrome device toolbar 390×844, apoi emulator Android / simulator iOS + telefon real dacă există) și, dacă task-ul are panou, pe **web** (≥1280px). Pagini publice web nu se mai fac (decizia din `docs/PLAN.md`).
 - [ ] Endpoint-urile noi apar în Swagger și răspund conform `docs/API.md` (status-uri 400/401/403/404/409 incluse — încearcă-le).
 - [ ] Rolurile: un cont cu rol greșit primește 403, nu 500. Guest-ul vede doar ce e public. Regulile pe rute sunt deja în `SecurityConfig` (T03) și testate în `config/SecurityRulesTest`.
 - [ ] Ecranele de mobil merg și în aplicația Android (`npm run android:run` pe emulator, `adb reverse tcp:8080 tcp:8080`; vezi `docs/SETUP.md`).
 - [ ] Stări de listă: loading, gol, eroare — nu ecran alb.
 - [ ] Texte în română cu diacritice, în `src/shared/i18n/ro/<modul>.json` (și aceleași chei în `en/<modul>.json`). Fără „lorem ipsum”, fără `console.log` rămase, fără `TODO` fără explicație.
-- [ ] Feature-ul tău merge cap-coadă pe mobil și web (fluxul complet din `docs/DEMO.md` se verifică doar la final).
+- [ ] Feature-ul tău merge cap-coadă în aplicație (și în panoul web, dacă are) (fluxul complet din `docs/DEMO.md` se verifică doar la final).
 - [ ] Nicio cheie/secret în diff (`git diff main --stat` în fiecare repo + caută `sk-`, `secret`, `password` în fișierele noi).
 Scrie rezultatul verificării în PR (ce ai testat, ce nu, ce ai observat). PR-ul de FE face trimitere la PR-ul de BE; PR-ul din `AradEx-Plan` la amândouă.
 
