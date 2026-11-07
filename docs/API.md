@@ -34,8 +34,8 @@ type ActionDto = ActionSummary & { description: string; address?: string; status
 type RegistrationDto = { id: number; actionId: number; actionTitle: string; actionStartAt: string; locationName: string; pointsReward: number; code: string; status: 'REGISTERED'|'CONFIRMED'|'CANCELLED'|'NO_SHOW'; registeredAt: string; confirmedAt?: string; confirmedBy?: string; actionImageUrl?: string; user?: { id: number; displayName: string } }   // confirmedBy = numele celui care a confirmat / respins; user doar în listele Primăriei
 type PointsDto = { balance: number; monthEarned: number; rank: number; streakMonths: number; transactions: { id: number; amount: number; type: 'EARN_ACTION'|'SPEND_OFFER'|'ADJUST'; note?: string; createdAt: string }[] }   // rank = locul în clasamentul lunii; streakMonths = luni consecutive cu puncte câștigate
 type LeaderboardDto = { period: 'month'|'year'; entries: { rank: number; userId: number; displayName: string; points: number; actionsCount: number; lastAt?: string; lastActionTitle?: string }[]; me?: { rank: number; points: number } }   // actionsCount / lastAt / lastActionTitle = participările confirmate în perioadă
-type ItineraryStop = { order: number; kind: 'PLACE'|'EVENT'|'OFFER'; refId: number; name: string; lat: number; lng: number; arriveAt: string; leaveAt: string; durationMin: number; travelMinutesFromPrev: number; travelMode: 'WALK'|'CAR'|'PUBLIC'; note?: string; parkingHint?: string; hasGuide: boolean; imageUrl?: string }
-type ItineraryDto = { id?: number; shareCode?: string; title: string; summary: string; date: string; transport: 'WALK'|'CAR'|'PUBLIC'; totalMinutes: number; stops: ItineraryStop[] }
+type ItineraryStop = { order: number; day: 1|2; kind: 'PLACE'|'EVENT'|'OFFER'; refId: number; name: string; subtitle: string; lat: number; lng: number; arriveAt: string; leaveAt: string; durationMin: number; travelMinutesFromPrev: number; travelKmFromPrev: number; travelMode: 'WALK'|'CAR'|'PUBLIC'; note?: string; parkingHint?: string; hasGuide: boolean; imageUrl?: string }   // T13: day = ziua (itinerarii de 2 zile), subtitle = tipul obiectivului / locul evenimentului
+type ItineraryDto = { id?: number; shareCode?: string; title: string; summary: string; ask: string; date: string; days: 1|2; transport: 'WALK'|'CAR'|'PUBLIC'; startTime: string; totalMinutes: number; totalKm: number; offline: boolean; stops: ItineraryStop[]; createdAt?: string }   // T13: ask = cererea omului într-o propoziție (balonul din E2); offline = program făcut fără Claude
 ```
 
 ## Auth & utilizator (T03)
@@ -153,7 +153,7 @@ Cod înscriere: `AX-C{actionId}-{6}`. Punctele se scriu **doar** prin `PointsSer
 | Metodă | Rută | Auth | Cerere → Răspuns |
 |---|---|---|---|
 | POST | `/ai/chat` | pub (rate-limit 20/min/IP) | `{ messages: { role: 'user'\|'assistant', content }[], locale }` → `{ reply, suggestedEventIds: number[], quickReplies: string[], offline: boolean }` |
-| POST | `/ai/itinerary` | pub | `{ date, startTime?: '10:00', hours?: number, days?: number, transport, interests: string[], freeText?, start?: GeoPoint }` → `ItineraryDto` (nesalvat) |
+| POST | `/ai/itinerary` | pub (rate-limit 20/min/IP) | `{ date, startTime?: '10:00', hours?: number, days?: 1\|2, transport, interests: string[], freeText?, start?: GeoPoint, locale? }` → `ItineraryDto` (nesalvat). Claude alege doar opririle (obiective, evenimentele zilei, cafenele/localuri); BE validează id-urile și calculează orele și drumurile (pe jos 4,5 km/h, mașină 25 km/h + parcare, transport public 14 km/h + așteptare). Fără Claude: program din obiectivele cu ghid, `offline: true` |
 | POST | `/itineraries` | pub (userId dacă e logat) | `ItineraryDto` → `ItineraryDto` cu `id`, `shareCode` |
 | GET | `/itineraries/{idOrShareCode}` | pub | → `ItineraryDto` |
 | GET | `/me/itineraries` | auth | → `ItineraryDto[]` |
