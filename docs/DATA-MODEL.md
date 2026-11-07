@@ -6,7 +6,7 @@ Fiecare tabel are migrarea lui în task-ul care îl introduce (`V{n}__{modul}.sq
 Nu se modifică o migrare deja aplicată pe `main` — se adaugă una nouă.
 
 ## Enum-uri
-- `Role`: `VISITOR, LOCAL, BUSINESS, CITY_HALL, ADMIN`
+- `Role`: `VISITOR, LOCAL, BUSINESS, CITY_HALL, ADMIN` (+ `VOLUNTEER` în T18)
 - `BusinessCategory`: `CAFE, RESTAURANT, PRODUCER, WINERY, SHOP, OTHER`
 - `PlaceType`: `ATTRACTION, MUSEUM, VENUE, WINERY, NATURE, PARK, RESTAURANT, CAFE`
 - `EventCategory`: `CONCERT, THEATRE, FAMILY, EXHIBITION, SPORT, OUTDOOR, FAIR, FOOD`
@@ -75,6 +75,12 @@ UNIQUE (action_id, user_id).
 ### reviews (T07 partea 2, V5 — în aceeași migrare cu tickets)
 `id, event_id FK, user_id FK, stars INT CHECK 1..5, text VARCHAR(600) NULL, status DEFAULT 'PUBLISHED', created_at, updated_at` — UNIQUE (event_id, user_id). Media și numărul se calculează la citire (sau cache `events.rating_avg`, `events.rating_count`).
 
+### volunteers, volunteer_actions, volunteer_messages (T18, V10)
+Voluntarul e un rând în `users` cu rolul `VOLUNTEER` (fără parolă folosibilă) + `volunteers`: `user_id PK FK users, phone, login_code VARCHAR(6) UNIQUE, one_time BOOL DEFAULT false, status ('ACTIVE'|'SUSPENDED') DEFAULT 'ACTIVE', created_by FK users, created_at`.
+`volunteer_actions`: `user_id FK, action_id FK community_actions` — PK (user_id, action_id).
+`volunteer_messages`: `id, volunteer_user_id FK users, from_city BOOL, text VARCHAR(1000), created_at`.
+Cine a scanat pe cine: `community_registrations.confirmed_by` (există din V8).
+
 ### itineraries (T13, V9)
 `id, user_id FK NULL, title, params JSONB (cererea), stops JSONB (lista de opriri calculată), summary TEXT, share_code UNIQUE (8 caractere), created_at`
 
@@ -91,5 +97,5 @@ users 1─n points_transactions ; users 1─n itineraries
 
 ## Seed (date demo) — ce trebuie să existe
 - 5 conturi demo (T03), 1 firmă verificată „Cafeneaua din Pasaj” + 2–3 firme extra (Brutăria Veche, Crama Dealul Miniș, Producători din județul Arad).
-- 10–12 locuri reale cu ghid (T05), 15–20 evenimente (T06) pe 7–30 nov 2026, 5–8 oferte (T10), 3 acțiuni comunitare + înscriși + puncte (T11).
-- Imaginile: `AradEx-Frontend/public/img/...` (copiate din `design/assets/`), stocate în DB ca path relativ `/img/offers/cafea.jpg`.
+- 12 locuri reale cu ghid (T05, există), 30 de evenimente pe 6 nov – 20 dec 2026 (T06, există), 5–8 oferte (T10), 3 acțiuni comunitare + înscriși + puncte (T11), 2 voluntari cu codurile `482913` și `731508` (T18).
+- Imaginile: `AradEx-Frontend/public/img/<fișier>.jpg` (copiate din `design/assets/`), stocate în DB ca path relativ `/img/loc-pc.jpg`. Pozele obiectivelor și ale evenimentelor din aceleași săli se leagă în `V4_2__seed_images.sql` (există).

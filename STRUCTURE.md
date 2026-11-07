@@ -26,7 +26,8 @@ AradEx-Plan/                          REPO 1 — planul comun (= umbrela din kit
 │  ├─ DEPLOY.md                       local + producție (Render Docker pentru BE, Netlify pentru FE, Neon/Render Postgres)
 │  └─ ARAD-DATA.md                    datele reale despre Arad folosite în seed (surse, program, tarife) și ce e FICTIV
 └─ design/                            designul (se schimbă aici, prin PR în AradEx-Plan)
-   ├─ AradExperience.html             prototipul original mobil (S0–S12), interactiv
+   ├─ final/                          DESIGNUL FINAL (sursa de adevăr): mobile.html + web.html funcționale, shared/ (date, tokens, linii de tramvai), screens/ (planșele)
+   ├─ AradExperience.html             (istoric) prototipul original mobil (S0–S12), interactiv
    ├─ AradExperience-extensii.html    ecranele noi: E1–E7 (mobil), W1–W4 (web)
    ├─ AradExperience-web.html         toate paginile web W5–W26
    ├─ AradExperience-web-prototip.html web navigabil cu date mock (hash routing, roluri demo)
@@ -145,4 +146,4 @@ Cum apar: toate cinci sunt în `AradEx-Plan/.claude/skills/` (un singur loc), de
 1. `/task-workflow` → „ia task-ul T07” — branch `feat/T07-tickets` (worktree `../_wt/<Repo>-T07`) în BE, FE și Plan; plan
 2. BE cu `be-module` (+ `seed-data`), FE cu `fe-feature`; teste după fiecare pas.
 3. Checklist-ul de verificare din `task-workflow`; `/review-pr`.
-4. PR-uri cu link între ele; QA & Demo face merge BE → FE → Plan (API.md dacă s-a schimbat, capturi noi în `design/screens/`).
+4. PR-uri cu link între ele; QA & Demo face merge BE → FE → Plan (API.md dacă s-a schimbat).

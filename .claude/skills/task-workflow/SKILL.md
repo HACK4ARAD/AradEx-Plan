@@ -40,5 +40,5 @@ Cere review cu skill-ul `review-pr` sau: „Fă review la PR-ul pentru Txx: caut
 ## 5. Închidere
 1. În fiecare repo atins: `git push -u origin feat/Txx-...` și `gh pr create` (titlu `Txx: ...`, în descriere ce ai testat + link-urile PR-urilor pereche). **Fără `Co-Authored-By:` în commit-uri și fără „Generated with Claude Code” în PR.** Merge-ul (squash, ordinea BE → FE → Plan) îl face QA & Demo după review, nu tu; după merge: `git worktree remove ../_wt/<Repo>-Txx`.
 2. În descrierea PR-ului: ce s-a făcut, decizii, probleme cunoscute.
-3. `docs/API.md` actualizat dacă s-a schimbat ceva. Dacă ai adăugat un ecran care nu era în design, pune o captură în `design/screens/`.
+3. `docs/API.md` actualizat dacă s-a schimbat ceva. Dacă ai adăugat un ecran care nu era în designul final, spune-o în PR (designul se schimbă în `design/final/`).
 4. Spune în chat, în 3 rânduri: ce merge, ce nu, ce urmează.

@@ -28,7 +28,7 @@ Conturi demo: `visitor@demo.ro`, `local@demo.ro`, `firma@demo.ro`, `primaria@dem
 - `docs/DEMO.md` — demo + pitch (orientativ, se clarifică la final) · `docs/DEPLOY.md`
 - `STRUCTURE.md` — fiecare repo, folder și fișier, la ce folosește, ce conțin skill-urile
 - `CLAUDE.md` (+ `CLAUDE.md` din fiecare repo) — reguli pentru Claude Code · `.claude/skills/` — `task-workflow`, `review-pr`, `be-module`, `seed-data`, `fe-feature`
-- `design/` — prototipurile, capturi în `design/screens/`, poze în `design/assets/`
+- `design/` — designul final în `design/final/` (prototip mobil + web, planșele în `design/final/screens/`), poze în `design/assets/`; restul e istoric
 
 ## Cum lucrăm
 Un task din PLAN = un branch `feat/Txx-...` cu același nume în fiecare repo atins = câte un PR; merge în ordinea BE → FE → Plan (îl face QA & Demo). Începe cu `/task-workflow`, termină cu checklist-ul, `/review-pr` și descrierea PR-ului.
