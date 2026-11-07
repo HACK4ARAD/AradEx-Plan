@@ -37,7 +37,7 @@ Migrarea `V2__users_businesses.sql` + seed-ul `V2_1__seed_users.sql` (5 conturi 
 **T14 (`V13__admin.sql`)**: `users.disabled_at`, `businesses.rejected_at` + `reject_reason`, indexurile `businesses(verified, created_at DESC)` și `users(role)`. Verificarea firmei (Primăria sau Adminul) publică tot conținutul ei `DRAFT` (evenimente, oferte, anunțuri) și șterge respingerea; respingerea unei firme verificate (suspendare) trece conținutul ei `PUBLISHED` înapoi în `DRAFT`. Firmele create din panou primesc coordonatele centrului Aradului până își completează profilul.
 
 ### places (T05, V3)
-`id, name, slug UNIQUE, type, description TEXT, address, lat, lng, image_url, image_credit NULL, opening_hours TEXT NULL, visit_minutes INT, tags VARCHAR (csv: "istorie,familie"), rating NUMERIC(2,1) NULL, parking_hint TEXT NULL, exterior_only BOOL DEFAULT false (Cetatea, Turnul de Apă), source_url VARCHAR(300) NULL (fișa sursă visitarad.ro, pentru atribuire — V3_2; încă nu e în entitate / DTO), google_place_id VARCHAR NULL (T17), created_at`
+`id, name, slug UNIQUE, type, description TEXT, address, lat, lng, image_url, image_credit NULL, opening_hours TEXT NULL, visit_minutes INT, tags VARCHAR (csv: "istorie,familie"), rating NUMERIC(2,1) NULL, parking_hint TEXT NULL, exterior_only BOOL DEFAULT false (Cetatea, Turnul de Apă), source_url VARCHAR(300) NULL (fișa sursă visitarad.ro, pentru atribuire — V3_2; încă nu e în entitate / DTO), google_place_id VARCHAR(255) NULL (T17, V16 — se completează singur la prima cerere, vezi API.md §Google), created_at`
 Migrarea `V3__places.sql` + seed-ul `V3_1__seed_places.sql` (12 locuri reale, 33 puncte de ghid) **există deja** în `AradEx-Backend` (modulul `app`) și trec pe Postgres 16. **`V3_2__places_visitarad.sql`** (7 nov) adaugă `source_url`, corectează coordonatele celor 12 (verificate pe OSM) și inserează **223 de locuri reale** din exportul visitarad.ro (obiective, muzee, crame, cafenele, restaurante; fără cazare) — id-uri din secvență, idempotent prin `slug`; **`V5_2__seed_event_venues.sql`** mută evenimentele din seed pe coordonatele corecte ale sălilor. Detalii: `docs/ARAD-DATA.md`.
 
 ### guide_points (T05, V3)
@@ -61,7 +61,8 @@ Derivat în DTO: `isHot = participants_count >= 50 OR saves_count >= 20`; `dista
 **Migrări în altă ordine:** fiecare story are numărul lui rezervat, dar se unesc în ordinea în care sunt gata (V6 a intrat înaintea lui V5). De aceea `spring.flyway.out-of-order: true` în `application.yml`: o migrare cu număr mai mic, venită mai târziu, se aplică (nu e refuzată).
 
 ### announcements (T09, V6)
-(`businesses.google_place_id VARCHAR NULL` se adaugă tot în V6 pentru T17.)
+(`businesses.google_place_id VARCHAR NULL` se adaugă tot în V6 pentru T17; îl pune firma din panoul „Recenzii”, nu se caută automat.)
+**T17 (`V16__places_google.sql`)**: `places.google_place_id VARCHAR(255) NULL`. T17 citește / scrie coloana direct (JDBC, `repository/google/GoogleLinkRepository`), fără să modifice entitățile `Place` / `Business`.
 `id, business_id FK, title, body TEXT, image_url NULL, status DEFAULT 'PUBLISHED', created_at`
 
 ### offers (T10, V7)

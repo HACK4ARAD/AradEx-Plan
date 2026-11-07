@@ -18,13 +18,15 @@ type BusinessSummary = { id: number; name: string; category: string; verified: b
 type GeoPoint = { lat: number; lng: number }
 type PlaceType = 'ATTRACTION'|'MUSEUM'|'VENUE'|'WINERY'|'NATURE'|'PARK'|'RESTAURANT'|'CAFE'
 type PlaceSummary = { id: number; name: string; type: PlaceType; imageUrl?: string; lat: number; lng: number; visitMinutes: number; tags: string[]; distanceKm?: number; guidePointsCount: number; guideMinutes: number; exteriorOnly: boolean }   // T05: guidePointsCount/guideMinutes/exteriorOnly = badge-urile din liste
-type PlaceDto = PlaceSummary & { slug: string; description: string; address?: string; openingHours?: string; rating?: number; parkingHint?: string; imageCredit?: string; guidePoints: GuidePointDto[]; google?: GoogleInfoDto }   // google: T17
+type PlaceDto = PlaceSummary & { slug: string; description: string; address?: string; openingHours?: string; rating?: number; parkingHint?: string; imageCredit?: string; guidePoints: GuidePointDto[] }   // ratingul Google vine separat: GET /places/{id}/google (T17)
 type GuidePointDto = { id: number; position: number; title: string; text: string; imageUrl?: string; audioUrl?: string; lat?: number; lng?: number; durationSec?: number }
 type EventSummary = { id: number; title: string; category: string; startAt: string; endAt?: string; locationName: string; lat: number; lng: number; imageUrl?: string; ticketType: 'FREE'|'IN_APP'|'EXTERNAL'; priceFrom?: number; isHot: boolean; isDemo: boolean; participantsCount: number; organizerName: string; organizerType: string; distanceKm?: number; saved?: boolean; ratingAvg?: number; ratingCount: number; capacity?: number; spotsLeft?: number }   // capacity/spotsLeft: „Gratuit · înscriere” și „Bilete epuizate” pe card (lipsă = fără limită)
 type EventDto = EventSummary & { description: string; address: string; placeId?: number; organizerBusinessId?: number; priceAdult?: number; priceChild?: number; externalUrl?: string; capacity?: number; spotsLeft?: number; savesCount: number; status: 'DRAFT'|'PUBLISHED'|'HIDDEN'; imageCredit?: string }
 type EventCreate = { title: string; description: string; category: EventCategory; placeId?: number; locationName?: string; address?: string; lat?: number; lng?: number; startAt: string; endAt?: string; ticketType: 'FREE'|'IN_APP'|'EXTERNAL'; priceAdult?: number; priceChild?: number; externalUrl?: string; capacity?: number; imageUrl?: string; priceFrom?: number; status?: 'DRAFT'|'PUBLISHED' }
 type ReviewDto = { id: number; eventId: number; userName: string; stars: number; text?: string; createdAt: string; mine?: boolean }
-type GoogleInfoDto = { rating?: number; userRatingCount?: number; reviews: { author: string; rating: number; text: string; relativeTime: string }[]; mapsUrl: string; attribution: 'Powered by Google' }
+type GoogleReviewDto = { author: string; authorUrl?: string; authorPhotoUrl?: string; rating: number; text: string; relativeTime?: string }   // T17: atribuirea cerută de Google = numele autorului, cu link spre profil când există
+type GoogleInfoDto = { rating?: number; userRatingCount?: number; reviews: GoogleReviewDto[]; mapsUrl: string; attribution: 'Powered by Google' }   // cel mult 5 recenzii
+type GoogleLinkDto = { googlePlaceId?: string; configured: boolean; info?: GoogleInfoDto }   // panouri: configured = serverul are cheia Google
 type TicketDto = { code: string; eventId: number; eventTitle: string; startAt: string; endAt?: string; locationName: string; address?: string; lat: number; lng: number; imageUrl?: string; ticketType: 'FREE'|'IN_APP'|'EXTERNAL'; qtyAdult: number; qtyChild: number; priceAdult?: number; priceChild?: number; total: number; status: 'CONFIRMED'|'CANCELLED'|'USED'; email: string; createdAt: string; usedAt?: string }   // tot ce trebuie ca biletul să se afișeze offline
 type OfferSummary = { id: number; businessId: number; businessName: string; title: string; discountLabel: string; localProduct: boolean; validUntil: string; pointsPrice?: number; imageUrl?: string; distanceKm?: number; rating?: number }
 type OfferDto = OfferSummary & { description: string; validFrom: string; status: string; viewsCount: number; redemptionsCount: number; usedCount: number; myRedemption?: RedemptionDto }
@@ -65,7 +67,7 @@ Securitate (T03, `config/SecurityConfig`): regulile din coloana „Auth” pentr
 | PUT | `/city/places/{id}/guide-points/{gpId}` | CITY_HALL, ADMIN | `GuidePointRequest` → `GuidePointDto` (o poziție ocupată de alt punct = schimb de poziții, pentru „mută sus/jos”; 404 dacă punctul nu e al locului) |
 | DELETE | `/city/places/{id}/guide-points/{gpId}` | CITY_HALL, ADMIN | 204 (404) |
 | POST | `/ai/tts` (opțional) | auth | `{ text, voice? }` → `audio/mpeg` (cache după hash) |
-| GET | `/places/{id}/google`, `/businesses/{id}/google` (opțional, T17) | pub | → `GoogleInfoDto` din Google Places API (New) Place Details, prin backend, cache 24 h; 404 dacă nu există `googlePlaceId`; afișat cu „Powered by Google” |
+| GET | `/places/{id}/google`, `/businesses/{id}/google` (T17) | pub | → `GoogleInfoDto` — vezi §Google (T17) |
 
 Cererile din „Obiective & ghiduri” (`CityPlacesApi`):
 ```ts
@@ -257,6 +259,18 @@ Pentru scriptul de pe Mac-ul lui Zoltan (`AradEx-Ops/sms-gateway`), care trimite
 | POST | `/sms-gateway/messages/{id}/failed` | token | → 204; textul se șterge; omul cere alt cod |
 
 Codul e generat de API și ținut doar ca hash (`otp_codes.provider = GATEWAY`), cu aceleași limite ca T21 (60 s, 5 pe zi pe număr, 300 SMS reale pe zi în total, 5 încercări). Textul SMS-ului stă în `sms_outbox` (V14) doar până la trimitere și nu apare în log.
+
+## Google: rating și recenzii (T17)
+Din Google Places API (New), **doar prin backend** (cheia `GOOGLE_PLACES_API_KEY` nu ajunge în aplicație), cache 24 h în memorie pe (Place ID, limbă). Doar citire: nimic nu se scrie spre Google. Se afișează cu `attribution` („Powered by Google”), numele autorului (cu link când există) și linkul `mapsUrl`.
+| Metodă | Rută | Cine | Ce face |
+|---|---|---|---|
+| GET | `/places/{id}/google?lang=ro|en` | pub | → `GoogleInfoDto`. Fără ID salvat, backend-ul **caută singur** locul pe Google (Text Search după nume + adresă, doar în ~±450 m în jurul coordonatelor, doar ID-ul) și îl leagă doar dacă **numele seamănă** și locul are păreri; ID-ul se salvează în `places.google_place_id`, „negăsit” se ține minte 24 h. 404: obiectiv inexistent, negăsit pe Google, fără păreri sau serverul n-are cheie; 503: Google nu răspunde (dacă există o copie veche, se dă copia) |
+| GET | `/businesses/{id}/google?lang=ro|en` | pub | → `GoogleInfoDto`, **doar dacă firma și-a legat** pagina de pe Google (firmele nu se caută automat: cele demo sunt fictive). 404 / 503 ca mai sus |
+| GET | `/city/places/{id}/google` | CITY_HALL, ADMIN | → `GoogleLinkDto` (nu caută automat; erorile Google nu strică panoul, doar lipsește `info`) |
+| PUT | `/city/places/{id}/google` | CITY_HALL, ADMIN | `{ googlePlaceId: string | null }` (gol = dezleagă; doar litere, cifre, `_`, `-`, max 255 → altfel 400) → `GoogleLinkDto` |
+| GET | `/business/me/google` | BUSINESS | → `GoogleLinkDto` al firmei mele; 404 dacă n-am firmă |
+| PUT | `/business/me/google` | BUSINESS | `{ googlePlaceId }` ca mai sus → `GoogleLinkDto` |
+Costul: căutarea cere doar `places.id` (SKU „Text Search Essentials – IDs Only”), detaliile cer `displayName,rating,userRatingCount,reviews,googleMapsUri` („Place Details Enterprise + Atmosphere”); cu cache-ul de 24 h, cel mult o cerere de detalii pe loc și pe limbă pe zi.
 
 ## Poze (media, T05+)
 Pozele încărcate din panou stau în S3 (bucket privat `aradex-media-…`, `AradEx-Infrastructure/terraform/modules/api/media.tf`); local, fără `MEDIA_BUCKET`, pe disc (`MEDIA_LOCAL_DIR`, implicit `uploads/`). API-ul le servește el (fără CloudFront).
