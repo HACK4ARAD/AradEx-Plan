@@ -153,9 +153,10 @@ Cod înscriere: `AX-C{actionId}-{6}`. Punctele se scriu **doar** prin `PointsSer
 | Metodă | Rută | Auth | Cerere → Răspuns |
 |---|---|---|---|
 | POST | `/ai/chat` | pub (rate-limit 20/min/IP) | `{ messages: { role: 'user'\|'assistant', content }[], locale }` → `{ reply, suggestedEventIds: number[], quickReplies: string[], offline: boolean }` |
-| POST | `/ai/itinerary` | pub (rate-limit 20/min/IP) | `{ date, startTime?: '10:00', hours?: number, days?: 1\|2, transport, interests: string[], freeText?, start?: GeoPoint, locale? }` → `ItineraryDto` (nesalvat). Claude alege doar opririle (obiective, evenimentele zilei, cafenele/localuri); BE validează id-urile și calculează orele și drumurile (pe jos 4,5 km/h, mașină 25 km/h + parcare, transport public 14 km/h + așteptare). Fără Claude: program din obiectivele cu ghid, `offline: true` |
-| POST | `/itineraries` | pub (userId dacă e logat) | `ItineraryDto` → `ItineraryDto` cu `id`, `shareCode` |
-| GET | `/itineraries/{idOrShareCode}` | pub | → `ItineraryDto` |
+| POST | `/ai/itinerary` | pub (rate-limit 20/min/IP) | `{ date, startTime?: '10:00', hours?: number, days?: 1\|2, transport, interests: string[], freeText?, start?: GeoPoint, locale? }` → `ItineraryDto` (nesalvat). Claude alege doar opririle (obiective, evenimentele zilei, cafenele/localuri); BE validează id-urile și calculează orele și drumurile (pe jos 4,5 km/h, mașină 25 km/h + parcare, transport public 14 km/h + așteptare). Fără Claude: program din obiectivele cu ghid, `offline: true`. O zi se termină cel târziu la 22:00; pentru azi, la o oră trecută, programul începe acum (rotunjit la sfertul următor); cu mai puțin de o oră rămasă → 400 `Too late to plan for today` |
+| POST | `/itineraries` | pub (userId dacă e logat; 20/min/IP → 429) | `ItineraryDto` → `ItineraryDto` cu `id`, `shareCode`. Opririle se refac din DB după `kind` + `refId` (nume, loc, coordonate, poză, ghid, parcare); din cerere rămân orele, duratele, drumurile și nota (≤ 300). O oprire necunoscută → 400 |
+| GET | `/itineraries/{shareCode}` | pub | → `ItineraryDto`. Codul `AX-I-XXXXXX` (fără diferență de majuscule) îl deschide oricine are linkul; după `id` numeric doar proprietarul (altfel 404: id-urile sunt consecutive) |
+| POST | `/itineraries/{shareCode}/save` | auth | → `ItineraryDto`. „Salvează”: un itinerariu fără proprietar devine al meu; unul al meu rămâne la fel; unul al altcuiva → copia mea, cu cod nou |
 | GET | `/me/itineraries` | auth | → `ItineraryDto[]` |
 
 AI-ul e **Claude** (Anthropic API, SDK-ul oficial Java, modelul din `ANTHROPIC_MODEL`, implicit `claude-haiku-5-5`). Răspunsul modelului e forțat cu structured outputs (`outputConfig` cu schema JSON; schemele în `ai/schemas/*.json`); BE validează id-urile și normalizează orele. Timeout 20 s, apoi fallback din `ai/fallback/*.json` cu `offline: true`.
@@ -295,7 +296,7 @@ Pe web, linkurile vechi de panou `/w/…` duc la aceeași cale fără prefix; î
 | `/offers` · `/offers/:id` | oferte |
 | `/community` · `/community/actions/:id` · `/community/leaderboard` | comunitate |
 | `/places` · `/places/:id` | lista obiectivelor · E3 ghidul virtual |
-| `/plan` · `/itineraries` · `/itinerary/:id` · `/itinerary/:id/map` | E1 · itinerariile mele · E2 · E4 |
+| `/plan` · `/itineraries` · `/itinerary/:shareCode` · `/itinerary/:shareCode/map` | E1 · itinerariile mele · E2 · E4 (după codul de partajare) |
 | `/businesses/:id` | pagina firmei |
 | `/panel` | E5 / E7: firma și Primăria pe teren (validare + liste) |
 | `/transport` · `/transport/lines/:id/:dir` · `/transport/trip/:to` | T19 |
@@ -310,9 +311,10 @@ Tab bar: Evenimente · Chat · Hartă · Bilete/Panou · Transport; voluntarul a
 | `/` | site-ul de prezentare (pornește din W1; conținutul în T20) |
 | `/community` | Comunitate, doar de citit (W12): acțiunile care urmează + clasamentul; înscrierea e doar în aplicație |
 | `/privacy` | Confidențialitate (cerută de Google Play și App Store) |
+| `/itinerary/:shareCode` | pagina publică a linkului „Trimite” din aplicație (T13): programul, indicații Google Maps, tot traseul, „Salvează în contul meu”; bifele, harta și ghidul rămân în aplicație |
 | `/login` | W0, login-ul panourilor |
 | `/business/*` | panou firmă: Panou, Oferte, Evenimente, Anunțuri, Validează coduri, Recenzii, Profilul firmei |
 | `/city/*` | panou Primărie, folosit și de Admin: Panou, Evenimente, Obiective & ghiduri, Acțiuni comunitare, Validare, Voluntari, Mesaje, Clasament, Firme partenere |
 | `/admin/*` | doar Admin: Dashboard, Conținut & moderare, Utilizatori, Setări |
 
-Pe web **nu există**: W5–W11, W13–W15 (agendă, eveniment, obiective, ghid, hartă, planificator, oferte, chat, Contul meu, pagina publică a firmei). Sunt doar în aplicație. Ecranele: `design/final/screens/`.
+Pe web **nu există**: W5–W11, W13–W15 (agendă, eveniment, obiective, ghid, hartă, planificator, oferte, chat, Contul meu, pagina publică a firmei). Sunt doar în aplicație (din planificator, pe web e doar pagina unui itinerariu primit prin link). Ecranele: `design/final/screens/`.

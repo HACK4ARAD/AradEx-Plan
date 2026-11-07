@@ -95,8 +95,8 @@ Voluntarul e un rând în `users` cu rolul `VOLUNTEER`, **fără email, telefon 
 `action_chat_reads`: `user_id FK, action_id FK, last_read_id` — PK (user_id, action_id); mesajele noi = ale altora cu id mai mare.
 „Cine a scanat pe cine” = `community_registrations.confirmed_by` (T11), nu un tabel nou. V10 a rămas nefolosit (V11–V14 intraseră înainte; vezi docs/API.md §Voluntari).
 
-### itineraries (T13, V9)
-`id, user_id FK NULL, title, params JSONB (cererea), stops JSONB (lista de opriri calculată), summary TEXT, share_code UNIQUE (8 caractere), created_at`
+### itineraries (T13, V17)
+`id, share_code UNIQUE ('AX-I-XXXXXX'), user_id FK NULL (NULL = salvat fără cont), title, summary, ask, date, days (1–2), transport ('WALK'|'CAR'|'PUBLIC'), start_time, total_minutes, total_km, offline, stops JSONB (lista `ItineraryStop` din API, refăcută din DB la salvare), created_at`. V17, nu V9: producția era deja la V15, iar V16 e luat de plăți (Stripe).
 
 ### transit_routes, transit_stops, transit_patterns, transit_pattern_stops (T22, V12)
 Rețeaua statică CTP Arad, doar citire (seed `V12_1__seed_transit.sql`, generat o dată cu `docs/tools/ctp-transit-seed.mjs` din exportul static; aplicația nu descarcă nimic la pornire). Id-urile liniilor și stațiilor sunt cele din Telelink. Datele live (vehicule, sosiri) **nu** stau în DB.
