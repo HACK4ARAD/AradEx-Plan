@@ -317,7 +317,7 @@ CORS_ORIGINS=http://localhost:5173
 **Depinde de:** T03, T20
 - Vizitatorul și Localnicul intră în aplicația mobilă doar cu numărul de telefon și un cod de 6 cifre: `POST /auth/otp/request` → `/auth/otp/verify` → (număr nou) `/auth/otp/register` cu numele și rolul (`docs/API.md` §Auth).
 - Numerele `0799000xxx` sunt de demo (codul apare în aplicație, fără SMS); celelalte primesc SMS prin **Twilio Verify**. SMS-ul prin AWS (SNS, End User Messaging) e blocat de SCP-ul contului.
-- Limite: cod valabil 5 minute, 5 încercări pe cod, 60 s între cereri, 5 coduri pe zi pe număr. Firma, Primăria și Adminul rămân pe e-mail + parolă (în aplicație printr-un link, pe web în W0, fără tab-ul „Cont personal”).
+- Limite (doar numerele reale; cele de demo n-au, ca nimeni să nu blocheze conturile demo): cod valabil 5 minute, 5 încercări pe cod, 60 s între cereri, 5 coduri pe zi pe număr, SMS doar spre `+40`, maximum 300 SMS pe zi în total. Firma, Primăria și Adminul rămân pe e-mail + parolă (în aplicație printr-un link, pe web în W0, fără tab-ul „Cont personal”).
 - Migrarea V11 (`users.phone`, `otp_codes`, numere de demo pe conturile din seed, `tickets.email` opțional); secretul `aradex/twilio` în Terraform, cheile le pune Zoltan cu `AradEx-Infrastructure/scripts/set-twilio-keys.sh`.
 
 **Verificare:** contul demo `0799 000 001` intră cu codul de pe ecran și își vede biletele; un număr demo nou își creează cont; un cod greșit de 5 ori blochează codul; `visitor@demo.ro` nu mai intră cu parola (403); un număr real primește SMS după ce sunt puse cheile Twilio.
