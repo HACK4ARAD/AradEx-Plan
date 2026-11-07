@@ -17,7 +17,7 @@ Surse principale: **visitarad.ro (CNIPT Arad, prin exportul Hack4Arad — vezi m
 - **Gastronomia reală NU e „firmă”:** cafenelele și restaurantele din visitarad sunt doar `places` (profil + hartă), **fără oferte, anunțuri sau cont**. Firmele cu oferte rămân cele FICTIVE de mai jos.
 - **Limitări (din sursă):** 90 de fișe fără descriere; unele texte fără diacritice sau cu greșeli; coordonatele neverificate individual (exemplu: Muzeul Viei și al Vinului e pe site la Ghioroc, cu 2 km greșit — l-am pus după OSM); unele unități pot fi închise între timp; doar română (site-ul are și EN/DE). Traseele n-au coordonate, doar o imagine cu harta → nu intră în DB (anexa B, pentru T08 / T13).
 
-## Alte date deschise despre Arad (încă neintegrate — de folosit la T08 / T13 / T11)
+## Alte date deschise despre Arad (urmează după demo: story propus T21 în STATUS + opțiune în T11)
 Verificate pe 7 nov 2026; același autor ca exportul visitarad. Nimic de aici nu e încă în DB sau în cod.
 
 ### Transport public CTP — linii, stații, vehicule live (T08, T13)

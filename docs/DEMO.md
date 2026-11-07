@@ -6,14 +6,14 @@ Dispozitive: **telefon A** (aplicația instalată: vizitator → apoi localnic),
 Conturi: `visitor@demo.ro`, `local@demo.ro`, `firma@demo.ro`, `primaria@demo.ro` / `demo1234`. Toate datele sunt din seed — nu improviza.
 
 ## Fluxul (în ordinea în care se construiește și se demonstrează)
-1. **Vizitator ajunge în Arad** (telefon A, `/m`): Acasă → vede evenimentele de azi, 🔥 Popular. *(T06)*
+1. **Vizitator ajunge în Arad** (telefon A, aplicația): Acasă → vede evenimentele de azi, 🔥 Popular. *(T06)*
 2. **Chat**: „Ce pot face cu copiii în weekend?” → întrebare de clarificare → chips „Sâmbătă” → 2–3 evenimente din DB → deschide Teatrul de păpuși. *(T12)*
 3. **Bilete**: 1 adult + 1 copil → plată demonstrativă → bilet cu QR în „Biletele mele”. *(T07)*
 4. **Planificator**: „Am 4 ore, pe jos, istorie + o cafea” → program cu 4 opriri și ore → harta cu traseul → „Pornește ghidul” la Cetate (ghid **din exterior**: Monumentul celor 13 Generali, zidurile) → ghid scris + audio pe primul punct. *(T13, T08, T05)*
 5. **Schimbăm la localnic** (telefon A, `local@demo.ro`): tab Comunitate → 270 puncte, locul 16 → „Plantăm copaci pe Faleză, +50” → Mă înscriu → QR-ul meu. *(T11)*
-6. **Primăria pe teren** (telefon B, `/m/panel`): Scanează QR-ul de pe telefonul A → „Confirmat, +50 puncte”. Pe proiector `/w/city`: lista de participanți se actualizează. *(T11)*
+6. **Primăria pe teren** (telefon B, `/panel`): Scanează QR-ul de pe telefonul A → „Confirmat, +50 puncte”. Pe proiector `/city`: lista de participanți se actualizează. *(T11)*
 7. **Înapoi la localnic**: soldul 320, clasamentul urcă → Oferte → „Cafea -20%, 30 de puncte” → Plătește cu puncte → cod QR. *(T10, T11)*
-8. **Firma** (proiector `/w/business`): Validează cod → scanează/introduce codul → „Folosit” → statistica „Plăți cu puncte” crește, activitatea recentă arată tranzacția. *(T09, T10)*
+8. **Firma** (proiector `/business`): Validează cod → scanează/introduce codul → „Folosit” → statistica „Plăți cu puncte” crește, activitatea recentă arată tranzacția. *(T09, T10)*
 9. **Admin** (proiector, 20 s): firma nouă de verificat → Verifică. *(T14, opțional)*
 10. Închidere: slide „ce urmează”.
 
