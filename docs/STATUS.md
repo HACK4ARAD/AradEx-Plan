@@ -2,7 +2,7 @@
 
 Starea reală a story-urilor din `docs/PLAN.md`, deciziile luate pe parcurs și ce a rămas. **Fiecare PR din `AradEx-Plan` își actualizează rândul lui aici** (skill-ul `task-workflow`, pasul 5). Adevărul final e pe GitHub (PR-uri merge-uite în `main`); fișierul ăsta e rezumatul pentru oameni și pentru Claude.
 
-Ultima actualizare: 2026-11-07 (T03 + T15/Android).
+Ultima actualizare: 2026-11-07 — T03 și T15/Android merge-uite în `main`.
 
 ## Story-uri
 Legendă: ✅ gata (merge-uit sau PR deschis, verificat) · 🟡 parțial · ⬜ neînceput
@@ -12,12 +12,12 @@ Legendă: ✅ gata (merge-uit sau PR deschis, verificat) · 🟡 parțial · ⬜
 | T00 Repo & tooling | 🟡 | — | 5 repo-uri, `setup.sh`, `.env.example`, hook fără co-autori; **nou:** `docs/SETUP.md` + `setup-windows.ps1`. Lipsesc: drepturi de scriere pentru toți, protecție pe `main` (de verificat pe GitHub). |
 | T01 API skeleton | ✅ | — | Gradle `api`/`app`, Flyway V1–V4.1 (+seed), ProblemDetail, Swagger, `/health`, `AppSmokeTest` (Testcontainers). |
 | T02 APP skeleton | 🟡 | — | Merge: `/` → `/m` sau `/w`, `?ui=`, tab bar, sidebar, PWA (manifest, SW), toate rutele cu placeholder. **Lipsește pregătirea anti-conflict:** un fișier de view per rută în `views/<feature>/`, i18n/types/api pe module (`i18n/ro/<modul>.json`, `types/<modul>.ts`, `api/<modul>.ts`), `AppSheet`, `QrCode`, `useGeo`, tab-urile din Home. De făcut înainte ca 4 oameni să lucreze în paralel pe FE. |
-| T03 Auth & roluri | ✅ (PR-uri deschise) | [BE #5](https://github.com/HACK4ARAD/AradEx-Backend/pull/5) · [FE #5](https://github.com/HACK4ARAD/AradEx-Frontend/pull/5) · [Plan #4](https://github.com/HACK4ARAD/AradEx-Plan/pull/4) | JWT + roluri + `SecurityConfig` pentru toate rutele din API.md; login/înregistrare S12 (mobil), W0 (web, tab „Panouri”, „Înregistrează-ți firma”), Profil S11 (limbă RO/EN, deconectare). 124 de teste BE, 16 FE. |
+| T03 Auth & roluri | ✅ merge-uit | [BE #5](https://github.com/HACK4ARAD/AradEx-Backend/pull/5) · [FE #5](https://github.com/HACK4ARAD/AradEx-Frontend/pull/5) · [Plan #4](https://github.com/HACK4ARAD/AradEx-Plan/pull/4) | JWT + roluri + `SecurityConfig` pentru toate rutele din API.md; login/înregistrare S12 (mobil), W0 (web, tab „Panouri”, „Înregistrează-ți firma”), Profil S11 (limbă RO/EN, deconectare). 124 de teste BE, 16 FE. |
 | T04 Deploy v0 | ⬜ | — | Cere conturi Render + Netlify (+ Neon). `Dockerfile` BE neverificat local (TLS interceptat în containere pe laptopul pe care s-a lucrat). |
 | T05 Locuri & ghid | ⬜ | — | Migrările + seed-ul V3/V3_1 există (+ pozele în V4_2). Editarea obiectivelor e la Primărie: `/city/places/**`. |
 | T06 Evenimente | ⬜ | — | Migrările + seed-ul V4/V4_1/V4_2 (poze) există. |
 | T07–T14, T16–T19 | ⬜ | — | — |
-| T15 i18n, PWA, Android | 🟡 | [FE #6](https://github.com/HACK4ARAD/AradEx-Frontend/pull/6) (stivuit pe FE #5) | **Android gata:** Capacitor 6, `AradEx-Frontend/android/`, aplicația „AradExperience” (`ro.aradexperience.app`) rulează pe emulator, login verificat. Rămân: iconița și splash-ul aplicației, iOS (doar pe macOS), EN complet pe module, verificarea „Add to Home Screen”. |
+| T15 i18n, PWA, Android | 🟡 (Android merge-uit) | [FE #7](https://github.com/HACK4ARAD/AradEx-Frontend/pull/7) (#6 a intrat din greșeală doar în `feat/T03-auth`) | **Android gata:** Capacitor 6, `AradEx-Frontend/android/`, aplicația „AradExperience” (`ro.aradexperience.app`) rulează pe emulator, login verificat. Rămân: iconița și splash-ul aplicației, iOS (doar pe macOS), EN complet pe module, verificarea „Add to Home Screen”. |
 
 ## Decizii luate (de ce e așa)
 - **T03 — rolul `VOLUNTEER`** e deja în `Role` (BE + FE) și are regulile `/vol/**` (VOLUNTEER) și `POST /auth/volunteer` (public) în `SecurityConfig`, ca T18 să nu mai atingă fișierele T03. Coloana `users.role` îl acceptă abia după migrarea V10 (T18); până atunci nu se pot crea voluntari.
@@ -30,6 +30,8 @@ Legendă: ✅ gata (merge-uit sau PR deschis, verificat) · 🟡 parțial · ⬜
 - **T15 — Capacitor 6** (nu 7/8): folosește SDK Android 34, deja instalat; build-ul rulează pe JDK 21 (wrapper-ul Gradle din `android/` urcat la 8.14.3). Aplicația nativă: origine `http://localhost` (trebuie în `CORS_ORIGINS`), pornește mereu pe `/m`, fără service worker. `@capacitor/cli` aduce o vulnerabilitate în `tar` (doar unealta de build, nu ajunge în APK; fix doar în Capacitor 8).
 
 ## Probleme cunoscute / de făcut mai târziu
+- **Lecție (T15):** un PR stivuit (bază = alt branch de feature) se merge-uiește doar după ce i-ai schimbat baza la `main` (PR → *Edit* → base). FE #6 avea baza `feat/T03-auth`, a fost merge-uit după ce T03 intrase deja în `main`, iar codul a ajuns doar în branch-ul vechi; s-a reparat cu FE #7. Regula e acum în `task-workflow` și `review-pr`.
+- Branch-urile `feat/T03-auth` (BE, FE, Plan) și `feat/T15-android` (FE) sunt merge-uite și pot fi șterse pe GitHub.
 - T02: pregătirea anti-conflict (vezi tabelul) — fără ea, story-urile FE paralele vor avea conflicte în `router/index.ts`, `ro.json`, `types/api.ts`.
 - `AradEx-Ops/agents/*.md` trimit încă la `docs/TEAM.md` și `docs/status/Px.md` (șterse); de aliniat la acest fișier (P1).
 - `GlobalExceptionHandler` are încă un handler pentru `BadCredentialsException` care nu mai e folosit (login-ul aruncă `UnauthorizedException`); inofensiv.

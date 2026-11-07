@@ -136,7 +136,7 @@ CORS_ORIGINS=http://localhost:5173
 ### T03 · Auth & roluri
 **Scop:** conturi, login, JWT, roluri și conturile demo.
 **Depinde de:** T01, T02
-**Stare:** făcut în `feat/T03-auth` (BE, FE, Plan); deciziile sunt în `docs/STATUS.md`. Rolul `VOLUNTEER` (T18) și regula `/vol/**` sunt deja în `Role` / `SecurityConfig`.
+**Stare:** ✅ merge-uit în `main` (BE #5, FE #5, Plan #4); deciziile sunt în `docs/STATUS.md`. Rolul `VOLUNTEER` (T18) și regula `/vol/**` sunt deja în `Role` / `SecurityConfig`.
 
 - BE (`V2__users_businesses.sql`): tabelele `users`, `businesses` (vezi DATA-MODEL). Contractul există deja în `api`: `api/AuthApi` (`POST /auth/register`, `POST /auth/login`, `GET /me`, `PATCH /me`) + `dto/auth/*` (RegisterRequest, LoginRequest, UpdateMeRequest, AuthResponse, UserDto, BusinessSummary) — de implementat în `app`: `entity/users/User`, `entity/business/Business`, `repository/…`, `service/auth/AuthService`, `mapper/users/UserMapper`, `controller/auth/AuthController implements AuthApi`. Roluri: `VISITOR, LOCAL, BUSINESS, CITY_HALL, ADMIN`. Înregistrarea permite doar `VISITOR | LOCAL | BUSINESS` (BUSINESS creează și un rând în `businesses` cu `verified=false`). `CITY_HALL` și `ADMIN` doar din seed.
 - Security: regulile pentru **toate** endpoint-urile din `docs/API.md` (coloana „Auth”) se scriu acum în `config/SecurityConfig`, ca celelalte culoare să nu mai atingă fișierul. Selectorul de limbă RO/EN (Profil + `WebLayout`) tot aici.
@@ -282,7 +282,7 @@ CORS_ORIGINS=http://localhost:5173
 
 ### T15 · i18n RO/EN, PWA, Android (opțional)
 **Depinde de:** ecranele existente
-**Stare:** Android făcut în `feat/T15-android` (FE): Capacitor 6, `android/`, `npm run android:run`, rulează pe emulator (vezi `docs/SETUP.md`). Rămân EN pe module, iconița/splash, iOS (doar pe macOS).
+**Stare:** Android ✅ merge-uit în `main` (FE #7): Capacitor 6, `android/`, `npm run android:run`, rulează pe emulator (vezi `docs/SETUP.md`). Rămân EN pe module, iconița/splash, iOS (doar pe macOS).
 
 - Fiecare culoar își traduce singur modulul (`i18n/en/<modul>.json`); T15 face doar (selectorul de limbă e în T03, la P1): EN pentru `common`, `places`, `events`, `tickets`, și o listă cu cheile EN lipsă din celelalte module (o trimite culoarelor, nu le editează el). HU doar dacă rămâne timp.
 - PWA: icon, splash, `theme-color`, verificare „Add to Home Screen” pe Android și iOS.
