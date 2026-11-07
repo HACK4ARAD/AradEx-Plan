@@ -2,7 +2,7 @@
 
 Starea reală a story-urilor din `docs/PLAN.md`, deciziile luate pe parcurs și ce a rămas. **Fiecare PR din `AradEx-Plan` își actualizează rândul lui aici** (skill-ul `task-workflow`, pasul 5). Adevărul final e pe GitHub (PR-uri merge-uite în `main`); fișierul ăsta e rezumatul pentru oameni și pentru Claude.
 
-Ultima actualizare: 2026-11-07 — T09 (Firme & panou) gata de review; T03, T15/Android și pregătirea anti-conflict T02 (FE #8, Plan #6) pe `main`.
+Ultima actualizare: 2026-11-07 — T09 (Firme & panou) merge-uit; T03, T15/Android și pregătirea anti-conflict T02 (FE #8, Plan #6) pe `main`.
 
 ## Story-uri
 Legendă: ✅ gata (merge-uit sau PR deschis, verificat) · 🟡 parțial · ⬜ neînceput
@@ -17,7 +17,7 @@ Legendă: ✅ gata (merge-uit sau PR deschis, verificat) · 🟡 parțial · ⬜
 | T05 Locuri & ghid | ⬜ | — | Migrările + seed-ul V3/V3_1 există (+ pozele în V4_2). Editarea obiectivelor e la Primărie: `/city/places/**`. |
 | T06 Evenimente | ⬜ | — | Migrările + seed-ul V4/V4_1/V4_2 (poze) există. |
 | T07, T08, T10–T14, T16–T19 | ⬜ | — | — |
-| T09 Firme & panou | 🟡 (PR-uri de deschis) | branch `feat/T09-business` în BE, FE, Plan | **BE:** V6 (`announcements` + `businesses.google_place_id` pentru T17) și V6_1 (4 anunțuri FICTIVE), `BusinessApi` cu toate rutele din API.md §Firme, `BusinessService` (proprietar → 403, firmă neverificată → `DRAFT`, validări 400), 31 de teste noi (`BusinessServiceTest`, `BusinessControllerTest`, DTO-uri); `./gradlew test` = 174 verzi, 0 sărite (cu Testcontainers 1.21.4, vezi mai jos). **FE:** pagina publică (mobil + W15), panoul web (Panou, Evenimente cu creare/editare, Anunțuri, Profil), panoul mobil E5 în `/m/panel` (statistici, tab-uri Evenimente/Anunțuri cu creare în sheet); 7 teste noi. Verificat pe API real + în browser la 390×844 și 1280. Lipsesc: lista publică `/events` (T06) — azi evenimentul firmei se vede pe pagina firmei; „Validează un cod” și ofertele (T10); recenziile (T17); harta de pe W15 (T08). |
+| T09 Firme & panou | ✅ merge-uit | [BE #7](https://github.com/HACK4ARAD/AradEx-Backend/pull/7) · [FE #10](https://github.com/HACK4ARAD/AradEx-Frontend/pull/10) · [Plan #8](https://github.com/HACK4ARAD/AradEx-Plan/pull/8) | **BE:** V6 (`announcements` + `businesses.google_place_id` pentru T17) și V6_1 (4 anunțuri FICTIVE), `BusinessApi` cu toate rutele din API.md §Firme, `BusinessService` (proprietar → 403, firmă neverificată → `DRAFT`, validări 400), 31 de teste noi (`BusinessServiceTest`, `BusinessControllerTest`, DTO-uri); `./gradlew test` = 174 verzi, 0 sărite (cu Testcontainers 1.21.4, vezi mai jos). **FE:** pagina publică (mobil + W15), panoul web (Panou, Evenimente cu creare/editare, Anunțuri, Profil), panoul mobil E5 în `/m/panel` (statistici, tab-uri Evenimente/Anunțuri cu creare în sheet); 7 teste noi. Verificat pe API real + în browser la 390×844 și 1280. Lipsesc: lista publică `/events` (T06) — azi evenimentul firmei se vede pe pagina firmei; „Validează un cod” și ofertele (T10); recenziile (T17); harta de pe W15 (T08). |
 | T15 i18n, PWA, Android | 🟡 (Android merge-uit) | [FE #7](https://github.com/HACK4ARAD/AradEx-Frontend/pull/7) (#6 a intrat din greșeală doar în `feat/T03-auth`) | **Android gata:** Capacitor 6, `AradEx-Frontend/android/`, aplicația „AradExperience” (`ro.aradexperience.app`) rulează pe emulator, login verificat. Rămân: iconița și splash-ul aplicației, iOS (doar pe macOS), EN complet pe module, verificarea „Add to Home Screen”. |
 
 ## Decizii luate (de ce e așa)
@@ -44,7 +44,7 @@ Legendă: ✅ gata (merge-uit sau PR deschis, verificat) · 🟡 parțial · ⬜
 
 ## Probleme cunoscute / de făcut mai târziu
 - **Lecție (T15):** un PR stivuit (bază = alt branch de feature) se merge-uiește doar după ce i-ai schimbat baza la `main` (PR → *Edit* → base). FE #6 avea baza `feat/T03-auth`, a fost merge-uit după ce T03 intrase deja în `main`, iar codul a ajuns doar în branch-ul vechi; s-a reparat cu FE #7. Regula e acum în `task-workflow` și `review-pr`.
-- Branch-urile `feat/T03-auth` (BE, FE, Plan) și `feat/T15-android` (FE) sunt merge-uite și pot fi șterse pe GitHub.
+- Branch-urile `feat/T03-auth` (BE, FE, Plan), `feat/T15-android` (FE) și `feat/T09-business` (BE, FE, Plan) sunt merge-uite și pot fi șterse pe GitHub.
 - `AradEx-Ops/agents/*.md` trimit încă la `docs/TEAM.md` și `docs/status/Px.md` (șterse); de aliniat la acest fișier (P1).
 - `GlobalExceptionHandler` are încă un handler pentru `BadCredentialsException` care nu mai e folosit (login-ul aruncă `UnauthorizedException`); inofensiv.
 - Iconița aplicației Android e cea implicită Capacitor.
