@@ -12,7 +12,7 @@ FE: tipurile TypeScript din `AradEx-Frontend/src/shared/types/<modul>.ts` oglind
 
 ## DTO-uri comune
 ```ts
-type Role = 'VISITOR'|'LOCAL'|'BUSINESS'|'CITY_HALL'|'ADMIN'|'VOLUNTEER'   // VOLUNTEER: creat de Primărie (T18; coloana users.role îl acceptă după V13)
+type Role = 'VISITOR'|'LOCAL'|'BUSINESS'|'CITY_HALL'|'ADMIN'|'VOLUNTEER'   // VOLUNTEER: creat de Primărie (T18; coloana users.role îl acceptă după V15)
 type UserDto = { id: number; email: string; displayName: string; role: Role; locale: 'ro'|'en'; pointsBalance: number; business?: BusinessSummary }
 type BusinessSummary = { id: number; name: string; category: string; verified: boolean; imageUrl?: string }
 type GeoPoint = { lat: number; lng: number }
@@ -181,9 +181,9 @@ DTO-uri (T14):
 - Contul dezactivat (`disabled`) primește **403 `Account disabled`** la `/auth/login` și la `/auth/otp/verify`; un token emis înainte rămâne valabil până expiră (`SecurityConfig`/`JwtAuthFilter` nu se schimbă în T14).
 
 ## Voluntari (T18)
-Rolul `VOLUNTEER` e în `Role` (BE + FE) și în `SecurityConfig` din T03 (`/vol/**` → VOLUNTEER, `POST /auth/volunteer` public prin `/auth/**`, `/city/**` → CITY_HALL/ADMIN). T18 adaugă migrarea **V13** (`users.role` acceptă VOLUNTEER; voluntarii n-au email / telefon în `users`) — nu V10, cum era rezervat: între timp au intrat V11 (T21) și V12 (T22), iar pe o bază nouă V10 ar fi rulat înaintea constrângerii „email sau telefon” din V11. Conturile le creează doar Primăria. Interfețele: `VolunteerApi` (aplicația) și `CityVolunteersApi` (panoul).
+Rolul `VOLUNTEER` e în `Role` (BE + FE) și în `SecurityConfig` din T03 (`/vol/**` → VOLUNTEER, `POST /auth/volunteer` public prin `/auth/**`, `/city/**` → CITY_HALL/ADMIN). T18 adaugă migrarea **V15** (`users.role` acceptă VOLUNTEER; voluntarii n-au email / telefon în `users`) — nu V10, cum era rezervat: între timp au intrat V11 (T21), V12 (T22), V13 (T14) și V14 (SMS gateway), iar pe o bază nouă V10 ar fi rulat înaintea constrângerii „email sau telefon” din V11. Conturile le creează doar Primăria. Interfețele: `VolunteerApi` (aplicația) și `CityVolunteersApi` (panoul).
 
-**Reguli.** Acțiunea alocată e `LOCKED` până cu 30 de minute înainte de start, `OPEN` de atunci până la miezul nopții zilei în care se termină (ora Aradului; întârziații se pot confirma și după ora de final), `ENDED` după (sau dacă e `DONE`). Scanarea merge doar `OPEN`. Contul de unică folosință expiră după ultima acțiune alocată (fără acțiuni nu expiră). Suspendat sau expirat: 401 la intrare, 403 pe `/vol/**` (și cu un token vechi). Coduri greșite: după 10 în 15 minute de la aceeași adresă → 429 (`retryAfterSeconds`). Telefonul voluntarului stă în `volunteers`, nu în `users.phone`, ca să nu poată intra cu OTP-ul din T21.
+**Reguli.** Acțiunea alocată e `LOCKED` până cu 30 de minute înainte de start, `OPEN` de atunci până la miezul nopții zilei în care se termină (ora Aradului; întârziații se pot confirma și după ora de final), `ENDED` după (sau dacă e `DONE`). Scanarea merge doar `OPEN`. Contul de unică folosință expiră după ultima acțiune alocată (fără acțiuni nu expiră). Suspendat sau expirat: 401 la intrare, 403 pe `/vol/**` (și cu un token vechi); contul dezactivat de Admin (T14, `users.disabled_at`): 403 „Account disabled”, ca la celelalte conturi. Coduri greșite: după 10 în 15 minute de la aceeași adresă → 429 (`retryAfterSeconds`). Telefonul voluntarului stă în `volunteers`, nu în `users.phone`, ca să nu poată intra cu OTP-ul din T21.
 
 | Metodă | Rută | Auth | Cerere → Răspuns |
 |---|---|---|---|
