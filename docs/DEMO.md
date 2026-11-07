@@ -17,7 +17,7 @@ Conturi: `visitor@demo.ro`, `local@demo.ro`, `firma@demo.ro`, `primaria@demo.ro`
 9. **Admin** (proiector, 20 s): firma nouă de verificat → Verifică. *(T14, opțional)*
 10. Închidere: slide „ce urmează”.
 
-Plan B: dacă pică internetul la OSRM/OpenAI, aplicația arată fallback-urile; dacă pică tot, videoclipul de backup (înregistrat duminică dimineață).
+Plan B: dacă pică internetul la OSRM/Claude API, aplicația arată fallback-urile; dacă pică tot, videoclipul de backup (înregistrat duminică dimineață).
 
 ## Pitch (max 8 slide-uri, 3 minute + demo)
 1. Problema: evenimentele și ofertele din Arad sunt împrăștiate; turistul nu știe ce să vadă în 4 ore; comunitatea nu e recompensată.
@@ -26,7 +26,7 @@ Plan B: dacă pică internetul la OSRM/OpenAI, aplicația arată fallback-urile;
 4. Pentru firmele locale: oferte, evenimente, anunțuri, clienți care plătesc cu puncte (tema 1).
 5. Pentru Primărie: acțiuni comunitare validate cu QR, clasament, Gala Voluntarilor (temele 3 și 5).
 6. Demo live.
-7. Tehnologie într-un slide: Vue PWA + Spring Boot + Postgres + OpenAI + OpenStreetMap; web și mobil din același cod.
+7. Tehnologie într-un slide: Vue PWA + Spring Boot + Postgres + Claude (Anthropic) + OpenStreetMap; web și mobil din același cod.
 8. Ce urmează: notificări, plăți reale, transport public, parteneriate cu firme, HU/EN.
 
 ## Cronometru de siguranță
