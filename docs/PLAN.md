@@ -65,7 +65,7 @@ Reguli de dimensiune: un story = max ~4–6 ore pentru un om cu Claude. Dacă de
   `AradEx-Ops` (agenții Paperclip: instrucțiuni, task-uri, `setup-lane.mjs`). Descrierea completă: `STRUCTURE.md`.
 - `docker-compose.yml` (în `AradEx-Infrastructure`) cu `postgres:16` (db `aradexperience`, user/parolă `arad`/`arad`, port 5432, volum). Nu băgăm încă API/APP în compose — doar DB.
 - `.env.example` în fiecare repo de cod (BE: vezi mai jos; FE: `VITE_API_URL`, `VITE_DEMO`) + `.gitignore` (`.env`, `node_modules`, `build`, `.gradle`, `dist`, `.idea`, `.vscode`, `*.log`).
-- CI/CD: nu în repo-urile de cod; pipeline-urile (BE `./gradlew test`, FE `npm ci && npm run build && npm run test`) se definesc în `AradEx-Infrastructure` când e nevoie.
+- CI/CD: nu în repo-urile de cod; pipeline-urile (BE `./gradlew test`, FE `npm ci && npm run build && npm run test`) se definesc în `AradEx-Infrastructure` când e nevoie. **Actualizat la T04:** singura excepție e `.github/workflows/deploy.yml` din `AradEx-Backend` și `AradEx-Frontend` (teste + deploy pe AWS la merge pe `main`); vezi `docs/DEPLOY.md`.
 - De făcut în T00: drept de scriere pentru toți pe cele 5 repo-uri, protecție pe `main` (PR obligatoriu).
 
 `AradEx-Backend/.env.example`:
@@ -148,6 +148,8 @@ CORS_ORIGINS=http://localhost:5173
 **Verificare:** register + login din ambele UI; `GET /me` cu token; acces refuzat (403) la `/city/**` cu cont de vizitator; teste: `AuthServiceTest` (register duplicat → 409, parolă greșită → 401), `JwtServiceTest` (emitere/validare/expirare).
 
 ### T04 · Deploy v0 („hello world” în producție)
+
+**Stare (7 nov):** făcut pe **AWS în loc de Render/Netlify/Neon**, cu Terraform în `AradEx-Infrastructure/terraform` și deploy din GitHub Actions. Producția: https://aradexperience.site. Ce există și de ce: `docs/DEPLOY.md` și `docs/STATUS.md` (T04); textul de mai jos rămâne ca istoric.
 **Scop:** să existe de sâmbătă un URL public pentru API și APP, ca deploy-ul final să fie doar un push.
 **Depinde de:** T01, T02 (paralel cu T03)
 
@@ -323,9 +325,10 @@ CORS_ORIGINS=http://localhost:5173
 ---
 
 ## Story-uri adăugate (6–7 nov)
-**Repo-uri separate:** 5 repo-uri surori în organizația GitHub HACK4ARAD: `AradEx-Plan` (planul comun), `AradEx-Backend`, `AradEx-Frontend`, `AradEx-Infrastructure` (Postgres local, deploy, CI/CD), `AradEx-Ops` (agenți). Căile `AradEx-Backend/...` din plan sunt relative la folderul comun.
+**Repo-uri separate:** 5 repo-uri surori în organizația GitHub HACK4ARAD: `AradEx-Plan` (planul comun), `AradEx-Backend`, `AradEx-Frontend`, `AradEx-Infrastructure` (Postgres local, producția AWS în Terraform), `AradEx-Ops` (agenți). Căile `AradEx-Backend/...` din plan sunt relative la folderul comun.
 
 ### T16a · Deploy final & seed de producție
+**Notă (T04):** producția e pe AWS (`docs/DEPLOY.md`); migrările + seed-ul rulează automat la pornirea API-ului, deci T16a = verificarea fluxului din `docs/DEMO.md` pe https://aradexperience.site, cheile (`OPENAI_API_KEY`) și ștergerea de luni (`AradEx-Infrastructure/scripts/destroy.sh`).
 Partea tehnică din T16: migrări + seed pe DB-ul de producție, conturi demo verificate, poze, chei, `docs/DEPLOY.md` cu URL-urile reale.
 **Verificare:** fluxul din `docs/DEMO.md` merge pe URL-urile publice, de pe două telefoane.
 
