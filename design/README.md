@@ -1,5 +1,8 @@
 # design/ — prototipuri, ecrane, poze
 
+## Excepție: biletele
+Ecranele de bilete din aplicație (Biletele mele, „Codul tău”, Biletul) urmează prototipul IA (`design/ia/AradExperience-prototype/AradExperience.html`), nu `design/final` — decizia din 7 nov (vezi `docs/STATUS.md`).
+
 ## Designul final (sursa de adevăr) → `final/`
 - `final/mobile.html` — aplicația (390×844, 36 de ecrane, roluri Vizitator / Localnic / Voluntar / Firmă / Primărie) și `final/web.html` — site public + panourile Primărie / Admin / Firmă (37 de pagini). Vanilla HTML/JS, fără build; `python3 -m http.server` în `final/` pentru hărți și sincronizarea admin ↔ aplicație. Detalii, conturi demo și tabelul mobil/web: `final/README.md`.
 - `final/screens/sheet-mobile.png` și `final/screens/sheet-web.png` — planșele cu toate ecranele (capturile individuale se regenerează cu `final/screens/shoot-all.mjs`, Playwright + Chrome).
