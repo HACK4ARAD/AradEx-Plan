@@ -18,13 +18,15 @@ type BusinessSummary = { id: number; name: string; category: string; verified: b
 type GeoPoint = { lat: number; lng: number }
 type PlaceType = 'ATTRACTION'|'MUSEUM'|'VENUE'|'WINERY'|'NATURE'|'PARK'|'RESTAURANT'|'CAFE'
 type PlaceSummary = { id: number; name: string; type: PlaceType; imageUrl?: string; lat: number; lng: number; visitMinutes: number; tags: string[]; distanceKm?: number; guidePointsCount: number; guideMinutes: number; exteriorOnly: boolean }   // T05: guidePointsCount/guideMinutes/exteriorOnly = badge-urile din liste
-type PlaceDto = PlaceSummary & { slug: string; description: string; address?: string; openingHours?: string; rating?: number; parkingHint?: string; imageCredit?: string; guidePoints: GuidePointDto[]; google?: GoogleInfoDto }   // google: T17
+type PlaceDto = PlaceSummary & { slug: string; description: string; address?: string; openingHours?: string; rating?: number; parkingHint?: string; imageCredit?: string; guidePoints: GuidePointDto[] }   // ratingul Google vine separat: GET /places/{id}/google (T17)
 type GuidePointDto = { id: number; position: number; title: string; text: string; imageUrl?: string; audioUrl?: string; lat?: number; lng?: number; durationSec?: number }
 type EventSummary = { id: number; title: string; category: string; startAt: string; endAt?: string; locationName: string; lat: number; lng: number; imageUrl?: string; ticketType: 'FREE'|'IN_APP'|'EXTERNAL'; priceFrom?: number; isHot: boolean; isDemo: boolean; participantsCount: number; organizerName: string; organizerType: string; distanceKm?: number; saved?: boolean; ratingAvg?: number; ratingCount: number; capacity?: number; spotsLeft?: number }   // capacity/spotsLeft: „Gratuit · înscriere” și „Bilete epuizate” pe card (lipsă = fără limită)
 type EventDto = EventSummary & { description: string; address: string; placeId?: number; organizerBusinessId?: number; priceAdult?: number; priceChild?: number; externalUrl?: string; capacity?: number; spotsLeft?: number; savesCount: number; status: 'DRAFT'|'PUBLISHED'|'HIDDEN'; imageCredit?: string }
 type EventCreate = { title: string; description: string; category: EventCategory; placeId?: number; locationName?: string; address?: string; lat?: number; lng?: number; startAt: string; endAt?: string; ticketType: 'FREE'|'IN_APP'|'EXTERNAL'; priceAdult?: number; priceChild?: number; externalUrl?: string; capacity?: number; imageUrl?: string; priceFrom?: number; status?: 'DRAFT'|'PUBLISHED' }
 type ReviewDto = { id: number; eventId: number; userName: string; stars: number; text?: string; createdAt: string; mine?: boolean }
-type GoogleInfoDto = { rating?: number; userRatingCount?: number; reviews: { author: string; rating: number; text: string; relativeTime: string }[]; mapsUrl: string; attribution: 'Powered by Google' }
+type GoogleReviewDto = { author: string; authorUrl?: string; authorPhotoUrl?: string; rating: number; text: string; relativeTime?: string }   // T17: atribuirea cerută de Google = numele autorului, cu link spre profil când există
+type GoogleInfoDto = { rating?: number; userRatingCount?: number; reviews: GoogleReviewDto[]; mapsUrl: string; attribution: 'Powered by Google' }   // cel mult 5 recenzii
+type GoogleLinkDto = { googlePlaceId?: string; configured: boolean; info?: GoogleInfoDto; problem?: 'INVALID_ID' | 'UNAVAILABLE' }   // panouri: configured = serverul are cheia Google; problem = de ce lipsește info deși e legat (Google nu cunoaște ID-ul / nu răspunde)
 type TicketDto = { code: string; eventId: number; eventTitle: string; startAt: string; endAt?: string; locationName: string; address?: string; lat: number; lng: number; imageUrl?: string; ticketType: 'FREE'|'IN_APP'|'EXTERNAL'; qtyAdult: number; qtyChild: number; priceAdult?: number; priceChild?: number; total: number; status: 'CONFIRMED'|'CANCELLED'|'USED'; email: string; createdAt: string; usedAt?: string }   // tot ce trebuie ca biletul să se afișeze offline
 type OfferSummary = { id: number; businessId: number; businessName: string; title: string; discountLabel: string; localProduct: boolean; validUntil: string; pointsPrice?: number; imageUrl?: string; distanceKm?: number; rating?: number }
 type OfferDto = OfferSummary & { description: string; validFrom: string; status: string; viewsCount: number; redemptionsCount: number; usedCount: number; myRedemption?: RedemptionDto }
@@ -34,8 +36,8 @@ type ActionDto = ActionSummary & { description: string; address?: string; status
 type RegistrationDto = { id: number; actionId: number; actionTitle: string; actionStartAt: string; locationName: string; pointsReward: number; code: string; status: 'REGISTERED'|'CONFIRMED'|'CANCELLED'|'NO_SHOW'; registeredAt: string; confirmedAt?: string; confirmedBy?: string; actionImageUrl?: string; user?: { id: number; displayName: string } }   // confirmedBy = numele celui care a confirmat / respins; user doar în listele Primăriei
 type PointsDto = { balance: number; monthEarned: number; rank: number; streakMonths: number; transactions: { id: number; amount: number; type: 'EARN_ACTION'|'SPEND_OFFER'|'ADJUST'; note?: string; createdAt: string }[] }   // rank = locul în clasamentul lunii; streakMonths = luni consecutive cu puncte câștigate
 type LeaderboardDto = { period: 'month'|'year'; entries: { rank: number; userId: number; displayName: string; points: number; actionsCount: number; lastAt?: string; lastActionTitle?: string }[]; me?: { rank: number; points: number } }   // actionsCount / lastAt / lastActionTitle = participările confirmate în perioadă
-type ItineraryStop = { order: number; kind: 'PLACE'|'EVENT'|'OFFER'; refId: number; name: string; lat: number; lng: number; arriveAt: string; leaveAt: string; durationMin: number; travelMinutesFromPrev: number; travelMode: 'WALK'|'CAR'|'PUBLIC'; note?: string; parkingHint?: string; hasGuide: boolean; imageUrl?: string }
-type ItineraryDto = { id?: number; shareCode?: string; title: string; summary: string; date: string; transport: 'WALK'|'CAR'|'PUBLIC'; totalMinutes: number; stops: ItineraryStop[] }
+type ItineraryStop = { order: number; day: 1|2; kind: 'PLACE'|'EVENT'|'OFFER'; refId: number; name: string; subtitle: string; lat: number; lng: number; arriveAt: string; leaveAt: string; durationMin: number; travelMinutesFromPrev: number; travelKmFromPrev: number; travelMode: 'WALK'|'CAR'|'PUBLIC'; note?: string; parkingHint?: string; hasGuide: boolean; imageUrl?: string }   // T13: day = ziua (itinerarii de 2 zile), subtitle = tipul obiectivului / locul evenimentului
+type ItineraryDto = { id?: number; shareCode?: string; title: string; summary: string; ask: string; date: string; days: 1|2; transport: 'WALK'|'CAR'|'PUBLIC'; startTime: string; totalMinutes: number; totalKm: number; offline: boolean; stops: ItineraryStop[]; createdAt?: string }   // T13: ask = cererea omului într-o propoziție (balonul din E2); offline = program făcut fără Claude
 ```
 
 ## Auth & utilizator (T03)
@@ -65,7 +67,7 @@ Securitate (T03, `config/SecurityConfig`): regulile din coloana „Auth” pentr
 | PUT | `/city/places/{id}/guide-points/{gpId}` | CITY_HALL, ADMIN | `GuidePointRequest` → `GuidePointDto` (o poziție ocupată de alt punct = schimb de poziții, pentru „mută sus/jos”; 404 dacă punctul nu e al locului) |
 | DELETE | `/city/places/{id}/guide-points/{gpId}` | CITY_HALL, ADMIN | 204 (404) |
 | POST | `/ai/tts` (opțional) | auth | `{ text, voice? }` → `audio/mpeg` (cache după hash) |
-| GET | `/places/{id}/google`, `/businesses/{id}/google` (opțional, T17) | pub | → `GoogleInfoDto` din Google Places API (New) Place Details, prin backend, cache 24 h; 404 dacă nu există `googlePlaceId`; afișat cu „Powered by Google” |
+| GET | `/places/{id}/google`, `/businesses/{id}/google` (T17) | pub | → `GoogleInfoDto` — vezi §Google (T17) |
 
 Cererile din „Obiective & ghiduri” (`CityPlacesApi`):
 ```ts
@@ -154,9 +156,10 @@ Cod înscriere: `AX-C{actionId}-{6}`. Punctele se scriu **doar** prin `PointsSer
 | Metodă | Rută | Auth | Cerere → Răspuns |
 |---|---|---|---|
 | POST | `/ai/chat` | pub (rate-limit 20/min/IP) | `{ messages: { role: 'user'\|'assistant', content }[], locale }` → `{ reply, suggestedEventIds: number[], quickReplies: string[], offline: boolean }` |
-| POST | `/ai/itinerary` | pub | `{ date, startTime?: '10:00', hours?: number, days?: number, transport, interests: string[], freeText?, start?: GeoPoint }` → `ItineraryDto` (nesalvat) |
-| POST | `/itineraries` | pub (userId dacă e logat) | `ItineraryDto` → `ItineraryDto` cu `id`, `shareCode` |
-| GET | `/itineraries/{idOrShareCode}` | pub | → `ItineraryDto` |
+| POST | `/ai/itinerary` | pub (rate-limit 20/min/IP) | `{ date, startTime?: '10:00', hours?: number, days?: 1\|2, transport, interests: string[], freeText?, start?: GeoPoint, locale? }` → `ItineraryDto` (nesalvat). Claude alege doar opririle (obiective, evenimentele zilei, cafenele/localuri); BE validează id-urile și calculează orele și drumurile (pe jos 4,5 km/h, mașină 25 km/h + parcare, transport public 14 km/h + așteptare). Fără Claude: program din obiectivele cu ghid, `offline: true`. O zi se termină cel târziu la 22:00; pentru azi, la o oră trecută, programul începe acum (rotunjit la sfertul următor); cu mai puțin de o oră rămasă → 400 `Too late to plan for today` |
+| POST | `/itineraries` | pub (userId dacă e logat; 20/min/IP → 429) | `ItineraryDto` → `ItineraryDto` cu `id`, `shareCode`. Opririle se refac din DB după `kind` + `refId` (nume, loc, coordonate, poză, ghid, parcare); din cerere rămân orele, duratele, drumurile și nota (≤ 300). O oprire necunoscută → 400 |
+| GET | `/itineraries/{shareCode}` | pub | → `ItineraryDto`. Codul `AX-I-XXXXXX` (fără diferență de majuscule) îl deschide oricine are linkul; după `id` numeric doar proprietarul (altfel 404: id-urile sunt consecutive) |
+| POST | `/itineraries/{shareCode}/save` | auth | → `ItineraryDto`. „Salvează”: un itinerariu fără proprietar devine al meu; unul al meu rămâne la fel; unul al altcuiva → copia mea, cu cod nou |
 | GET | `/me/itineraries` | auth | → `ItineraryDto[]` |
 
 AI-ul e **Claude** (Anthropic API, SDK-ul oficial Java, modelul din `ANTHROPIC_MODEL`, implicit `claude-haiku-5-5`). Răspunsul modelului e forțat cu structured outputs (`outputConfig` cu schema JSON; schemele în `ai/schemas/*.json`); BE validează id-urile și normalizează orele. Timeout 20 s, apoi fallback din `ai/fallback/*.json` cu `offline: true`.
@@ -267,6 +270,18 @@ Pentru scriptul de pe Mac-ul lui Zoltan (`AradEx-Ops/sms-gateway`), care trimite
 
 Codul e generat de API și ținut doar ca hash (`otp_codes.provider = GATEWAY`), cu aceleași limite ca T21 (60 s, 5 pe zi pe număr, 300 SMS reale pe zi în total, 5 încercări). Textul SMS-ului stă în `sms_outbox` (V14) doar până la trimitere și nu apare în log.
 
+## Google: rating și recenzii (T17)
+Din Google Places API (New), **doar prin backend** (cheia `GOOGLE_PLACES_API_KEY` nu ajunge în aplicație), cache 24 h în memorie pe (Place ID, limbă). Doar citire: nimic nu se scrie spre Google. Se afișează cu `attribution` („Powered by Google”), numele autorului (cu link când există) și linkul `mapsUrl`.
+| Metodă | Rută | Cine | Ce face |
+|---|---|---|---|
+| GET | `/places/{id}/google?lang=ro|en` | pub | → `GoogleInfoDto`. Fără ID salvat, backend-ul **caută singur** locul pe Google (Text Search după nume + adresă, doar în ~±450 m în jurul coordonatelor, doar ID-ul) și îl leagă doar dacă **numele seamănă** și locul are păreri; ID-ul se salvează în `places.google_place_id`, „negăsit” se ține minte 24 h. 404: obiectiv inexistent, negăsit pe Google, fără păreri sau serverul n-are cheie; 503: Google nu răspunde (dacă există o copie veche, se dă copia) |
+| GET | `/businesses/{id}/google?lang=ro|en` | pub | → `GoogleInfoDto`, **doar dacă firma și-a legat** pagina de pe Google (firmele nu se caută automat: cele demo sunt fictive). 404 / 503 ca mai sus |
+| GET | `/city/places/{id}/google` | CITY_HALL, ADMIN | → `GoogleLinkDto` (nu caută automat; erorile Google nu strică panoul: lipsește `info`, iar `problem` spune de ce — un ID pe care Google nu-l cunoaște (400/404 de la Google) nu se mai cere 24 h, iar public dă 404) |
+| PUT | `/city/places/{id}/google` | CITY_HALL, ADMIN | `{ googlePlaceId: string | null }` (gol = dezleagă; doar litere, cifre, `_`, `-`, max 255 → altfel 400) → `GoogleLinkDto` |
+| GET | `/business/me/google` | BUSINESS | → `GoogleLinkDto` al firmei mele; 404 dacă n-am firmă |
+| PUT | `/business/me/google` | BUSINESS | `{ googlePlaceId }` ca mai sus → `GoogleLinkDto` |
+Costul: căutarea cere doar `places.id` (SKU „Text Search Essentials – IDs Only”), detaliile cer `displayName,rating,userRatingCount,reviews,googleMapsUri` („Place Details Enterprise + Atmosphere”); cu cache-ul de 24 h, cel mult o cerere de detalii pe loc și pe limbă pe zi.
+
 ## Poze (media, T05+)
 Pozele încărcate din panou stau în S3 (bucket privat `aradex-media-…`, `AradEx-Infrastructure/terraform/modules/api/media.tf`); local, fără `MEDIA_BUCKET`, pe disc (`MEDIA_LOCAL_DIR`, implicit `uploads/`). API-ul le servește el (fără CloudFront).
 | Metodă | Rută | Auth | Cerere → Răspuns |
@@ -306,7 +321,7 @@ Pe web, linkurile vechi de panou `/w/…` duc la aceeași cale fără prefix; î
 | `/offers` · `/offers/:id` | oferte |
 | `/community` · `/community/actions/:id` · `/community/leaderboard` | comunitate |
 | `/places` · `/places/:id` | lista obiectivelor · E3 ghidul virtual |
-| `/plan` · `/itineraries` · `/itinerary/:id` · `/itinerary/:id/map` | E1 · itinerariile mele · E2 · E4 |
+| `/plan` · `/itineraries` · `/itinerary/:shareCode` · `/itinerary/:shareCode/map` | E1 · itinerariile mele · E2 · E4 (după codul de partajare) |
 | `/businesses/:id` | pagina firmei |
 | `/panel` | E5 / E7: firma și Primăria pe teren (validare + liste) |
 | `/transport` · `/transport/lines/:id/:dir` · `/transport/trip/:to` | T19 |
@@ -321,9 +336,10 @@ Tab bar: Evenimente · Chat · Hartă · Bilete/Panou · Transport; voluntarul a
 | `/` | site-ul de prezentare (pornește din W1; conținutul în T20) |
 | `/community` | Comunitate, doar de citit (W12): acțiunile care urmează + clasamentul; înscrierea e doar în aplicație |
 | `/privacy` | Confidențialitate (cerută de Google Play și App Store) |
+| `/itinerary/:shareCode` | pagina publică a linkului „Trimite” din aplicație (T13): programul, indicații Google Maps, tot traseul, „Salvează în contul meu”; bifele, harta și ghidul rămân în aplicație |
 | `/login` | W0, login-ul panourilor |
 | `/business/*` | panou firmă: Panou, Oferte, Evenimente, Anunțuri, Validează coduri, Recenzii, Profilul firmei |
 | `/city/*` | panou Primărie, folosit și de Admin: Panou, Evenimente, Obiective & ghiduri, Acțiuni comunitare, Validare, Voluntari, Mesaje, Clasament, Firme partenere |
 | `/admin/*` | doar Admin: Dashboard, Conținut & moderare, Utilizatori, Setări |
 
-Pe web **nu există**: W5–W11, W13–W15 (agendă, eveniment, obiective, ghid, hartă, planificator, oferte, chat, Contul meu, pagina publică a firmei). Sunt doar în aplicație. Ecranele: `design/final/screens/`.
+Pe web **nu există**: W5–W11, W13–W15 (agendă, eveniment, obiective, ghid, hartă, planificator, oferte, chat, Contul meu, pagina publică a firmei). Sunt doar în aplicație (din planificator, pe web e doar pagina unui itinerariu primit prin link). Ecranele: `design/final/screens/`.
