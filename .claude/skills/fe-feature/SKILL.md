@@ -59,7 +59,7 @@ Erorile API → `ui.error(err)` (toast cu `detail`) + buton „Reîncearcă”. 
 - `<input type="number">` cu `v-model` (și `AppInput type="number"`) dă **număr**, nu text, după ce omul scrie — funcțiile care citesc formularul trebuie să accepte `string | number` (`String(v ?? '').trim()`), altfel `.trim()` aruncă și submit-ul nu mai pornește (pățit la T09).
 - `vue-tsc` se încurcă la un atribut static cu `//` (ex. `placeholder="https://"`): toate `v-model`-urile de după el dau „Property 'value' does not exist”. Pune textul într-o constantă și leagă-l (`:placeholder="URL_HINT"`) (pățit la T09).
 - Leaflet are nevoie de `import 'leaflet/dist/leaflet.css'` și de `invalidateSize()` după ce containerul devine vizibil (tab-uri, sheet-uri).
-- Camera (`html5-qrcode`) merge doar pe HTTPS sau `localhost`; pe telefon real folosiți URL-ul Netlify sau `npm run dev -- --host` + certificate, altfel testați cu input manual de cod.
+- Camera (`html5-qrcode`) merge doar pe HTTPS sau `localhost`; pe telefon real folosiți https://aradexperience.site (după merge pe `main`) sau `npm run dev -- --host` + certificate, altfel testați cu input manual de cod.
 - `speechSynthesis` pornește doar dintr-un handler de tap; pe iOS vocile se încarcă asincron (`onvoiceschanged`).
 - Datele vin ca ISO cu offset — formatează cu `useFormat`, nu cu `toLocaleString` direct.
 - `import.meta.env` nu merge în template — citește-l în `<script setup>` într-o constantă.

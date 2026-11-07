@@ -9,8 +9,10 @@ Acesta e repo-ul cu tot ce e comun (umbrela din kitul v3): documentația (`docs/
 | **AradEx-Plan** (acesta) | plan, contract API, docs, design, skill-uri Claude, `setup.sh` |
 | [AradEx-Backend](https://github.com/HACK4ARAD/AradEx-Backend) | Spring Boot 3 / Java 21, Gradle multi-modul: `api` = contractul REST, `app` = aplicația + migrări Flyway |
 | [AradEx-Frontend](https://github.com/HACK4ARAD/AradEx-Frontend) | Vue 3 PWA (web `/w` + mobil `/m`) |
-| [AradEx-Infrastructure](https://github.com/HACK4ARAD/AradEx-Infrastructure) | Postgres local (docker compose), deploy |
+| [AradEx-Infrastructure](https://github.com/HACK4ARAD/AradEx-Infrastructure) | Postgres local (docker compose), producția pe AWS (Terraform) |
 | [AradEx-Ops](https://github.com/HACK4ARAD/AradEx-Ops) | agenții Paperclip (instrucțiuni, task-uri, `setup-lane.mjs`) |
+
+**Producție:** https://aradexperience.site — merge pe `main` în `AradEx-Backend` / `AradEx-Frontend` = deploy automat (`docs/DEPLOY.md`).
 
 ## Pornire rapidă
 Întâi uneltele: `docs/SETUP.md` (JDK 21, Node 20+, Docker Desktop, Android Studio, gh) — pe Windows `powershell -ExecutionPolicy Bypass -File .\setup-windows.ps1` verifică și instalează ce lipsește.
