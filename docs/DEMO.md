@@ -2,7 +2,7 @@
 
 > Orientativ: dă o idee despre cum legăm feature-urile. Se clarifică exact la final. La un PR verificăm doar că feature-ul lui e funcțional, nu tot fluxul.
 
-Dispozitive: **telefon A** (vizitator → apoi localnic), **telefon B** (primăria, pe teren), **laptop pe proiector** (panouri web).
+Dispozitive: **telefon A** (aplicația instalată: vizitator → apoi localnic), **telefon B** (aplicația: primăria, pe teren), **laptop pe proiector** (site-ul de prezentare + panourile web; simulatorul iOS dacă nu avem iPhone).
 Conturi: `visitor@demo.ro`, `local@demo.ro`, `firma@demo.ro`, `primaria@demo.ro` / `demo1234`. Toate datele sunt din seed — nu improviza.
 
 ## Fluxul (în ordinea în care se construiește și se demonstrează)
@@ -26,7 +26,7 @@ Plan B: dacă pică internetul la OSRM/OpenAI, aplicația arată fallback-urile;
 4. Pentru firmele locale: oferte, evenimente, anunțuri, clienți care plătesc cu puncte (tema 1).
 5. Pentru Primărie: acțiuni comunitare validate cu QR, clasament, Gala Voluntarilor (temele 3 și 5).
 6. Demo live.
-7. Tehnologie într-un slide: Vue PWA + Spring Boot + Postgres + OpenAI + OpenStreetMap; web și mobil din același cod.
+7. Tehnologie într-un slide: Vue PWA + Spring Boot + Postgres + OpenAI + OpenStreetMap; aplicația Android + iOS (Capacitor) și panourile web din același cod.
 8. Ce urmează: notificări, plăți reale, transport public, parteneriate cu firme, HU/EN.
 
 ## Cronometru de siguranță
