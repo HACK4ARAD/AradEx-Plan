@@ -176,6 +176,7 @@ CORS_ORIGINS=http://localhost:5173
 ### T06 · Evenimente — listare, căutare, detaliu, salvate
 **Scop:** inima aplicației: S1, S2, S3, Salvate, hot events; pagini web echivalente.
 **Depinde de:** T03, T05
+**Stare:** ✅ PR deschis (BE #9, FE #12, Plan #11) — peste piesele de evenimente din T09; din T05 folosește doar tabela `places` (deja în V3). Detalii și decizii: `docs/STATUS.md`.
 
 - BE (`V4__events.sql`): `events`, `saved_events`. `GET /events` cu filtre `from,to,category,near=lat,lng,radiusKm,organizerBusinessId,organizerType,hot,q,page,size`, sortare după `startAt`; `GET /events/{id}`; `POST/DELETE /events/{id}/save`; `GET /me/saved-events`. `isHot` = `participantsCount >= 50 || savesCount >= 20` (praguri în config). `distanceKm` calculat în DTO când vine `near`.
 - Creare evenimente: `POST /events` (CITY_HALL/ADMIN) în T06, cu metode publice în `EventService` (`createForOrganizer`, `updateForOrganizer`, `deleteForOrganizer`) pe care T09 (P4) le apelează din `BusinessController` — P4 nu modifică pachetul `events`.
@@ -188,6 +189,7 @@ CORS_ORIGINS=http://localhost:5173
 ### T07 · Bilete & înscriere la evenimente
 **Scop:** S4 → S5 → S6 → S9 → S10 cu plată simulată și cod QR.
 **Depinde de:** T06
+**Stare:** ✅ PR deschis, stivuit pe T06 (BE #10, FE #13, Plan #11). Fără recenzii (partea 2) și fără seed-ul V5_1 cu bilete demo.
 
 - BE (`V5__tickets.sql`): `tickets`. `POST /events/{id}/tickets {qtyAdult, qtyChild, email}` → validează capacitate (`capacity - participantsCount`), calculează totalul din `priceAdult/priceChild`, generează `code = AX-T{eventId}-{6 alfanumerice}`, incrementează `participantsCount`. `GET /me/tickets?upcoming=true|false`, `GET /tickets/{code}` (doar proprietar/organizator/admin), `POST /tickets/{code}/use` (organizator/admin). Evenimente `FREE` → bilet gratuit cu același flux („Înscrie-te”), `EXTERNAL` → doar link.
 - „Plata”: FE arată S5 cu card salvat/nou; BE nu procesează nimic — se confirmă direct. În UI scrie „Plată demonstrativă”.
