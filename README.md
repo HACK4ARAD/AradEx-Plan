@@ -13,17 +13,20 @@ Acesta e repo-ul cu tot ce e comun (umbrela din kitul v3): documentația (`docs/
 | [AradEx-Ops](https://github.com/HACK4ARAD/AradEx-Ops) | agenții Paperclip (instrucțiuni, task-uri, `setup-lane.mjs`) |
 
 ## Pornire rapidă
+Întâi uneltele: `docs/SETUP.md` (JDK 21, Node 20+, Docker Desktop, Android Studio, gh) — pe Windows `powershell -ExecutionPolicy Bypass -File .\setup-windows.ps1` verifică și instalează ce lipsește.
 ```
 mkdir -p ~/HACK4ARAD && cd ~/HACK4ARAD && git clone https://github.com/HACK4ARAD/AradEx-Plan.git
 cd AradEx-Plan && ./setup.sh                                          # clonează celelalte 4 lângă el, activează hook-ul de commit
 (cd ../AradEx-Infrastructure && docker compose up -d)                 # Postgres
 (cd ../AradEx-Backend && cp .env.example .env && ./gradlew :app:bootRun)   # http://localhost:8080/swagger-ui.html
 (cd ../AradEx-Frontend && cp .env.example .env && npm install && npm run dev)   # http://localhost:5173 (/m mobil, /w web)
+(cd ../AradEx-Frontend && npm run android:run)                         # aplicația Android pe emulator (Capacitor)
 claude                                                                # Claude Code, din AradEx-Plan
 ```
 Conturi demo: `visitor@demo.ro`, `local@demo.ro`, `firma@demo.ro`, `primaria@demo.ro`, `admin@demo.ro` / `demo1234`.
 
 ## Unde e ce
+- `docs/STATUS.md` — **memoria proiectului**: ce e gata, decizii, probleme cunoscute · `docs/SETUP.md` — instalare + probleme de mediu
 - `docs/PLAN.md` — task-urile T00–T19 · `docs/API.md` — contractul de API · `docs/DATA-MODEL.md` — tabele și migrări · `docs/FEATURES.md` — funcționalitățile pe roluri · `docs/ARAD-DATA.md` — datele reale din seed
 - `docs/DEMO.md` — demo + pitch (orientativ, se clarifică la final) · `docs/DEPLOY.md`
 - `STRUCTURE.md` — fiecare repo, folder și fișier, la ce folosește, ce conțin skill-urile

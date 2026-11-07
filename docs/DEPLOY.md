@@ -1,12 +1,15 @@
 # Deploy
 
 ## Local
+Ce instalezi și problemele cunoscute (TLS interceptat, porturi ocupate, emulator): `docs/SETUP.md`.
 ```
 cp .env.example .env            # completează OPENAI_API_KEY, JWT_SECRET
 (cd ../AradEx-Infrastructure && docker compose up -d)            # Postgres
 cd ../AradEx-Backend && ./gradlew :app:bootRun               # :8080
 cd ../AradEx-Frontend && npm install && npm run dev            # :5173
+cd ../AradEx-Frontend && npm run android:run                  # aplicația Android pe emulator (T15)
 ```
+Aplicația Android de demo: `npm run android:run` construiește APK-ul de debug cu `VITE_API_URL` din `.env` — pentru demo pe telefon pune URL-ul public al API-ului (Render) și adaugă `http://localhost` în `CORS_ORIGINS`.
 
 ## Producție (T04 → T16)
 | Componentă | Unde | Config |
