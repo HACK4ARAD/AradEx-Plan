@@ -214,7 +214,7 @@ Pozele încărcate din panou stau în S3 (bucket privat `aradex-media-…`, `Ara
 | Metodă | Rută | Auth | Cerere → Răspuns |
 |---|---|---|---|
 | POST | `/city/media` | CITY_HALL, ADMIN | `multipart/form-data`, câmpul `file` → `MediaDto` (201). JPEG, PNG, WebP sau GIF (tipul se verifică după conținut), max 10 MB; altfel 400. URL-ul primit se pune în `imageUrl` și se salvează cu obiectivul |
-| POST | `/city/media/import-places?limit=10` | CITY_HALL, ADMIN | → `MediaImportDto`. Copiază în S3 pozele obiectivelor și ale punctelor de ghid care sunt pe alte site-uri (visitarad.ro…) și pune URL-ul nostru în `image_url`; câte `limit` (1–25) pe cerere, panoul repetă până `remaining = 0`. `image_credit` rămâne. Pozele care nu se pot descărca sunt sărite până la repornirea API-ului |
+| POST | `/city/media/import-places?limit=10` | CITY_HALL, ADMIN | → `MediaImportDto`. Copiază în S3 pozele obiectivelor și ale punctelor de ghid care sunt pe alte site-uri (visitarad.ro…) și pune URL-ul nostru în `image_url`; câte `limit` (1–25) pe cerere, repetat până `remaining = 0`. **Rulează și singur** (`MediaAutoSync`): la 1 minut după pornire, apoi la 2 minute, doar cu S3 + `MEDIA_PUBLIC_URL` (`MEDIA_AUTO_SYNC=false` îl oprește); panoul nu mai are buton. `image_credit` rămâne. Pozele care nu se pot descărca sunt sărite până la repornirea API-ului |
 | GET | `/media/{folder}/{name}` | pub | → poza (`Cache-Control: public, max-age=31536000, immutable`; cheile nu se refolosesc). `folder` = `uploads` (din panou), `places`, `guide` (din import); 404 altfel |
 
 ```ts
