@@ -26,7 +26,7 @@ type EventCreate = { title: string; description: string; category: EventCategory
 type ReviewDto = { id: number; eventId: number; userName: string; stars: number; text?: string; createdAt: string; mine?: boolean }
 type GoogleReviewDto = { author: string; authorUrl?: string; authorPhotoUrl?: string; rating: number; text: string; relativeTime?: string }   // T17: atribuirea cerută de Google = numele autorului, cu link spre profil când există
 type GoogleInfoDto = { rating?: number; userRatingCount?: number; reviews: GoogleReviewDto[]; mapsUrl: string; attribution: 'Powered by Google' }   // cel mult 5 recenzii
-type GoogleLinkDto = { googlePlaceId?: string; configured: boolean; info?: GoogleInfoDto }   // panouri: configured = serverul are cheia Google
+type GoogleLinkDto = { googlePlaceId?: string; configured: boolean; info?: GoogleInfoDto; problem?: 'INVALID_ID' | 'UNAVAILABLE' }   // panouri: configured = serverul are cheia Google; problem = de ce lipsește info deși e legat (Google nu cunoaște ID-ul / nu răspunde)
 type TicketDto = { code: string; eventId: number; eventTitle: string; startAt: string; endAt?: string; locationName: string; address?: string; lat: number; lng: number; imageUrl?: string; ticketType: 'FREE'|'IN_APP'|'EXTERNAL'; qtyAdult: number; qtyChild: number; priceAdult?: number; priceChild?: number; total: number; status: 'CONFIRMED'|'CANCELLED'|'USED'; email: string; createdAt: string; usedAt?: string }   // tot ce trebuie ca biletul să se afișeze offline
 type OfferSummary = { id: number; businessId: number; businessName: string; title: string; discountLabel: string; localProduct: boolean; validUntil: string; pointsPrice?: number; imageUrl?: string; distanceKm?: number; rating?: number }
 type OfferDto = OfferSummary & { description: string; validFrom: string; status: string; viewsCount: number; redemptionsCount: number; usedCount: number; myRedemption?: RedemptionDto }
@@ -266,7 +266,7 @@ Din Google Places API (New), **doar prin backend** (cheia `GOOGLE_PLACES_API_KEY
 |---|---|---|---|
 | GET | `/places/{id}/google?lang=ro|en` | pub | → `GoogleInfoDto`. Fără ID salvat, backend-ul **caută singur** locul pe Google (Text Search după nume + adresă, doar în ~±450 m în jurul coordonatelor, doar ID-ul) și îl leagă doar dacă **numele seamănă** și locul are păreri; ID-ul se salvează în `places.google_place_id`, „negăsit” se ține minte 24 h. 404: obiectiv inexistent, negăsit pe Google, fără păreri sau serverul n-are cheie; 503: Google nu răspunde (dacă există o copie veche, se dă copia) |
 | GET | `/businesses/{id}/google?lang=ro|en` | pub | → `GoogleInfoDto`, **doar dacă firma și-a legat** pagina de pe Google (firmele nu se caută automat: cele demo sunt fictive). 404 / 503 ca mai sus |
-| GET | `/city/places/{id}/google` | CITY_HALL, ADMIN | → `GoogleLinkDto` (nu caută automat; erorile Google nu strică panoul, doar lipsește `info`) |
+| GET | `/city/places/{id}/google` | CITY_HALL, ADMIN | → `GoogleLinkDto` (nu caută automat; erorile Google nu strică panoul: lipsește `info`, iar `problem` spune de ce — un ID pe care Google nu-l cunoaște (400/404 de la Google) nu se mai cere 24 h, iar public dă 404) |
 | PUT | `/city/places/{id}/google` | CITY_HALL, ADMIN | `{ googlePlaceId: string | null }` (gol = dezleagă; doar litere, cifre, `_`, `-`, max 255 → altfel 400) → `GoogleLinkDto` |
 | GET | `/business/me/google` | BUSINESS | → `GoogleLinkDto` al firmei mele; 404 dacă n-am firmă |
 | PUT | `/business/me/google` | BUSINESS | `{ googlePlaceId }` ca mai sus → `GoogleLinkDto` |
