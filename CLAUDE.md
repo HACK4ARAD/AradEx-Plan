@@ -35,7 +35,7 @@ Agenții Paperclip le au atașate ca skill-uri ale companiei; dacă un skill nu 
 (cd ../AradEx-Infrastructure && docker compose up -d)         # Postgres local (arad/arad, db aradexperience, :5432)
 cd ../AradEx-Backend && ./gradlew :app:bootRun                # API :8080 · Swagger /swagger-ui.html · health /api/v1/health (încarcă .env)
 cd ../AradEx-Backend && ./gradlew test                        # teste BE (api + app)
-cd ../AradEx-Frontend && npm run dev                          # APP :5173 → web; aplicația mobilă: /?app=mobile (înapoi: ?app=web)
+cd ../AradEx-Frontend && npm run dev                          # web :5173 (prezentare + panouri); aplicația: npm run dev:mobile (:5174)
 cd ../AradEx-Frontend && npm run build && npm run test
 cd ../AradEx-Frontend && npm run android:run                 # aplicația Android pe emulator (Capacitor; docs/SETUP.md)
 powershell -ExecutionPolicy Bypass -File .\setup-windows.ps1  # Windows: verifică/instalează uneltele
