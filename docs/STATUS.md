@@ -2,7 +2,7 @@
 
 Starea reală a story-urilor din `docs/PLAN.md`, deciziile luate pe parcurs și ce a rămas. **Fiecare PR din `AradEx-Plan` își actualizează rândul lui aici** (skill-ul `task-workflow`, pasul 5). Adevărul final e pe GitHub (PR-uri merge-uite în `main`); fișierul ăsta e rezumatul pentru oameni și pentru Claude.
 
-Ultima actualizare: 2026-11-07 — T04: producția pe AWS (https://aradexperience.site), deploy automat din GitHub Actions; T03, T15/Android și T02 merge-uite.
+Ultima actualizare: 2026-11-07 — T04: producția pe AWS (https://aradexperience.site), deploy automat din GitHub Actions; T09 (Firme & panou) merge-uit; T03, T15/Android și pregătirea anti-conflict T02 (FE #8, Plan #6) pe `main`.
 
 ## Story-uri
 Legendă: ✅ gata (merge-uit sau PR deschis, verificat) · 🟡 parțial · ⬜ neînceput
@@ -16,7 +16,8 @@ Legendă: ✅ gata (merge-uit sau PR deschis, verificat) · 🟡 parțial · ⬜
 | T04 Deploy v0 | ✅ merge-uit, live | [Infra #1](https://github.com/HACK4ARAD/AradEx-Infrastructure/pull/1) · [Infra #2](https://github.com/HACK4ARAD/AradEx-Infrastructure/pull/2) · [Infra #3](https://github.com/HACK4ARAD/AradEx-Infrastructure/pull/3) · [BE #6](https://github.com/HACK4ARAD/AradEx-Backend/pull/6) · [FE #9](https://github.com/HACK4ARAD/AradEx-Frontend/pull/9) · [Plan #7](https://github.com/HACK4ARAD/AradEx-Plan/pull/7) | **Producția pe AWS** (`eu-north-1`), nu pe Render/Netlify/Neon: https://aradexperience.site. Terraform în `AradEx-Infrastructure/terraform` (VPC fără NAT, RDS Postgres 16, ALB public cu HTTPS, ECS Fargate pentru API și pentru PWA (nginx), alarme + buget), state în S3. **Deploy automat:** merge pe `main` în BE/FE → `.github/workflows/deploy.yml` (teste → imagine în ECR → ECS cu rollback). Primele deploy-uri BE și FE din Actions au trecut (inclusiv `Dockerfile`-ul BE, neverificat până atunci); API și PWA rulează (1 task fiecare). Verificat: PWA pe `/`, `/m`, link-uri adânci; `/api/v1/health` ok; 401/404 ca ProblemDetail JSON; CORS pentru Android. Rămâne: cheia OpenAI în Secrets Manager. Detalii: `docs/DEPLOY.md`, `AradEx-Infrastructure/README.md`. |
 | T05 Locuri & ghid | ⬜ | — | Migrările + seed-ul V3/V3_1 există (+ pozele în V4_2). Editarea obiectivelor e la Primărie: `/city/places/**`. |
 | T06 Evenimente | ⬜ | — | Migrările + seed-ul V4/V4_1/V4_2 (poze) există. |
-| T07–T14, T16–T19 | ⬜ | — | — |
+| T07, T08, T10–T14, T16–T19 | ⬜ | — | — |
+| T09 Firme & panou | ✅ merge-uit | [BE #7](https://github.com/HACK4ARAD/AradEx-Backend/pull/7) · [FE #10](https://github.com/HACK4ARAD/AradEx-Frontend/pull/10) · [Plan #8](https://github.com/HACK4ARAD/AradEx-Plan/pull/8) | **BE:** V6 (`announcements` + `businesses.google_place_id` pentru T17) și V6_1 (4 anunțuri FICTIVE), `BusinessApi` cu toate rutele din API.md §Firme, `BusinessService` (proprietar → 403, firmă neverificată → `DRAFT`, validări 400), 31 de teste noi (`BusinessServiceTest`, `BusinessControllerTest`, DTO-uri); `./gradlew test` = 174 verzi, 0 sărite (cu Testcontainers 1.21.4, vezi mai jos). **FE:** pagina publică (mobil + W15), panoul web (Panou, Evenimente cu creare/editare, Anunțuri, Profil), panoul mobil E5 în `/m/panel` (statistici, tab-uri Evenimente/Anunțuri cu creare în sheet); 7 teste noi. Verificat pe API real + în browser la 390×844 și 1280. Lipsesc: lista publică `/events` (T06) — azi evenimentul firmei se vede pe pagina firmei; „Validează un cod” și ofertele (T10); recenziile (T17); harta de pe W15 (T08). |
 | T15 i18n, PWA, Android | 🟡 (Android merge-uit) | [FE #7](https://github.com/HACK4ARAD/AradEx-Frontend/pull/7) (#6 a intrat din greșeală doar în `feat/T03-auth`) | **Android gata:** Capacitor 6, `AradEx-Frontend/android/`, aplicația „AradExperience” (`ro.aradexperience.app`) rulează pe emulator, login verificat. Rămân: iconița și splash-ul aplicației, iOS (doar pe macOS), EN complet pe module, verificarea „Add to Home Screen”. |
 
 ## Decizii luate (de ce e așa)
@@ -41,13 +42,22 @@ Legendă: ✅ gata (merge-uit sau PR deschis, verificat) · 🟡 parțial · ⬜
 - **T04 — Fargate pe x86_64:** runner-ele GitHub gratuite sunt x86, deci `Dockerfile`-ul BE se construiește nativ (pe ARM ar fi fost prin emulare, de >10× mai lent).
 - **T04 — `CORS_ORIGINS` în producție** = `https://aradexperience.site,http://localhost` (al doilea e originea aplicației Android).
 - **T04 — un merge pe `main` în BE/FE e deploy în producție** după ~5–8 minute; testele pică → nu se face deploy; taskul nou nu pornește → ECS rămâne pe versiunea veche. Regula e în `task-workflow` și `review-pr`.
+- **T09 — piese minime de evenimente în T09:** T06 nu era început, așa că T09 a adăugat ce îi trebuia pentru `/business/events`: în BE entitatea `Event`, `EventRepository` (doar interogările pe firmă), `EventSummary`/`EventDto`/`EventCreate`, `EventMapper` și enum-urile `EventCategory`, `OrganizerType`, `TicketType`, `ContentStatus`; în FE `EventCreate`, `EventCategory`, `ContentStatus` în `types/business.ts`. **T06 le refolosește** (adaugă lista publică, filtrele, `distanceKm`, `saved`); dacă le mută în `types/events.ts`, le șterge din `types/business.ts` (același nume în două module strică `types/api.ts`).
+- **T09 — locația evenimentului firmei** e opțională: fără `lat`/`lng` evenimentul e la sediul firmei; la editare rămâne locația existentă. `priceFrom` = 0 la `FREE` (prețurile se șterg), minimul adult/copil la `IN_APP`, prețul adult la `EXTERNAL`.
+- **T09 — `AnnouncementDto` are și `status`** (în plus față de API.md inițial), ca firma să-și vadă ciornele în panou; pagina publică arată doar `PUBLISHED`. API.md actualizat.
+- **T09 — `GET /business/activity` e goală** până când există sursele ei (coduri T10, bilete T07, plăți cu puncte T11); `stats.codesUsed`/`pointsPayments` sunt 0 până atunci. Fiecare story adaugă rândurile lui în `BusinessService.activity`.
+- **T09 — ADMIN** trece de `/business/**` (SecurityConfig) și poate edita/șterge orice eveniment sau anunț de firmă, dar `/business/me` îi dă 404 (n-are firmă).
+- **T09 — composables noi:** `shared/composables/useBusiness.ts` (panou + pagina publică) și `useEventForm.ts` (formularul de eveniment, ora Aradului cu ora de vară, teste) — fișiere noi, nu ating ale altcuiva; `EventForm` din `shared/components/business/` poate fi refolosit de T06 pentru evenimentele Primăriei.
 
 ## Probleme cunoscute / de făcut mai târziu
 - **Lecție (T15):** un PR stivuit (bază = alt branch de feature) se merge-uiește doar după ce i-ai schimbat baza la `main` (PR → *Edit* → base). FE #6 avea baza `feat/T03-auth`, a fost merge-uit după ce T03 intrase deja în `main`, iar codul a ajuns doar în branch-ul vechi; s-a reparat cu FE #7. Regula e acum în `task-workflow` și `review-pr`.
-- Branch-urile `feat/T03-auth` (BE, FE, Plan) și `feat/T15-android` (FE) sunt merge-uite și pot fi șterse pe GitHub.
+- Branch-urile `feat/T03-auth` (BE, FE, Plan), `feat/T15-android` (FE) și `feat/T09-business` (BE, FE, Plan) sunt merge-uite și pot fi șterse pe GitHub.
 - `AradEx-Ops/agents/*.md` trimit încă la `docs/TEAM.md` și `docs/status/Px.md` (șterse); de aliniat la acest fișier (P1).
 - `GlobalExceptionHandler` are încă un handler pentru `BadCredentialsException` care nu mai e folosit (login-ul aruncă `UnauthorizedException`); inofensiv.
 - Iconița aplicației Android e cea implicită Capacitor.
+- **Docker 29 + Testcontainers 1.19.8 (din BOM-ul Spring Boot 3.3.5) nu merg împreună:** Docker Engine 29 cere API ≥ 1.44, Testcontainers 1.19 folosește 1.32 → `AppSmokeTest` apare „skipped” deși Docker merge. T09 a fost verificat cu toate cele 174 de teste, **0 sărite**, rulând `./gradlew test -Ptestcontainers.version=1.21.4` (fără schimbări în fișiere). **De cerut lui P1:** `ext['testcontainers.version'] = '1.21.4'` în `build.gradle`, ca să meargă pentru toată echipa (vezi SETUP §5).
+- **T09:** butonul „Validează un cod” (web + mobil) e dezactivat cu mesajul „vine în T10”; secțiunile Oferte / Validează coduri / Recenzii ale panoului rămân placeholder (T10, T17).
+- **T09:** migrarea V6 vine înaintea lui V5 (T07); dacă T07 intră după T09 pe o bază unde V6 e deja aplicat, Flyway refuză V5 fără `outOfOrder` — T07 trebuie să verifice numărul pe `origin/main` (CLAUDE.md BE).
 
 - **T04 — de făcut:**
   - cheia OpenAI în Secrets Manager (`AradEx-Infrastructure/scripts/set-openai-key.sh`), altfel chat-ul și planificatorul răspund cu fallback-ul. **Bedrock nu e o alternativă acum:** modelele apar în `eu-north-1` și SCP-ul permite Bedrock, dar contul primește `authorizationStatus: NOT_AUTHORIZED` (aceeași restricție de cont nou ca la CloudFront);
