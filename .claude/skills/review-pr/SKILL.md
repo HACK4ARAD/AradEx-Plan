@@ -13,7 +13,7 @@ Scopul review-ului e **demo fără bug-uri majore**, nu cod perfect. Durata țin
 
 ## 2. Rulează, nu doar citi
 - BE: `./gradlew test`; pornește API-ul (`./gradlew :app:bootRun`) și încearcă în Swagger endpoint-urile noi: cazul bun + 400 (body invalid) + 401 (fără token) + 403 (rol greșit) + 404/409 unde e cazul. Compară numele câmpurilor cu `docs/API.md` literă cu literă.
-- FE: `npm run build && npm run test`; `npm run dev`, ecranul nou pe 390×844 și ≥1280: loading / gol / eroare (oprește API-ul ca să vezi eroarea), texte cu diacritice, fără `console.log`. Dacă PR-ul atinge ecrane de mobil: și în aplicația Android pe emulator (`npm run android:run`, `docs/SETUP.md`).
+- FE: `npm run build && npm run test`; `npm run dev:mobile` (aplicația, 390×844) și `npm run dev` (web, ≥1280), ecranul nou: loading / gol / eroare (oprește API-ul ca să vezi eroarea), texte cu diacritice, fără `console.log`. Dacă PR-ul atinge ecrane de mobil: și în aplicația Android pe emulator (`npm run android:run`, `docs/SETUP.md`).
 - Rolurile: `config/SecurityRulesTest` verde; încearcă ruta nouă cu un cont cu rol greșit (403) și fără token (401).
 - Feature-ul PR-ului, funcțional cap-coadă (nu tot fluxul de demo).
 
