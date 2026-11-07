@@ -104,7 +104,7 @@ Reguli: e-mail + parolă (min. 8), JWT 24 h; rolul se alege la înregistrare (Vi
 
 ## 15. Transversale
 - **Aplicația nativă** Android + iOS (Capacitor; PWA doar ca rezervă în browser), offline pentru bilete și ultimul itinerar; **i18n** RO (+EN); **notificări** (în afara v1 — pitch); **hărți** Leaflet/OSM; **securitate**: JWT, roluri pe rute, coduri QR = doar text, fără date personale; **erori** ProblemDetail afișate în toast.
-- **Mobil vs web — aceleași date, altă așezare**: pe mobil ecranele sunt pe rând cu tab bar (Evenimente · Chat · Hartă · Bilete/Panou · Transport); pe web, liste + detaliu/formular alături (drawer), tabele pentru panouri, „Contul meu” ca hub (W14) pentru ce pe mobil e în Bilete/Salvate/Profil.
+- **Aplicația mobilă vs web — nu sunt la fel:** aplicația (Android + iOS) are **toate** ecranele publice, pe rând, cu tab bar (Evenimente · Chat · Hartă · Bilete/Panou · Transport); biletele, salvatele și profilul sunt în aplicație. Web-ul are **doar** site-ul de prezentare (fără funcții pentru public, cu „Descarcă aplicația”) și **panourile** (tabele, formulare cu previzualizare, statistici) pentru Primărie, firme și Admin. Nu există echivalent web pentru ecranele publice (W5–W15, inclusiv „Contul meu” W14). Unde rulează fiecare: `docs/DEPLOY.md`.
 
 ## Ce NU e în v1 (de spus în pitch la „ce urmează”)
 Plăți reale, anularea biletelor, notificări push, sincronizare cu Google Calendar (doar export .ics / link), HU, recenzii la obiective, mesagerie firmă–client, rapoarte PDF pentru Primărie, autobuze în Transport, SMS real pentru voluntari.

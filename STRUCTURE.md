@@ -97,7 +97,7 @@ AradEx-Frontend/                      REPO 3 — frontend (Vue 3.5, Vite 8, Type
 ├─ package.json · vite.config.ts · tsconfig*.json · index.html · .env.example (VITE_API_URL, VITE_DEMO)
 ├─ capacitor.config.ts · android/     aplicația Android (Capacitor 6, T15): același build `dist`, pornește pe /m; `npm run android:run`
 ├─ public/                            manifest + icon-uri PWA, fonturi locale (Inter, Material Symbols), _redirects (nefolosit pe AWS), img/ (pozele din seed, copiate din design/assets)
-├─ deploy/                            Dockerfile + nginx.conf: imaginea de producție a PWA-ului (fallback SPA, cache), ECR aradex-web → ECS
+├─ deploy/                            Dockerfile + nginx.conf: imaginea web de producție (site de prezentare + panouri; fallback SPA, cache), ECR aradex-web → ECS
 ├─ .dockerignore                      contextul imaginii: doar dist/ și deploy/
 ├─ .github/workflows/deploy.yml       la merge pe main: npm run test + build → imagine nginx în ECR → deploy ECS (al lui P1; singurul workflow)
 └─ src/
@@ -121,7 +121,7 @@ AradEx-Infrastructure/                REPO 4 — infrastructură (doar P1)
 ├─ docker-compose.yml                 Postgres 16 local (arad/arad, db aradexperience, :5432, volum)
 ├─ README.md · CLAUDE.md              comenzi locale + runbook-ul AWS (de la zero la live, redeploy, ștergere)
 ├─ terraform/                         producția pe AWS (eu-north-1), state în S3: root (variabile, provider-e, module) + bootstrap/ (bucket-ul de state)
-│  ├─ modules/                        network (VPC fără NAT) · data (RDS Postgres 16, secrete) · api (ALB public HTTPS + rutare, ECR + ECS API) · web (nginx cu PWA-ul) · edge (zona DNS, certificat) · github_deploy (utilizatori IAM pentru GitHub Actions) · monitoring (alarme, buget)
+│  ├─ modules/                        network (VPC fără NAT) · data (RDS Postgres 16, secrete) · api (ALB public HTTPS + rutare, ECR + ECS API) · web (nginx: prezentare + panouri) · edge (zona DNS, certificat) · github_deploy (utilizatori IAM pentru GitHub Actions) · monitoring (alarme, buget)
 │  └─ tests/                          terraform test cu provider simulat (fără credențiale)
 ├─ scripts/                           set-anthropic-key.sh · github-keys.sh (cheile de deploy direct în secretele GitHub) · redeploy.sh · destroy.sh
 ├─ docs/superpowers/                  designul (specs/) și planul de implementare (plans/) al infrastructurii
