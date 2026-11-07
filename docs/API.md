@@ -12,7 +12,7 @@ FE: tipurile TypeScript din `AradEx-Frontend/src/shared/types/<modul>.ts` oglind
 
 ## DTO-uri comune
 ```ts
-type Role = 'VISITOR'|'LOCAL'|'BUSINESS'|'CITY_HALL'|'ADMIN'|'VOLUNTEER'   // VOLUNTEER: creat de Primărie (T18; coloana users.role îl acceptă după V10)
+type Role = 'VISITOR'|'LOCAL'|'BUSINESS'|'CITY_HALL'|'ADMIN'|'VOLUNTEER'   // VOLUNTEER: creat de Primărie (T18; coloana users.role îl acceptă după V13)
 type UserDto = { id: number; email: string; displayName: string; role: Role; locale: 'ro'|'en'; pointsBalance: number; business?: BusinessSummary }
 type BusinessSummary = { id: number; name: string; category: string; verified: boolean; imageUrl?: string }
 type GeoPoint = { lat: number; lng: number }
@@ -181,16 +181,42 @@ DTO-uri (T14):
 - Contul dezactivat (`disabled`) primește **403 `Account disabled`** la `/auth/login` și la `/auth/otp/verify`; un token emis înainte rămâne valabil până expiră (`SecurityConfig`/`JwtAuthFilter` nu se schimbă în T14).
 
 ## Voluntari (T18)
-Rolul `VOLUNTEER` e deja în `Role` (BE + FE) și în `SecurityConfig` din T03 (`/vol/**` → VOLUNTEER, `POST /auth/volunteer` public, `/city/volunteers/**` → CITY_HALL/ADMIN); T18 adaugă migrarea V10 (CHECK-ul din `users.role`). Conturile le creează doar Primăria.
+Rolul `VOLUNTEER` e în `Role` (BE + FE) și în `SecurityConfig` din T03 (`/vol/**` → VOLUNTEER, `POST /auth/volunteer` public prin `/auth/**`, `/city/**` → CITY_HALL/ADMIN). T18 adaugă migrarea **V13** (`users.role` acceptă VOLUNTEER; voluntarii n-au email / telefon în `users`) — nu V10, cum era rezervat: între timp au intrat V11 (T21) și V12 (T22), iar pe o bază nouă V10 ar fi rulat înaintea constrângerii „email sau telefon” din V11. Conturile le creează doar Primăria. Interfețele: `VolunteerApi` (aplicația) și `CityVolunteersApi` (panoul).
+
+**Reguli.** Acțiunea alocată e `LOCKED` până cu 30 de minute înainte de start, `OPEN` de atunci până la miezul nopții zilei în care se termină (ora Aradului; întârziații se pot confirma și după ora de final), `ENDED` după (sau dacă e `DONE`). Scanarea merge doar `OPEN`. Contul de unică folosință expiră după ultima acțiune alocată (fără acțiuni nu expiră). Suspendat sau expirat: 401 la intrare, 403 pe `/vol/**` (și cu un token vechi). Coduri greșite: după 10 în 15 minute de la aceeași adresă → 429 (`retryAfterSeconds`). Telefonul voluntarului stă în `volunteers`, nu în `users.phone`, ca să nu poată intra cu OTP-ul din T21.
+
 | Metodă | Rută | Auth | Cerere → Răspuns |
 |---|---|---|---|
-| GET / POST | `/city/volunteers` | CITY_HALL, ADMIN | `{ name, phone, actionIds: number[], oneTime }` → `VolunteerDto { id, name, phone, actionIds, oneTime, status: 'ACTIVE'\|'SUSPENDED', loginCode }` (cod de 6 cifre, „trimis prin SMS” = simulat) |
-| PATCH | `/city/volunteers/{id}` | CITY_HALL, ADMIN | `{ actionIds?, status? }` → `VolunteerDto` |
-| GET / POST | `/city/volunteers/{id}/messages` | CITY_HALL, ADMIN | `{ text }` → `MessageDto { id, fromCity, text, createdAt }` |
-| POST | `/auth/volunteer` | pub | `{ code }` → `{ token, user }` (401 cod greșit sau suspendat) |
-| GET | `/vol/actions` | VOLUNTEER | → `ActionSummary[]` alocate (+ `unlocked` = se deschide cu 30 min înainte de start) |
-| POST | `/vol/scan` | VOLUNTEER | `{ code }` → `ConfirmResultDto` (aceeași logică idempotentă ca `/city/registrations/confirm`; 403 dacă acțiunea nu e a lui) |
-| GET / POST | `/vol/messages` | VOLUNTEER | `{ text }` → `MessageDto[]` / `MessageDto` |
+| GET | `/city/volunteers` | CITY_HALL, ADMIN | → `VolunteerDto[]` (cele mai noi întâi) |
+| POST | `/city/volunteers` | CITY_HALL, ADMIN | `VolunteerCreate` → `VolunteerDto` (201). Cod de 6 cifre unic, fără 0 la început, „trimis prin SMS” (simulat: îl arată panoul). Telefonul în orice format românesc → E.164. `coordinatorId` lipsă = cel care creează. 400: acțiune inexistentă / nepublicată, coordonator care nu e cont CITY_HALL / ADMIN, telefon invalid |
+| PATCH | `/city/volunteers/{id}` | CITY_HALL, ADMIN | `VolunteerUpdate` → `VolunteerDto` (câmpurile lipsă rămân; o acțiune deja alocată rămâne valabilă și după ce s-a încheiat; 404) |
+| GET | `/city/volunteers/{id}/messages` | CITY_HALL, ADMIN | → `VolunteerMessageDto[]` (vechi → noi); mesajele voluntarului devin citite |
+| POST | `/city/volunteers/{id}/messages` | CITY_HALL, ADMIN | `{ text }` (≤ 1000) → `VolunteerMessageDto` (201) |
+| GET | `/city/coordinators` | CITY_HALL, ADMIN | → `CoordinatorDto[]` (conturile CITY_HALL, după nume) |
+| POST | `/auth/volunteer` | pub | `{ code }` (6 cifre) → `AuthResponse { token, user }`; 401 cod greșit / suspendat / expirat; 429 |
+| GET | `/vol/me` | VOLUNTEER | → `VolunteerMeDto` (antetul „Acțiunile tale”) |
+| GET | `/vol/actions` | VOLUNTEER | → `VolunteerActionDto[]` alocate (publicate sau încheiate), după start |
+| POST | `/vol/scan` | VOLUNTEER | `{ code, actionId? }` → `ConfirmResultDto` — aceeași confirmare idempotentă ca `/city/registrations/confirm` (punctele o singură dată, `confirmedBy` = voluntarul). Ordinea erorilor: 404 cod necunoscut → 403 acțiune nealocată → 409 cod de la altă acțiune decât `actionId` („This code is for another action: <titlu>”) → 403 încă închisă / încheiată → 409 înscriere anulată |
+| GET | `/vol/scans` | VOLUNTEER | → `RegistrationDto[]` — ultimele 10 confirmări ale voluntarului („Scanări recente”) |
+| GET / POST | `/vol/messages` | VOLUNTEER | → `VolunteerMessageDto[]` (mesajele Primăriei devin citite) / `{ text }` → `VolunteerMessageDto` (201) |
+
+```ts
+type VolunteerStatus = 'ACTIVE' | 'SUSPENDED'
+type VolunteerActionState = 'LOCKED' | 'OPEN' | 'ENDED'
+type VolunteerCreate = { name: string /*≤120*/; phone: string; email?: string; coordinatorId?: number; actionIds: number[] /*≤50*/; oneTime: boolean }
+type VolunteerUpdate = { actionIds?: number[]; status?: VolunteerStatus; coordinatorId?: number }
+type VolunteerDto = { id: number /*= users.id*/; name: string; phone: string /*E.164*/; email?: string; loginCode: string; oneTime: boolean;
+  status: VolunteerStatus; expired: boolean; coordinatorId: number; coordinatorName?: string; actionIds: number[];
+  scans: number /*confirmări făcute*/; unread: number /*mesaje ale lui necitite de Primărie*/; lastMessage?: VolunteerMessageDto;
+  createdAt: string; lastLoginAt?: string }
+type VolunteerMessageDto = { id: number; fromCity: boolean; authorName?: string; text: string; createdAt: string; readAt?: string }
+type CoordinatorDto = { id: number; name: string }
+type VolunteerMeDto = { id: number; name: string; coordinatorName?: string; oneTime: boolean; actions: number; scanned: number;
+  toScan: number /*neconfirmați în acțiunile neîncheiate*/; unreadMessages: number }
+type VolunteerActionDto = { id: number; title: string; category: ActionCategory; startAt: string; endAt: string; locationName: string;
+  address?: string; lat: number; lng: number; pointsReward: number; imageUrl?: string; registered: number; confirmed: number;
+  confirmedByMe: number; state: VolunteerActionState; opensAt: string /*start − 30 min*/ }
+```
 
 ## Transport (T19) — fără endpoint-uri
 Liniile de tramvai CTP Arad (OSM, ODbL) și orarele de exemplu sunt date statice în FE (`shared/data/tram.ts`, din `design/final/shared/tram.js`); traseele pe jos prin OSRM, ca la T08.
