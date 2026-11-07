@@ -29,11 +29,11 @@ type TicketDto = { code: string; eventId: number; eventTitle: string; startAt: s
 type OfferSummary = { id: number; businessId: number; businessName: string; title: string; discountLabel: string; localProduct: boolean; validUntil: string; pointsPrice?: number; imageUrl?: string; distanceKm?: number; rating?: number }
 type OfferDto = OfferSummary & { description: string; validFrom: string; status: string; viewsCount: number; redemptionsCount: number; usedCount: number; myRedemption?: RedemptionDto }
 type RedemptionDto = { id: number; code: string; offerId: number; offerTitle: string; businessName: string; pointsSpent: number; status: 'ISSUED'|'USED'|'CANCELLED'; issuedAt: string; usedAt?: string; offerImageUrl?: string; validUntil?: string }
-type ActionSummary = { id: number; title: string; category: string; startAt: string; endAt: string; locationName: string; lat: number; lng: number; pointsReward: number; capacity: number; registeredCount: number; imageUrl?: string; goingPreview: string[]; myRegistration?: RegistrationDto }
-type ActionDto = ActionSummary & { description: string; address: string; status: string; confirmedCount: number }
-type RegistrationDto = { id: number; actionId: number; actionTitle: string; code: string; status: 'REGISTERED'|'CONFIRMED'|'CANCELLED'|'NO_SHOW'; registeredAt: string; confirmedAt?: string; user?: { id: number; displayName: string } }
-type PointsDto = { balance: number; monthEarned: number; rank?: number; transactions: { id: number; amount: number; type: string; note?: string; createdAt: string }[] }
-type LeaderboardDto = { period: 'month'|'year'; entries: { rank: number; userId: number; displayName: string; points: number }[]; me?: { rank: number; points: number } }
+type ActionSummary = { id: number; title: string; category: 'ENVIRONMENT'|'HEALTH'|'SOCIAL'|'CULTURE'; organizer?: string; startAt: string; endAt: string; locationName: string; lat: number; lng: number; pointsReward: number; capacity: number; registeredCount: number; imageUrl?: string; goingPreview: string[]; myRegistration?: RegistrationDto }
+type ActionDto = ActionSummary & { description: string; address?: string; status: 'DRAFT'|'PUBLISHED'|'CANCELLED'|'DONE'; confirmedCount: number; imageCredit?: string }
+type RegistrationDto = { id: number; actionId: number; actionTitle: string; actionStartAt: string; locationName: string; pointsReward: number; code: string; status: 'REGISTERED'|'CONFIRMED'|'CANCELLED'|'NO_SHOW'; registeredAt: string; confirmedAt?: string; confirmedBy?: string; actionImageUrl?: string; user?: { id: number; displayName: string } }   // confirmedBy = numele celui care a confirmat / respins; user doar în listele Primăriei
+type PointsDto = { balance: number; monthEarned: number; rank: number; streakMonths: number; transactions: { id: number; amount: number; type: 'EARN_ACTION'|'SPEND_OFFER'|'ADJUST'; note?: string; createdAt: string }[] }   // rank = locul în clasamentul lunii; streakMonths = luni consecutive cu puncte câștigate
+type LeaderboardDto = { period: 'month'|'year'; entries: { rank: number; userId: number; displayName: string; points: number; actionsCount: number; lastAt?: string; lastActionTitle?: string }[]; me?: { rank: number; points: number } }   // actionsCount / lastAt / lastActionTitle = participările confirmate în perioadă
 type ItineraryStop = { order: number; kind: 'PLACE'|'EVENT'|'OFFER'; refId: number; name: string; lat: number; lng: number; arriveAt: string; leaveAt: string; durationMin: number; travelMinutesFromPrev: number; travelMode: 'WALK'|'CAR'|'PUBLIC'; note?: string; parkingHint?: string; hasGuide: boolean; imageUrl?: string }
 type ItineraryDto = { id?: number; shareCode?: string; title: string; summary: string; date: string; transport: 'WALK'|'CAR'|'PUBLIC'; totalMinutes: number; stops: ItineraryStop[] }
 ```
@@ -114,7 +114,7 @@ FE folosește `GET /events?near=`, `GET /places?near=`, `GET /offers?near=`, `GE
 |---|---|---|---|
 | GET | `/offers?category&localProduct=true&points=true&near=lat,lng&q` | pub | → `OfferSummary[]` (doar `PUBLISHED`, valabile azi în ora Aradului; `category` = `OfferCategory`; `localProduct=true` = „Făcut în Arad” (`localProduct` sau `category=LOCAL`); `points=true` = „Cu puncte” (au `pointsPrice`); cu `near` se completează `distanceKm` (față de firmă) și se sortează după distanță; 400 dacă `near` nu e `lat,lng`) |
 | GET | `/offers/{id}` | pub | → `OfferDto` (+ `myRedemption` = ultimul meu cod pentru ofertă, dacă sunt logat; incrementează `viewsCount`); 404 dacă nu e `PUBLISHED` |
-| POST | `/offers/{id}/redeem` | auth | → 201 `RedemptionDto` (`ISSUED`); 404 ofertă inexistentă / nepublicată; 409 „You already have an active code for this offer”; 409 „This offer is not valid today”; **T11:** 409 `insufficient_points` dacă `pointsPrice` > sold (până atunci revendicarea e gratuită, `pointsSpent` = 0) |
+| POST | `/offers/{id}/redeem` | auth | → 201 `RedemptionDto` (`ISSUED`); 404 ofertă inexistentă / nepublicată; 409 „You already have an active code for this offer”; 409 „This offer is not valid today”; **T11 — plata cu puncte:** `?withPoints=true` plătește `pointsPrice` din punctele comunitare (`pointsSpent` = prețul; 409 `insufficient_points` dacă soldul nu ajunge și atunci nu se emite niciun cod; 400 dacă oferta n-are `pointsPrice`); ofertele doar pe puncte (eticheta „N p”, ca `offerBadge` din FE) se plătesc mereu cu puncte; fără parametru, oferta normală se revendică gratuit |
 | GET | `/me/redemptions` | auth | → `RedemptionDto[]` (cele mai noi primele) |
 | GET | `/business/offers` | BUSINESS | → `OfferDto[]` (ale firmei mele, inclusiv ciorne; fără cele ascunse) |
 | POST | `/business/offers` | BUSINESS | `OfferCreate` → 201 `OfferDto` (`DRAFT` dacă firma nu e verificată); 400 dacă `validUntil` < `validFrom` sau `status=HIDDEN` |
@@ -130,20 +130,21 @@ Cod ofertă: `AX-O{offerId}-{6}` (alfabetul fără 0/O/1/I). În pagina firmei (
 ## Comunitate & puncte (T11)
 | Metodă | Rută | Auth | Cerere → Răspuns |
 |---|---|---|---|
-| GET | `/community/actions?upcoming=true` | pub | → `ActionSummary[]` (+ `myRegistration` dacă e logat) |
-| GET | `/community/actions/{id}` | pub | → `ActionDto` |
-| POST | `/community/actions/{id}/register` | LOCAL (și VISITOR) | → `RegistrationDto` (409 plin / deja înscris) |
-| DELETE | `/community/actions/{id}/register` | auth | → 204 |
-| GET | `/me/community/registrations` | auth | → `RegistrationDto[]` |
-| GET | `/community/leaderboard?period=month\|year` | pub (+ `me` dacă e logat) | → `LeaderboardDto` |
-| GET / POST | `/city/actions` | CITY_HALL | `ActionCreate { title, description, category, startAt, endAt, locationName, address, lat, lng, pointsReward, capacity, imageUrl? }` → `ActionDto` |
-| PUT | `/city/actions/{id}` | CITY_HALL | |
-| GET | `/city/actions/{id}/registrations?status` | CITY_HALL | → `RegistrationDto[]` cu `user` |
-| POST | `/city/registrations/confirm` | CITY_HALL | `{ code }` → `ConfirmResultDto = RegistrationDto & { alreadyConfirmed: boolean; pointsAwarded: number }` (idempotent: a doua oară 200 cu `alreadyConfirmed: true`, `pointsAwarded: 0`; 404 cod necunoscut) |
-| POST | `/city/registrations/{id}/confirm` | CITY_HALL | → `ConfirmResultDto` |
-| POST | `/city/registrations/{id}/reject` | CITY_HALL | → `RegistrationDto` NO_SHOW |
+| GET | `/community/actions?upcoming=true` | pub | → `ActionSummary[]` (+ `myRegistration` dacă e logat). `upcoming=true` (implicit) = publicate care nu s-au încheiat **înainte de azi** (cele de azi rămân toată ziua, pentru validare), cea mai apropiată prima; `false` = publicate + încheiate (DONE), cele mai noi primele |
+| GET | `/community/actions/{id}` | pub | → `ActionDto` (ciornele și acțiunile anulate: 404, mai puțin pentru CITY_HALL / ADMIN) |
+| POST | `/community/actions/{id}/register` | LOCAL, VISITOR | → `RegistrationDto` (201; 409 plin / deja înscris / respins / acțiune încheiată sau nepublicată; 404 ciornă). După o anulare, reînscrierea refolosește același cod |
+| DELETE | `/community/actions/{id}/register` | auth | → 204 (idempotent; 404 dacă nu e înscris; 409 dacă e deja confirmat sau respins) |
+| GET | `/me/community/registrations` | auth | → `RegistrationDto[]` (fără cele anulate; întâi cele care urmează) |
+| GET | `/community/leaderboard?period=month\|year` | pub (+ `me` dacă e logat) | → `LeaderboardDto` (luna / anul curent, ora Aradului; doar puncte câștigate; top 50; egalitățile după id; fără puncte în perioadă → `me.rank` = primul loc după cei cu puncte; 400 la altă perioadă) |
+| GET | `/city/dashboard` | CITY_HALL | → `CityDashboardDto { upcomingEvents, registrations, pointsAwarded, pendingValidations, activeVolunteers, actions: { id, title, startAt, registeredCount, capacity, pendingCount, imageUrl? }[], activity: { type: RegistrationStatus, userName, actionTitle, points, by?, at }[] }` (panoul W2; `pointsAwarded` = luna curentă; `activeVolunteers` = 0 până la T18) |
+| GET / POST | `/city/actions` | CITY_HALL | GET → `ActionDto[]` (toate, inclusiv ciorne). POST `ActionCreate { title, description, category, organizer?, startAt, endAt, locationName, address?, lat?, lng?, pointsReward (10–200), capacity (1–1000), imageUrl?, imageCredit?, status?: 'DRAFT'\|'PUBLISHED' }` → `ActionDto` (201; fără lat/lng → centrul Aradului; 400 dacă `endAt <= startAt`) |
+| PUT | `/city/actions/{id}` | CITY_HALL | `ActionCreate` → `ActionDto` (`status` lipsă = neschimbat; 409 dacă `capacity` < înscriși) |
+| GET | `/city/actions/{id}/registrations?status` | CITY_HALL | → `RegistrationDto[]` cu `user` și `confirmedBy` |
+| POST | `/city/registrations/confirm` | CITY_HALL | `{ code }` → `ConfirmResultDto = RegistrationDto & { alreadyConfirmed: boolean; pointsAwarded: number }` (idempotent: a doua oară 200 cu `alreadyConfirmed: true`, `pointsAwarded: 0`; 404 cod necunoscut; 400 format greșit; 409 anulată de participant / acțiune nepublicată). T18 `/vol/scan` refolosește aceeași logică (`CityCommunityService.confirmByCode`) |
+| POST | `/city/registrations/{id}/confirm` | CITY_HALL | → `ConfirmResultDto` (și pentru un NO_SHOW respins din greșeală) |
+| POST | `/city/registrations/{id}/reject` | CITY_HALL | → `RegistrationDto` NO_SHOW (idempotent; eliberează locul; 409 dacă e deja confirmată) |
 
-Cod înscriere: `AX-C{actionId}-{6}`. Punctele se scriu **doar** prin `PointsService` (`award`/`spend`).
+Cod înscriere: `AX-C{actionId}-{6}`. Punctele se scriu **doar** prin `PointsService` (`award` / `spend` → 409 `insufficient_points` / `adjust` pentru T14). Confirmarea acordă `pointsReward` o singură dată (înscrierea e blocată pe durata tranzacției + index unic pe câștigul per acțiune).
 
 ## AI (T12, T13)
 | Metodă | Rută | Auth | Cerere → Răspuns |

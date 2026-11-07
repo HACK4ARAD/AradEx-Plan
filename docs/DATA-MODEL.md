@@ -15,8 +15,8 @@ Nu se modifică o migrare deja aplicată pe `main` — se adaugă una nouă.
 - `ContentStatus`: `DRAFT, PUBLISHED, HIDDEN` (evenimente/oferte/anunțuri)
 - `TicketStatus`: `CONFIRMED, CANCELLED, USED`
 - `RedemptionStatus`: `ISSUED, USED, CANCELLED`
-- `ActionCategory`: `TREES, CLEANUP, BLOOD, SOCIAL, OTHER`
-- `ActionStatus`: `PUBLISHED, CANCELLED, DONE`
+- `ActionCategory`: `ENVIRONMENT, HEALTH, SOCIAL, CULTURE` (ca în design: Mediu, Sănătate, Social, Cultură)
+- `ActionStatus`: `DRAFT, PUBLISHED, CANCELLED, DONE` (`DRAFT` = ciornă, vizibilă doar în panoul Primăriei)
 - `RegistrationStatus`: `REGISTERED, CONFIRMED, CANCELLED, NO_SHOW`
 - `PointsType`: `EARN_ACTION, SPEND_OFFER, ADJUST`
 - `Transport`: `WALK, CAR, PUBLIC`
@@ -65,15 +65,18 @@ Derivat în DTO: `isHot = participants_count >= 50 OR saves_count >= 20`; `dista
 Regulă: o singură revendicare cu status `ISSUED` per (offer_id, user_id) — garantată de indexul unic parțial `uq_redemptions_active (offer_id, user_id) WHERE status = 'ISSUED'`. După ce codul e folosit, utilizatorul poate revendica din nou. Seed: `V7_1__seed_offers.sql` (8 oferte FICTIVE, 2 ciorne la firmele neverificate, 4 coduri).
 
 ### community_actions (T11, V8)
-`id, title, description TEXT, category, start_at, end_at, location_name, address, lat, lng, points_reward INT, capacity INT, registered_count INT DEFAULT 0, confirmed_count INT DEFAULT 0, image_url NULL, status DEFAULT 'PUBLISHED', created_by FK users, created_at`
+`id, title, description TEXT, category, organizer NULL („Partener / direcție”), start_at, end_at (CHECK > start_at), location_name, address NULL, lat, lng, points_reward INT, capacity INT, registered_count INT DEFAULT 0, confirmed_count INT DEFAULT 0, image_url NULL, image_credit NULL, status DEFAULT 'PUBLISHED', created_by FK users, created_at`
+`registered_count` = înscrieri REGISTERED + CONFIRMED (o respingere / anulare eliberează locul); contoarele se schimbă cu rândul acțiunii blocat (`SELECT … FOR UPDATE`).
+Migrarea `V8__community_points.sql` + seed-ul `V8_1__seed_community.sql` **există** (branch `feat/T11-community`; se merge-uiește după V5–V7, vezi STATUS).
 
 ### community_registrations (T11, V8)
-`id, action_id FK, user_id FK, code UNIQUE ('AX-C{actionId}-XXXXXX'), status DEFAULT 'REGISTERED', registered_at, confirmed_at NULL, confirmed_by FK users NULL`
-UNIQUE (action_id, user_id).
+`id, action_id FK (ON DELETE CASCADE), user_id FK, code UNIQUE ('AX-C{actionId}-XXXXXX'), status DEFAULT 'REGISTERED', registered_at, confirmed_at NULL, confirmed_by FK users NULL`
+UNIQUE (action_id, user_id). La NO_SHOW, `confirmed_at` / `confirmed_by` = momentul și autorul respingerii. După o anulare, reînscrierea refolosește rândul (și codul).
 
 ### points_transactions (T11, V8)
-`id, user_id FK, amount INT (+/-), type, ref_type ('ACTION'|'OFFER'|'ADMIN'), ref_id BIGINT NULL, note NULL, created_at`
-`users.points_balance` = suma tranzacțiilor; se actualizează în aceeași tranzacție DB de `PointsService`. Clasamentul = `SUM(amount) WHERE amount > 0 AND created_at în perioadă GROUP BY user_id`.
+`id, user_id FK, amount INT (+/-, ≠ 0), type, ref_type ('ACTION'|'OFFER'|'ADMIN') NULL, ref_id BIGINT NULL, note NULL, created_at`
+`users.points_balance` = suma tranzacțiilor; se actualizează atomic (`UPDATE … SET points_balance = points_balance ± n`, fără să scadă sub 0) în aceeași tranzacție DB de `PointsService`. Clasamentul = `SUM(amount) WHERE amount > 0 AND created_at în perioadă GROUP BY user_id` (luna / anul curent, Europe/Bucharest).
+Index unic parțial `(user_id, ref_id) WHERE type = 'EARN_ACTION' AND ref_type = 'ACTION'`: un singur câștig per acțiune per utilizator, chiar și la două confirmări simultane.
 
 ### reviews (T07 partea 2, V5 — în aceeași migrare cu tickets)
 `id, event_id FK, user_id FK, stars INT CHECK 1..5, text VARCHAR(600) NULL, status DEFAULT 'PUBLISHED', created_at, updated_at` — UNIQUE (event_id, user_id). Media și numărul se calculează la citire (sau cache `events.rating_avg`, `events.rating_count`).

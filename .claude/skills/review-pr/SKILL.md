@@ -18,6 +18,7 @@ Scopul review-ului e **demo fără bug-uri majore**, nu cod perfect. Durata țin
 - Feature-ul PR-ului, funcțional cap-coadă (nu tot fluxul de demo).
 
 ## 3. Checklist de citit în diff
+- Web adaptiv: paginile web noi/schimbate se deschid și la 390px (fără scroll orizontal pe pagină; tabelele au varianta de carduri sub `md`, grilele trec pe o coloană). Lipsa ei e problemă de reparat înainte de merge, nu „de făcut mai târziu”.
 - BE: logică în controllere, entități întoarse din controllere, adnotări de web pe controller în loc de interfața din `api`, mapper cu stare/injectat, JPA sau Security importate în `api`. FE: `fetch` direct în view-uri, `any`, ecran duplicat între `mobile/` și `web/`, view care importă altă view.
 - Puncte scrise altfel decât prin `PointsService`; coduri QR cu URL/date personale; migrare fără `ON CONFLICT` la seed; `ddl-auto`.
 - Secrete: caută `sk-`, `secret`, `password`, `apiKey` în fișierele adăugate; `.env` în diff.
