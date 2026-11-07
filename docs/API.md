@@ -52,8 +52,8 @@ JWT: HS256, claims `sub`=userId, `role`, `email`, `exp` = 24 h. Conturi demo: `v
 |---|---|---|---|
 | GET | `/places?type&q&near=lat,lng&tags` | pub | → `PlaceSummary[]` (fără paginare, < 100) |
 | GET | `/places/{id}` | pub | → `PlaceDto` cu `guidePoints` ordonate |
-| POST/PUT/DELETE | `/admin/places`, `/admin/places/{id}` | ADMIN | `PlaceDto` fără id/guidePoints |
-| POST/PUT/DELETE | `/admin/places/{id}/guide-points`, `/{gpId}` | ADMIN | `GuidePointDto` |
+| POST/PUT/DELETE | `/city/places`, `/city/places/{id}` | CITY_HALL, ADMIN | `PlaceDto` fără id/guidePoints |
+| POST/PUT/DELETE | `/city/places/{id}/guide-points`, `/{gpId}` | CITY_HALL, ADMIN | `GuidePointDto` |
 | POST | `/ai/tts` (opțional) | auth | `{ text, voice? }` → `audio/mpeg` (cache după hash) |
 | GET | `/places/{id}/google`, `/businesses/{id}/google` (opțional, T17) | pub | → `GoogleInfoDto` din Google Places API (New) Place Details, prin backend, cache 24 h; 404 dacă nu există `googlePlaceId`; afișat cu „Powered by Google” |
 
@@ -141,10 +141,28 @@ Răspunsul modelului e forțat cu `response_format: json_schema` (schema în `ai
 | Metodă | Rută | Auth | Cerere → Răspuns |
 |---|---|---|---|
 | GET | `/admin/stats` | ADMIN | → `{ usersByRole, events, ticketsSold, offersRedeemed, pointsAwarded, actions }` |
-| GET | `/admin/businesses?verified=false` | ADMIN | → `BusinessDto[]` |
-| POST | `/admin/businesses/{id}/verify` | ADMIN | → `BusinessDto` (publică și conținutul `DRAFT` al firmei) |
+| GET | `/city/businesses?verified=false` | CITY_HALL, ADMIN | → `BusinessDto[]` (Firme partenere) |
+| POST | `/city/businesses` | CITY_HALL, ADMIN | `{ email, name, category, address, contactName }` → `BusinessDto` (cont BUSINESS nou, verificat, parolă de unică folosință trimisă „prin e-mail”, simulat) |
+| POST | `/city/businesses/{id}/verify` | CITY_HALL, ADMIN | → `BusinessDto` (publică și conținutul `DRAFT` al firmei) |
+| POST | `/city/businesses/{id}/reject` | CITY_HALL, ADMIN | `{ reason? }` → 204 (conținutul rămâne ciornă) |
 | PATCH | `/admin/events/{id}/status` / `/admin/offers/{id}/status` / `/admin/actions/{id}/status` | ADMIN | `{ status }` |
 | GET | `/admin/users?role&q` | ADMIN | → `Page<UserDto>` |
+| PATCH | `/admin/users/{id}` | ADMIN | `{ role?, pointsAdjust?, disabled? }` → `UserDto` (punctele trec prin `PointsService`, tip `ADJUST`) |
+
+## Voluntari (T18)
+Rolul `VOLUNTEER` se adaugă în `Role` și în `SecurityConfig` în T18 (`/vol/**` → VOLUNTEER). Conturile le creează doar Primăria.
+| Metodă | Rută | Auth | Cerere → Răspuns |
+|---|---|---|---|
+| GET / POST | `/city/volunteers` | CITY_HALL, ADMIN | `{ name, phone, actionIds: number[], oneTime }` → `VolunteerDto { id, name, phone, actionIds, oneTime, status: 'ACTIVE'\|'SUSPENDED', loginCode }` (cod de 6 cifre, „trimis prin SMS” = simulat) |
+| PATCH | `/city/volunteers/{id}` | CITY_HALL, ADMIN | `{ actionIds?, status? }` → `VolunteerDto` |
+| GET / POST | `/city/volunteers/{id}/messages` | CITY_HALL, ADMIN | `{ text }` → `MessageDto { id, fromCity, text, createdAt }` |
+| POST | `/auth/volunteer` | pub | `{ code }` → `{ token, user }` (401 cod greșit sau suspendat) |
+| GET | `/vol/actions` | VOLUNTEER | → `ActionSummary[]` alocate (+ `unlocked` = se deschide cu 30 min înainte de start) |
+| POST | `/vol/scan` | VOLUNTEER | `{ code }` → `ConfirmResultDto` (aceeași logică idempotentă ca `/city/registrations/confirm`; 403 dacă acțiunea nu e a lui) |
+| GET / POST | `/vol/messages` | VOLUNTEER | `{ text }` → `MessageDto[]` / `MessageDto` |
+
+## Transport (T19) — fără endpoint-uri
+Liniile de tramvai CTP Arad (OSM, ODbL) și orarele de exemplu sunt date statice în FE (`shared/data/tram.ts`, din `design/final/shared/tram.js`); traseele pe jos prin OSRM, ca la T08.
 
 ## Diverse
 | Metodă | Rută | Auth | Răspuns |
@@ -152,5 +170,5 @@ Răspunsul modelului e forțat cu `response_format: json_schema` (schema în `ai
 | GET | `/health` | pub | `{ status: 'ok', time, version }` |
 
 ## Rute FE
-Mobil (`/m`): `/m` S1 · `/m/search` S2 · `/m/events/:id` S3 · `/m/events/:id/tickets` S4 · `/m/checkout` S5 · `/m/confirm/:code` S6 · `/m/map` S7 · `/m/chat` S8 · `/m/tickets` S9 · `/m/tickets/:code` S10 · `/m/profile` S11 · `/m/login` S12 · `/m/offers` · `/m/offers/:id` · `/m/community` · `/m/community/actions/:id` · `/m/community/leaderboard` · `/m/places/:id` E3 · `/m/plan` E1 · `/m/itinerary/:id` E2 · `/m/itinerary/:id/map` E4 · `/m/businesses/:id` · `/m/panel` E5 (firmă / primărie: validare + liste)
-Web (`/w`): `/w` W1 landing · `/w/events` W5 · `/w/events/:id` W6 · `/w/places` W7 · `/w/places/:id` W8 · `/w/map` W9 · `/w/plan` W10 · `/w/offers` W11 · `/w/community` W12 · `/w/chat` W13 · `/w/account` W14 (bilete, salvate, puncte, oferte, itinerarii, setări) · `/w/businesses/:id` W15 · `/w/login` W0 · `/w/business/*` W4, W16–W19 panou firmă · `/w/city/*` W20, W2, W21, W22 panou primărie · `/w/admin/*` W3, W23–W26
+Mobil (`/m`): `/m` S1 · `/m/search` S2 · `/m/events/:id` S3 · `/m/events/:id/tickets` S4 · `/m/checkout` S5 · `/m/confirm/:code` S6 · `/m/map` S7 · `/m/chat` S8 · `/m/tickets` S9 · `/m/tickets/:code` S10 · `/m/profile` S11 · `/m/login` S12 · `/m/offers` · `/m/offers/:id` · `/m/community` · `/m/community/actions/:id` · `/m/community/leaderboard` · `/m/places/:id` E3 · `/m/plan` E1 · `/m/itinerary/:id` E2 · `/m/itinerary/:id/map` E4 · `/m/businesses/:id` · `/m/panel` E5 (firmă / primărie: validare + liste) · `/m/places` (lista obiectivelor) · `/m/itineraries` (itinerariile mele) · `/m/transport` · `/m/transport/lines/:id/:dir` · `/m/transport/trip/:to` (T19) · `/m/vol/login` · `/m/vol/actions` · `/m/vol/scan` · `/m/vol/messages` (T18). Tab bar: Evenimente · Chat · Hartă · Bilete/Panou · Transport; voluntar: Acțiuni · Scanează · Mesaje.
+Web (`/w`): `/w` W1 landing · `/w/events` W5 · `/w/events/:id` W6 · `/w/places` W7 · `/w/places/:id` W8 · `/w/map` W9 · `/w/plan` W10 · `/w/offers` W11 · `/w/community` W12 · `/w/chat` W13 · `/w/account` W14 (bilete, salvate, puncte, oferte, itinerarii, setări) · `/w/businesses/:id` W15 · `/w/login` W0 · `/w/business/*` panou firmă (Panou, Oferte, Evenimente, Anunțuri, Validează coduri, Recenzii, Profilul firmei) · `/w/city/*` panou Primărie, folosit și de Admin (Panou, Evenimente, Obiective & ghiduri, Acțiuni comunitare, Validare, Voluntari, Mesaje, Clasament, Firme partenere) · `/w/admin/*` doar Admin (Dashboard, Conținut & moderare, Utilizatori, Setări). Ecranele: `design/final/screens/`.

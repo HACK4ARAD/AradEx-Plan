@@ -33,7 +33,10 @@
 | S11c, S11d, E5 | Panou firmă (mobil), ofertă/eveniment nou | `/m/panel` | T09, T10 |
 | S11e, S11f, S11g, E7 | Panou primărie (mobil), validare, scanner, acțiune nouă | `/m/panel` | T11 |
 | E1, E2, E4 | Planificator, itinerar, hartă traseu | `/m/plan`, `/m/itinerary/:id`, `/m/itinerary/:id/map` | T13 |
-| E3 | Ghid virtual (scris + audio) | `/m/places/:id` | T05 |
+| E3 | Ghid virtual (scris + audio) | `/m/places/:id` (+ lista `/m/places`) | T05 |
+| — | Itinerariile mele | `/m/itineraries` | T13 |
+| — | Transport: destinație → trasee → hartă cu tot drumul, linie, călătorie | `/m/transport`, `/m/transport/lines/:id/:dir`, `/m/transport/trip/:to` | T19 |
+| — | Voluntar: cod, acțiuni, scanner, mesaje | `/m/vol/login`, `/m/vol/actions`, `/m/vol/scan`, `/m/vol/messages` | T18 |
 | W1 | Landing web | `/w` | T06, T08 |
 | W2 | Panou Primărie web | `/w/city` | T11 |
 | W3 | Admin web | `/w/admin` | T14 |
@@ -47,13 +50,13 @@
 | W13 | Chat | `/w/chat` | T12 |
 | W14 | Contul meu (bilete, salvate, puncte, oferte, itinerarii, setări) | `/w/account` | T07, T10, T11, T13 |
 | W15 | Pagina publică a firmei | `/w/businesses/:id` | T09 |
-| W16–W19 | Firmă: oferte, evenimente, anunțuri, validează coduri | `/w/business/*` | T09, T10 |
-| W20–W22 | Primărie: panou, acțiuni, clasament | `/w/city/*` | T11 |
-| W23–W26 | Admin: firme, conținut, obiective & ghiduri, utilizatori | `/w/admin/*` | T14, T05 |
+| W16–W19 | Firmă: oferte, evenimente, anunțuri, validează coduri (manual), recenzii, profil | `/w/business/*` | T09, T10 |
+| W20–W22 | Primărie (și Admin): panou, evenimente, obiective & ghiduri, acțiuni, validare (fără scanner), voluntari, mesaje, clasament, firme partenere | `/w/city/*` | T11, T05, T09, T18 |
+| W23–W26 | Doar Admin: dashboard, conținut & moderare, utilizatori, setări | `/w/admin/*` | T14 |
 
 ## Stil „Clean Ink” (tokens)
-Fundal `#F7F7F2` · ink `#111111` · text secundar `#5C5C5C` · bordură `#D6D6D0` · accent `#FF5A36` · verde puncte `#1F3A1A` · galben popular `#FFC43D` · piersică ofertă `#FFE8E2` · carduri albe radius 16 · buton primar negru radius 14, h 48–50 · chips radius 999 · font Inter (400–700) · icon-uri Material Symbols Outlined (wght 300).
-Mobil: 390×844, tab bar cu 5 intrări și butonul rotund „Hartă” în mijloc. Web: bară sus 64px, sidebar 250px, conținut max ~1200px, tabele albe radius 16.
+Valorile finale sunt în `final/shared/ui.css` (`assets/clean-ink.css` e varianta veche, doar pentru prototipurile istorice). Fundal `#FAFAF7` · ink `#111111` · text secundar `#5C5C5C` · bordură `#E8E8E3` · soft `#F1F1EC` · accent `#FF5A36` · verde comunitate `#3B6D11` / închis `#1F3A12` / soft `#E4EFDA` · galben oferte `#FFC244` · piersică `#FFE8E2` · panouri web: fundal `#F6F6F3`, sidebar întunecat `#0E0E10` · carduri albe radius 16 · buton primar negru radius 14, h 48–50 · chips radius 999 · font Inter (400–700) · icon-uri Material Symbols Outlined (wght 300).
+Mobil: 390×844, tab bar plutitor cu 5 intrări (Evenimente · Chat · Hartă rotund în mijloc · Bilete/Panou · Transport; voluntarul are 3). Web public: bară sus 64px; panouri: sidebar întunecat pe grupuri, topbar cu breadcrumb, tabele albe radius 16.
 
 ## Licențe poze
 Obiective (`assets/loc-*.jpg`, Wikimedia Commons): Cetatea Aradului – Vasile Topac (CC BY-SA 3.0 RO); Palatul Cultural – Roland Meier (CC BY-SA 2.5); Teatrul Clasic – B. Proksch (CC BY-SA 2.5); Palatul Administrativ – Wikimedia Commons (CC BY-SA 3.0); Biserica Roșie – Roland Meier (CC BY-SA 2.5); Catedrala Ortodoxă – tamba lucian (CC BY-SA 3.0); Catedrala Romano-Catolică – IuliuSturza92 (CC BY-SA 4.0); Turnul de Apă – Fred Romero (CC BY 2.0); Faleza/Podul Mureș – bogdymol (CC BY-SA 4.0); Lunca Mureșului – Oguszt (CC BY-SA 3.0); Castelul Macea – Radufan (CC BY-SA 3.0). Sursele exacte în `assets/CREDITS-foto-obiective.json`.
