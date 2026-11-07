@@ -2,7 +2,7 @@
 
 Starea reală a story-urilor din `docs/PLAN.md`, deciziile luate pe parcurs și ce a rămas. **Fiecare PR din `AradEx-Plan` își actualizează rândul lui aici** (skill-ul `task-workflow`, pasul 5). Adevărul final e pe GitHub (PR-uri merge-uite în `main`); fișierul ăsta e rezumatul pentru oameni și pentru Claude.
 
-Ultima actualizare: 2026-11-07 — T03 și T15/Android merge-uite în `main`; pregătirea anti-conflict T02 în PR (FE #8, Plan #6).
+Ultima actualizare: 2026-11-07 — T03, T15/Android și T02 (anti-conflict) în `main`; T05 (locuri & ghid) gata pe `feat/T05-places`.
 
 ## Story-uri
 Legendă: ✅ gata (merge-uit sau PR deschis, verificat) · 🟡 parțial · ⬜ neînceput
@@ -14,7 +14,7 @@ Legendă: ✅ gata (merge-uit sau PR deschis, verificat) · 🟡 parțial · ⬜
 | T02 APP skeleton | ✅ (PR deschis) | [FE #8](https://github.com/HACK4ARAD/AradEx-Frontend/pull/8) · [Plan #6](https://github.com/HACK4ARAD/AradEx-Plan/pull/6) | Schelet: `/` → `/m` sau `/w`, `?ui=`, tab bar, sidebar, PWA. **Pregătirea anti-conflict:** câte un view per rută (65 de fișiere noi, cu `meta.task` = story-ul care îl completează); panourile web cu o rută + un view pe secțiune (`business-panel/`, `city/`, `admin/`); Contul meu cu tab-uri, câte un view pe tab; cochilii pentru Acasă (3 tab-uri), `/m/panel` (firmă / Primărie) și landing (evenimente / hartă); i18n, tipuri și API pe module; `AppSheet`, `QrCode`, `QrScanner`, `useGeo` cu teste (21 de teste FE). Tabelul „fișierele tale” pe story: `AradEx-Frontend/CLAUDE.md` §Culoare. |
 | T03 Auth & roluri | ✅ merge-uit | [BE #5](https://github.com/HACK4ARAD/AradEx-Backend/pull/5) · [FE #5](https://github.com/HACK4ARAD/AradEx-Frontend/pull/5) · [Plan #4](https://github.com/HACK4ARAD/AradEx-Plan/pull/4) | JWT + roluri + `SecurityConfig` pentru toate rutele din API.md; login/înregistrare S12 (mobil), W0 (web, tab „Panouri”, „Înregistrează-ți firma”), Profil S11 (limbă RO/EN, deconectare). 124 de teste BE, 16 FE. |
 | T04 Deploy v0 | ⬜ | — | Cere conturi Render + Netlify (+ Neon). `Dockerfile` BE neverificat local (TLS interceptat în containere pe laptopul pe care s-a lucrat). |
-| T05 Locuri & ghid | ⬜ | — | Migrările + seed-ul V3/V3_1 există (+ pozele în V4_2). Editarea obiectivelor e la Primărie: `/city/places/**`. |
+| T05 Locuri & ghid | ✅ (branch `feat/T05-places`, PR-uri de deschis) | BE · FE · Plan: `feat/T05-places` | **BE:** `PlacesApi` (`GET /places` cu `type`/`q`/`tags`/`near`, `GET /places/{id}` cu ghidul ordonat) + `CityPlacesApi` (CRUD obiective și puncte de ghid pentru Primărie/Admin), 39 de teste noi. **FE:** „Locuri din Arad” + E3 pe mobil, W7 + W8 pe web, panoul „Obiective & ghiduri” (`/w/city/places`, W25) cu formular, puncte de ghid (adaugă/editează/mută/șterge); ghid audio cu `useTts` (`speechSynthesis`, ro-RO, viteză 1–1,5×, progres), „Ești aici” (≤ 150 m), „Lângă mine”; 16 teste FE noi. Lipsesc (din alte story-uri): harta punctelor (T08 `MapView`), „Evenimente aici” (T06), localurile partenere din listă (T09), „Generează cu AI” (după T12). Neverificat în aplicația Android (fără emulator pe laptopul de lucru). |
 | T06 Evenimente | ⬜ | — | Migrările + seed-ul V4/V4_1/V4_2 (poze) există. |
 | T07–T14, T16–T19 | ⬜ | — | — |
 | T15 i18n, PWA, Android | 🟡 (Android merge-uit) | [FE #7](https://github.com/HACK4ARAD/AradEx-Frontend/pull/7) (#6 a intrat din greșeală doar în `feat/T03-auth`) | **Android gata:** Capacitor 6, `AradEx-Frontend/android/`, aplicația „AradExperience” (`ro.aradexperience.app`) rulează pe emulator, login verificat. Rămân: iconița și splash-ul aplicației, iOS (doar pe macOS), EN complet pe module, verificarea „Add to Home Screen”. |
@@ -32,6 +32,12 @@ Legendă: ✅ gata (merge-uit sau PR deschis, verificat) · 🟡 parțial · ⬜
 - **T02 — i18n pe module cu `import.meta.glob`:** numele fișierului e cheia de top (`ro/events.json` → `t('events.…')`), deci cheile existente (`nav.*`, `auth.*` …) n-au schimbat; un fișier nou se încarcă singur. `types/api.ts` și `api/index.ts` doar re-exportă toate modulele (lista e completă, nu se mai adaugă linii).
 - **T02 — `QrScanner` adăugat acum** (nu era în lista T02): îl folosesc T10 (firmă), T11 (Primărie pe teren) și T18 (voluntar). `MapView` rămâne în T08.
 - **T02 — voluntarii:** rutele `/m/vol/*` au `roles: ['VOLUNTEER']`, fără cont duc la `/m/vol/login`, iar după login voluntarul ajunge la `/m/vol/actions` — T18 nu mai atinge router-ul sau `useAuthForm`.
+- **T05 — contract extins:** `PlaceSummary` are în plus `guidePointsCount`, `guideMinutes` și `exteriorOnly` (badge-urile „Ghid · N puncte · M min” și „doar exterior” din listele din design); `GET /places/{id}` acceptă `near` (pentru „Ești aici”). `PlaceType` e enum (BE) / union (FE). Detaliile în `docs/API.md` §Locuri & ghid.
+- **T05 — filtrare în memorie:** sunt < 100 de obiective, deci `GET /places` filtrează (tip, etichete, text fără diacritice) și calculează distanța în service, nu în SQL. Fără `near` ordinea e după id (ordinea din seed); cu `near` după distanță. FE trimite mereu `near` (poziția ta sau centrul Aradului), deci listele arată distanțe „de la centru” până la „Lângă mine”.
+- **T05 — puncte de ghid:** poziția lipsă = la final; o poziție ocupată la PUT face schimb cu punctul de acolo (prin poziție temporară -1, ca să nu lovească `UNIQUE (place_id, position)`) — așa merg butoanele „mută sus/jos”. `durationSec` lipsă se estimează din text (~140 cuvinte/min, minim 20 s), aceeași formulă în BE (`PlaceMapper.readingSeconds`) și FE (`pointSeconds`).
+- **T05 — ștergerea unui obiectiv** cu evenimente legate (`events.place_id`) dă 409, nu 500; punctele de ghid se șterg prin `ON DELETE CASCADE`. Slug-ul se generează din nume (fără diacritice), cu `-2`, `-3` dacă e ocupat; un slug trimis explicit și ocupat = 409.
+- **T05 — TTS:** doar `speechSynthesis` din browser (fără `/ai/tts`); citește „titlu. text”, pornește doar la tap, se oprește la ieșirea din ecran; dacă dispozitivul nu are voce română, afișăm un avertisment, iar fără `speechSynthesis` butonul e dezactivat și rămâne textul.
+- **T05 — fișiere noi în `shared/composables/`** (nu erau în tabelul de culoar, dar sunt fișiere noi, fără conflicte): `useTts`, `useAudioGuide`, `usePlaces` (+ `usePlace`), `usePlaceForm`, `useCityPlaces`, `useShare`. Poziția din `usePlaces` e comună listei și detaliului pe toată sesiunea.
 - **T15 — Capacitor 6** (nu 7/8): folosește SDK Android 34, deja instalat; build-ul rulează pe JDK 21 (wrapper-ul Gradle din `android/` urcat la 8.14.3). Aplicația nativă: origine `http://localhost` (trebuie în `CORS_ORIGINS`), pornește mereu pe `/m`, fără service worker. `@capacitor/cli` aduce o vulnerabilitate în `tar` (doar unealta de build, nu ajunge în APK; fix doar în Capacitor 8).
 
 ## Probleme cunoscute / de făcut mai târziu
@@ -40,6 +46,9 @@ Legendă: ✅ gata (merge-uit sau PR deschis, verificat) · 🟡 parțial · ⬜
 - `AradEx-Ops/agents/*.md` trimit încă la `docs/TEAM.md` și `docs/status/Px.md` (șterse); de aliniat la acest fișier (P1).
 - `GlobalExceptionHandler` are încă un handler pentru `BadCredentialsException` care nu mai e folosit (login-ul aruncă `UnauthorizedException`); inofensiv.
 - Iconița aplicației Android e cea implicită Capacitor.
+- **T05:** `ARAD_CENTER` (FE `useGeo`) și `Geo.ARAD_LAT/LNG` (BE) = 46.1866, 21.3123, adică ~1,5 km nord de Piața Avram Iancu (~46.172, 21.315). Distanțele „de la centru” ies puțin ciudat (Turnul de Apă e „cel mai aproape”); de corectat în T02/T01 (P1).
+- **T05:** poza Cetății (`/img/loc-ca.jpg`, din V4_2) arată o biserică din Cetate, nu fortificația; de verificat/înlocuit la seed (T16a).
+- **T05:** de verificat în aplicația Android (Capacitor) că WebView-ul are `speechSynthesis` cu voce română; dacă nu, varianta e `/ai/tts` (OpenAI) sau pluginul `@capacitor-community/text-to-speech`.
 
 ## Împărțirea propusă pentru story-urile de features
 Discutată în echipă (cine ia ce se decide în ziua respectivă; dependențele sunt în `docs/PLAN.md`):
