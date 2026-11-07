@@ -21,10 +21,11 @@ type PlaceSummary = { id: number; name: string; type: PlaceType; imageUrl?: stri
 type PlaceDto = PlaceSummary & { slug: string; description: string; address?: string; openingHours?: string; rating?: number; parkingHint?: string; imageCredit?: string; guidePoints: GuidePointDto[]; google?: GoogleInfoDto }   // google: T17
 type GuidePointDto = { id: number; position: number; title: string; text: string; imageUrl?: string; audioUrl?: string; lat?: number; lng?: number; durationSec?: number }
 type EventSummary = { id: number; title: string; category: string; startAt: string; endAt?: string; locationName: string; lat: number; lng: number; imageUrl?: string; ticketType: 'FREE'|'IN_APP'|'EXTERNAL'; priceFrom?: number; isHot: boolean; isDemo: boolean; participantsCount: number; organizerName: string; organizerType: string; distanceKm?: number; saved?: boolean; ratingAvg?: number; ratingCount: number }
-type EventDto = EventSummary & { description: string; address: string; placeId?: number; organizerBusinessId?: number; priceAdult?: number; priceChild?: number; externalUrl?: string; capacity?: number; spotsLeft?: number; savesCount: number; status: string }
+type EventDto = EventSummary & { description: string; address: string; placeId?: number; organizerBusinessId?: number; priceAdult?: number; priceChild?: number; externalUrl?: string; capacity?: number; spotsLeft?: number; savesCount: number; status: 'DRAFT'|'PUBLISHED'|'HIDDEN'; imageCredit?: string }
+type EventCreate = { title: string; description: string; category: EventCategory; placeId?: number; locationName?: string; address?: string; lat?: number; lng?: number; startAt: string; endAt?: string; ticketType: 'FREE'|'IN_APP'|'EXTERNAL'; priceAdult?: number; priceChild?: number; externalUrl?: string; capacity?: number; imageUrl?: string; priceFrom?: number; status?: 'DRAFT'|'PUBLISHED' }
 type ReviewDto = { id: number; eventId: number; userName: string; stars: number; text?: string; createdAt: string; mine?: boolean }
 type GoogleInfoDto = { rating?: number; userRatingCount?: number; reviews: { author: string; rating: number; text: string; relativeTime: string }[]; mapsUrl: string; attribution: 'Powered by Google' }
-type TicketDto = { code: string; eventId: number; eventTitle: string; startAt: string; locationName: string; qtyAdult: number; qtyChild: number; total: number; status: string; createdAt: string }
+type TicketDto = { code: string; eventId: number; eventTitle: string; startAt: string; endAt?: string; locationName: string; address?: string; lat: number; lng: number; imageUrl?: string; ticketType: 'FREE'|'IN_APP'|'EXTERNAL'; qtyAdult: number; qtyChild: number; priceAdult?: number; priceChild?: number; total: number; status: 'CONFIRMED'|'CANCELLED'|'USED'; email: string; createdAt: string; usedAt?: string }   // tot ce trebuie ca biletul să se afișeze offline
 type OfferSummary = { id: number; businessId: number; businessName: string; title: string; discountLabel: string; localProduct: boolean; validUntil: string; pointsPrice?: number; imageUrl?: string; distanceKm?: number; rating?: number }
 type OfferDto = OfferSummary & { description: string; validFrom: string; status: string; viewsCount: number; redemptionsCount: number; usedCount: number; myRedemption?: RedemptionDto }
 type RedemptionDto = { id: number; code: string; offerId: number; offerTitle: string; businessName: string; pointsSpent: number; status: 'ISSUED'|'USED'|'CANCELLED'; issuedAt: string; usedAt?: string }
@@ -72,18 +73,18 @@ type GuidePointRequest = { position?: number /*1–99*/; title: string /*≤160*
 ## Evenimente (T06) & bilete (T07)
 | Metodă | Rută | Auth | Cerere → Răspuns |
 |---|---|---|---|
-| GET | `/events?from&to&category&near=lat,lng&radiusKm=5&organizerBusinessId&organizerType&hot=true&q&page&size` | pub | → `Page<EventSummary>`; `saved` completat dacă e logat |
-| GET | `/events/{id}` | pub | → `EventDto` |
-| POST | `/events` | CITY_HALL, ADMIN | `EventCreate` (titlu, descriere, categorie, placeId?/locație, startAt, endAt?, ticketType, prețuri, capacity?, imageUrl?) → `EventDto` |
-| PUT / DELETE | `/events/{id}` | creator sau ADMIN | |
+| GET | `/events?from&to&category&near=lat,lng&radiusKm=5&organizerBusinessId&organizerType&ticketType&hot=true&q&sort&status&page&size` | pub | → `Page<EventSummary>`; `saved` completat dacă e logat. `from`/`to` = zile `YYYY-MM-DD` în ora Aradului (inclusiv); **fără `from` doar evenimentele care nu s-au terminat**. `category`, `organizerType`, `ticketType` acceptă mai multe valori CSV. `q` caută fără diacritice în titlu, loc și organizator. `sort=date` (implicit) / `distance` (cere `near`). `status=DRAFT\|HIDDEN\|ALL` doar pentru CITY_HALL/ADMIN (altfel ignorat → PUBLISHED). `size` max 100 |
+| GET | `/events/{id}?near` | pub | → `EventDto` (404 pentru ciorne / ascunse, cu excepția creatorului, Primăriei și Adminului) |
+| POST | `/events` | CITY_HALL, ADMIN | `EventCreate` → `EventDto`. Locul: `placeId` (numele, adresa, coordonatele și poza se copiază din obiectiv) sau `locationName` + `lat` + `lng`. IN_APP cere `priceAdult`; `priceFrom` doar la EXTERNAL; `status` = DRAFT (ciornă) sau PUBLISHED (implicit). Organizator: „Primăria Arad” (CITY) / platforma (ADMIN) |
+| PUT / DELETE | `/events/{id}` | creator sau ADMIN | PUT = același `EventCreate`; DELETE ascunde evenimentul (`HIDDEN`), biletele rămân valide → 204 |
 | POST / DELETE | `/events/{id}/save` | auth | → 204 (idempotent) |
 | GET | `/me/saved-events` | auth | → `EventSummary[]` |
-| POST | `/events/{id}/tickets` | auth | `{ qtyAdult, qtyChild, email }` → `TicketDto` (409 `capacity`; 400 dacă `ticketType=EXTERNAL`) |
-| GET | `/me/tickets?upcoming=true` | auth | → `TicketDto[]` |
+| POST | `/events/{id}/tickets` | auth | `{ qtyAdult, qtyChild, email }` (0–10 fiecare, cel puțin 1) → 201 `TicketDto`. IN_APP: total din prețuri. FREE cu `capacity`: înscriere a unei persoane (`qtyAdult=1`), una per utilizator (409 la a doua); FREE fără `capacity` → 400 (intrare liberă). 409 „Sold out” / „Only N spots left”; 400 pentru EXTERNAL și pentru evenimente încheiate; 404 pentru ciorne |
+| GET | `/me/tickets?upcoming=true\|false` | auth | → `TicketDto[]` — `true`: cele care nu s-au terminat, după dată; `false`: trecute, cele recente primele; fără parametru: toate |
 | GET | `/tickets/{code}` | proprietar/organizator/ADMIN | → `TicketDto` |
-| POST | `/tickets/{code}/use` | organizator/ADMIN | → `TicketDto` (409 dacă e deja USED) |
+| POST | `/tickets/{code}/use` | organizator/ADMIN | → `TicketDto` (409 dacă e deja USED). Organizator = creatorul evenimentului sau firma organizatoare |
 | GET | `/events/{id}/ics` | pub | → fișier `text/calendar` (Adaugă în calendar). FE construiește și linkul Google Calendar fără login: `https://calendar.google.com/calendar/render?action=TEMPLATE&text=…&dates=YYYYMMDDTHHMMSSZ/…&location=…&details=…` |
-| GET | `/events/{id}/reviews` | pub | → `ReviewDto[]` + `{ avg, count }` în header-ul răspunsului sau ca `{ avg, count, items }` |
+| GET | `/events/{id}/reviews` | pub | **T07 partea 2 (tabela e în V5, endpoint-urile nu sunt încă):** → `ReviewDto[]` + `{ avg, count }` în header-ul răspunsului sau ca `{ avg, count, items }` |
 | POST / PUT | `/events/{id}/reviews` | auth | `{ stars: 1..5, text? }` → `ReviewDto` (400 dacă evenimentul nu a trecut; una per utilizator, PUT o editează) |
 | DELETE | `/admin/reviews/{id}` | ADMIN | → 204 (ascunde) |
 
