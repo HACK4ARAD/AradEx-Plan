@@ -189,13 +189,13 @@ Liniile de tramvai CTP Arad (OSM, ODbL) și orarele de exemplu sunt date statice
 | GET | `/health` | pub | `{ status: 'ok', time, version }` |
 
 ## Rute FE
-Două aplicații din același cod Vue, **fără prefix în URL** (decizia din 7 nov, T20). Aplicația se alege o dată, la pornire (`src/router/app.ts`):
-- aplicația nativă (Capacitor) e mereu **mobilă**;
-- în browser, `?app=mobile` / `?app=web` forțează alegerea și se ține minte (test, dev);
-- `?preview=mobile` și linkurile vechi `/m/…` deschid aplicația mobilă doar în tab-ul curent (rezistă la refresh, nu se țin minte), de exemplu din butoanele de previzualizare din panouri;
-- altfel → **web**.
+Două aplicații **complet separate**, din același repo și cu același backend, **fără prefix în URL** (decizia din 7 nov, T20):
+- **web-ul**: `npm run build` → `dist/`, publicat pe aradexperience.site;
+- **aplicația mobilă**: `npm run build:mobile` → `dist-mobile/`, doar în Capacitor (iOS + Android); local cu `npm run dev:mobile`.
 
-Linkurile vechi `/m/…` și `/w/…` duc la aceeași cale fără prefix, iar orice cale necunoscută duce la `/`. Endpoint-urile API nu se schimbă.
+Build-ul web nu conține nimic din aplicația mobilă (`npm run check:web` verifică asta și la deploy). Aplicația mobilă nu se poate deschide de pe site.
+
+Pe web, linkurile vechi de panou `/w/…` duc la aceeași cale fără prefix; în fiecare aplicație, orice cale necunoscută duce la `/`. Endpoint-urile API nu se schimbă.
 
 **Aplicația mobilă** (iOS + Android, are tot):
 
