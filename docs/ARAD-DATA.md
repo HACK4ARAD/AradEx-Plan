@@ -17,8 +17,8 @@ Surse principale: **visitarad.ro (CNIPT Arad, prin exportul Hack4Arad — vezi m
 - **Gastronomia reală NU e „firmă”:** cafenelele și restaurantele din visitarad sunt doar `places` (profil + hartă), **fără oferte, anunțuri sau cont**. Firmele cu oferte rămân cele FICTIVE de mai jos.
 - **Limitări (din sursă):** 90 de fișe fără descriere; unele texte fără diacritice sau cu greșeli; coordonatele neverificate individual (exemplu: Muzeul Viei și al Vinului e pe site la Ghioroc, cu 2 km greșit — l-am pus după OSM); unele unități pot fi închise între timp; doar română (site-ul are și EN/DE). Traseele n-au coordonate, doar o imagine cu harta → nu intră în DB (anexa B, pentru T08 / T13).
 
-## Alte date deschise despre Arad (urmează după demo: story propus T21 în STATUS + opțiune în T11)
-Verificate pe 7 nov 2026; același autor ca exportul visitarad. Nimic de aici nu e încă în DB sau în cod.
+## Alte date deschise despre Arad (transportul CTP e în T22; deșeurile rămân opțiune în T11)
+Verificate pe 7 nov 2026; același autor ca exportul visitarad. **Transportul public e în aplicație din T22** (seed `V12_1`, endpoint-urile `/transit/*` din `docs/API.md` §Transport public live CTP); calendarul deșeurilor nu e încă în DB sau în cod.
 
 ### Transport public CTP — linii, stații, vehicule live (T08, T13)
 - **Unde:** https://baditaflorin.github.io/arad-transport-open-data/ · ghid pentru integrare: [`llms-full.txt`](https://baditaflorin.github.io/arad-transport-open-data/llms-full.txt), [OpenAPI](https://baditaflorin.github.io/arad-transport-open-data/openapi.json), [JSON Schema](https://baditaflorin.github.io/arad-transport-open-data/schema.json), [manifest](https://baditaflorin.github.io/arad-transport-open-data/data/manifest.json).
@@ -28,6 +28,7 @@ Verificate pe 7 nov 2026; același autor ca exportul visitarad. Nimic de aici nu
   - `/stops/{stopId}/times` — sosirile următoare într-o stație; `/routes`, `/stops`, `/vehicles/route/{routeId}`.
   - CORS verificat pe 7 nov: răspunde pentru `https://aradexperience.site` și `http://localhost` (aplicația Android).
 - **Reguli de folosire (din ghid):** o singură citire `/vehicles` pentru toate vehiculele, cel mult la 30 s, fără cereri suprapuse, pauză când ecranul nu e vizibil, backoff 60 → 120 s la erori; nu lega `routeId` de `shortName`; indexurile de variantă pot fi negative.
+- **Cum e făcut în T22:** `V12__transit.sql` + `V12_1__seed_transit.sql` (29 de linii, 299 de stații, 77 de variante, 805 opriri; traseele din `encodedPolyline` simplificate de la 9.894 la 2.873 de puncte), generat o dată cu `docs/tools/ctp-transit-seed.mjs` din `stops.json`, `routes.json`, `patterns.json`. Live: `TelelinkClient` (RestClient, timeout 3 s conectare / 6 s citire, URL în `TRANSIT_BASE_URL` dacă se schimbă tenantul) + `TransitLiveService` (cache comun 25 s, o singură cerere odată, backoff 60 → 120 s, `live:false` fără 500). Ora unei sosiri = `scheduledArrival` + `arrivalDelay`. „GH - POD” / „VL - POD” (Ghioroc / Vladimirescu) sunt `type=3` (autobuz) în sursă; le-am lăsat așa.
 - **Recomandare pentru noi:** stațiile și liniile intră o dată în DB printr-o migrare de seed (ca la visitarad); datele live trec printr-un endpoint BE cu cache 20–30 s (`RestClient` din Spring, fără librării noi), nu direct din fiecare telefon: o singură sursă de cereri spre Telelink, reparat într-un loc dacă se schimbă ceva, și o rezervă cu datele statice dacă API-ul pică în demo.
 - **Limite:** fără orarul complet pe săptămână (doar sosirile următoare), fără GTFS, fără WebSocket; tenantul din URL poate să se schimbe. **Licență:** nicio licență explicită pe date (MIT acoperă doar codul proiectului); atribuire „Date: CTP Arad / Telelink”; proiect independent, neafiliat CTP / Primăria Arad.
 
