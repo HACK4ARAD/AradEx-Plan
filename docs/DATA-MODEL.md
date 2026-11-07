@@ -31,8 +31,8 @@ Migrarea `V2__users_businesses.sql` + seed-ul `V2_1__seed_users.sql` (5 conturi 
 `id, owner_user_id FK users UNIQUE, name, category, description, address, lat DOUBLE, lng DOUBLE, phone NULL, website NULL, image_url NULL, verified BOOL DEFAULT false, views_count INT DEFAULT 0, created_at`
 
 ### places (T05, V3)
-`id, name, slug UNIQUE, type, description TEXT, address, lat, lng, image_url, image_credit NULL, opening_hours TEXT NULL, visit_minutes INT, tags VARCHAR (csv: "istorie,familie"), rating NUMERIC(2,1) NULL, parking_hint TEXT NULL, exterior_only BOOL DEFAULT false (Cetatea, Turnul de Apă), google_place_id VARCHAR NULL (T17), created_at`
-Migrarea `V3__places.sql` + seed-ul `V3_1__seed_places.sql` (12 locuri reale, 33 puncte de ghid) **există deja** în `AradEx-Backend` (modulul `app`) și trec pe Postgres 16.
+`id, name, slug UNIQUE, type, description TEXT, address, lat, lng, image_url, image_credit NULL, opening_hours TEXT NULL, visit_minutes INT, tags VARCHAR (csv: "istorie,familie"), rating NUMERIC(2,1) NULL, parking_hint TEXT NULL, exterior_only BOOL DEFAULT false (Cetatea, Turnul de Apă), source_url VARCHAR(300) NULL (fișa sursă visitarad.ro, pentru atribuire — V3_2; încă nu e în entitate / DTO), google_place_id VARCHAR NULL (T17), created_at`
+Migrarea `V3__places.sql` + seed-ul `V3_1__seed_places.sql` (12 locuri reale, 33 puncte de ghid) **există deja** în `AradEx-Backend` (modulul `app`) și trec pe Postgres 16. **`V3_2__places_visitarad.sql`** (7 nov) adaugă `source_url`, corectează coordonatele celor 12 (verificate pe OSM) și inserează **223 de locuri reale** din exportul visitarad.ro (obiective, muzee, crame, cafenele, restaurante; fără cazare) — id-uri din secvență, idempotent prin `slug`; **`V5_2__seed_event_venues.sql`** mută evenimentele din seed pe coordonatele corecte ale sălilor. Detalii: `docs/ARAD-DATA.md`.
 
 ### guide_points (T05, V3)
 `id, place_id FK places ON DELETE CASCADE, position INT, title, text TEXT, image_url NULL, audio_url NULL, lat NULL, lng NULL, duration_sec INT NULL`
@@ -40,7 +40,7 @@ UNIQUE (place_id, position).
 
 ### events (T06, V4)
 `id, title, description TEXT, category, organizer_type, organizer_business_id FK businesses NULL, organizer_name, place_id FK places NULL, location_name, address, lat, lng, start_at, end_at NULL, image_url NULL, ticket_type, price_from NUMERIC NULL, price_adult NUMERIC NULL, price_child NUMERIC NULL, external_url NULL, capacity INT NULL, participants_count INT DEFAULT 0, saves_count INT DEFAULT 0, status DEFAULT 'PUBLISHED', is_demo BOOL DEFAULT false (eveniment FICTIV pentru demo), created_by FK users NULL, created_at`
-Migrarea `V4__events.sql` + seed-ul `V4_1__seed_events.sql` (21 evenimente reale nov–dec 2026 + 9 demo) **există deja**.
+Migrarea `V4__events.sql` + seed-ul `V4_1__seed_events.sql` (21 evenimente reale nov–dec 2026 + 9 demo) **există deja**; `V4_4__seed_events_more.sql` (7 nov) adaugă 5 evenimente reale care lipseau (2 concerte ale Filarmonicii în decembrie, 2 concerte de colinde la Târgul de Crăciun, expozițiile permanente ale Complexului Muzeal — singurul EXHIBITION), id-uri din secvență, idempotent după titlu + început.
 Index: `(start_at)`, `(category, start_at)`, `(organizer_business_id)`.
 Derivat în DTO: `isHot = participants_count >= 50 OR saves_count >= 20`; `distanceKm` când se cere `near`.
 
