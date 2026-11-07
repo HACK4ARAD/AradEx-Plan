@@ -24,6 +24,9 @@ Scopul review-ului e **demo fără bug-uri majore**, nu cod perfect. Durata țin
 - Teste: există test pe regula de business nouă (service), test de controller cu cererea din `requests/*.json`, JSON + test de serializare pentru DTO-urile noi? Un test dezactivat/șters?
 - `docs/API.md` actualizat dacă s-a schimbat ceva; `docs/STATUS.md` actualizat în PR-ul din Plan (rândul story-ului, decizii, probleme cunoscute). Commit-uri fără `Co-Authored-By:`, PR fără „Generated with Claude Code”.
 
+## Înainte de merge
+- Baza PR-ului e `main`. Dacă e alt branch de feature (PR stivuit) și acela e deja merge-uit, schimbă baza la `main` și abia apoi merge — altfel codul nu ajunge în `main` (T15: #6 → #7). După merge, verifică pe `origin/main` că fișierele PR-ului sunt acolo.
+
 ## 4. Raport (în PR sau în chat), maximum 10 rânduri
 ```
 Verdict: MERGE / MERGE după fix-urile 1–2 / NU încă
