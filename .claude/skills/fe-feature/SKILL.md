@@ -22,7 +22,7 @@ Căile sunt relative la rădăcina repo-ului `AradEx-Frontend` (sau a worktree-u
 3. **Stare**: date de ecran → composable `shared/composables/use<F>.ts` (`useEvents(filters)` cu `data/loading/error/reload`); stare globală (user, toast, coș de bilete) → store Pinia în `shared/stores`.
 4. **Componente de feature** în `src/shared/components/<f>/` (`EventCard.vue`, `EventFilters.vue`) — tot ce apare și pe mobil și pe web. Componentele generice (`AppButton`, `AppChip`…) sunt în `components/ui` și se importă din `@/shared/components`.
 5. **View mobil** `src/mobile/views/<f>/<Nume>View.vue` (lățime 390, tab bar jos, top bar cu back unde e cazul). Compune din componente; fără CSS custom dacă Tailwind + tokens ajung.
-6. **View web** `src/web/views/<f>/<Nume>View.vue` — același composable, altă așezare (sidebar + conținut, tabele pentru panouri, hartă + listă side-by-side). Pagina web trebuie să rămână utilizabilă pe telefon (grid-urile devin o coloană).
+6. **View web — doar pentru panouri** (Primărie / Firmă / Admin) sau site-ul de prezentare; vizitatorii și localnicii au doar aplicația (`mobile/`), deci nu se fac pagini publice web. `src/web/views/<f>/<Nume>View.vue` — același composable, altă așezare (sidebar + conținut, tabele pentru panouri, hartă + listă side-by-side). Pagina web trebuie să rămână utilizabilă pe telefon (grid-urile devin o coloană).
 7. **Rută**: după T02 (P1) fiecare rută arată deja spre fișierul ei de view din `views/<f>/` (cu `meta: { roles?, title, screen, task }`) și navigația e completă — tu doar înlocuiești conținutul view-ului tău. Dacă îți trebuie o rută nouă sau o intrare în navigație, o ceri lui P1 (nu editezi `router/index.ts` sau layout-urile).
 8. **i18n**: toate textele în `src/shared/i18n/ro/<f>.json` (cheia `<f>.ecran.element`) și aceleași chei în `en/<f>.json` (până la T15 pot avea textul românesc).
 9. **Test** (vitest, lângă fișier): composable-ul cu logică (`useTickets.test.ts`: total, validare) și componenta cu reguli vizibile (`EventCard.test.ts`: badge Popular, preț/gratuit).
@@ -59,7 +59,7 @@ Erorile API → `ui.error(err)` (toast cu `detail`) + buton „Reîncearcă”. 
 - `<input type="number">` cu `v-model` (și `AppInput type="number"`) dă **număr**, nu text, după ce omul scrie — funcțiile care citesc formularul trebuie să accepte `string | number` (`String(v ?? '').trim()`), altfel `.trim()` aruncă și submit-ul nu mai pornește (pățit la T09).
 - `vue-tsc` se încurcă la un atribut static cu `//` (ex. `placeholder="https://"`): toate `v-model`-urile de după el dau „Property 'value' does not exist”. Pune textul într-o constantă și leagă-l (`:placeholder="URL_HINT"`) (pățit la T09).
 - Leaflet are nevoie de `import 'leaflet/dist/leaflet.css'` și de `invalidateSize()` după ce containerul devine vizibil (tab-uri, sheet-uri).
-- Camera (`html5-qrcode`) merge doar pe HTTPS sau `localhost`; pe telefon real folosiți URL-ul Netlify sau `npm run dev -- --host` + certificate, altfel testați cu input manual de cod.
+- Camera (`html5-qrcode`) merge doar pe HTTPS sau `localhost`; pe telefon real folosiți https://aradexperience.site (după merge pe `main`) sau `npm run dev -- --host` + certificate, altfel testați cu input manual de cod.
 - `speechSynthesis` pornește doar dintr-un handler de tap; pe iOS vocile se încarcă asincron (`onvoiceschanged`).
 - Datele vin ca ISO cu offset — formatează cu `useFormat`, nu cu `toLocaleString` direct.
 - `import.meta.env` nu merge în template — citește-l în `<script setup>` într-o constantă.

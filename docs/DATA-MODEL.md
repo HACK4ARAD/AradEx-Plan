@@ -48,7 +48,9 @@ Derivat în DTO: `isHot = participants_count >= 50 OR saves_count >= 20`; `dista
 `user_id FK, event_id FK, created_at` — PK (user_id, event_id). Trigger simplu sau update în service pentru `events.saves_count`.
 
 ### tickets (T07, V5 — împreună cu reviews)
-`id, event_id FK, user_id FK, qty_adult INT, qty_child INT, total NUMERIC, code UNIQUE ('AX-T{eventId}-XXXXXX'), status DEFAULT 'CONFIRMED', email, used_at NULL, created_at`
+`id, event_id FK, user_id FK, qty_adult INT, qty_child INT, total NUMERIC, code UNIQUE ('AX-T{eventId}-XXXXXX'), status DEFAULT 'CONFIRMED', email, used_at NULL, created_at` — **există** (`V5__tickets.sql`, cu `CHECK qty_adult + qty_child > 0`). Un rând = o comandă (adulți + copii) sau o înscriere gratuită, cu un singur cod QR. `events.participants_count` crește în aceeași tranzacție, cu rândul evenimentului blocat.
+
+**Migrări în altă ordine:** fiecare story are numărul lui rezervat, dar se unesc în ordinea în care sunt gata (V6 a intrat înaintea lui V5). De aceea `spring.flyway.out-of-order: true` în `application.yml`: o migrare cu număr mai mic, venită mai târziu, se aplică (nu e refuzată).
 
 ### announcements (T09, V6)
 (`businesses.google_place_id VARCHAR NULL` se adaugă tot în V6 pentru T17.)

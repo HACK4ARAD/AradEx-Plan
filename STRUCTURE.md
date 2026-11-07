@@ -24,9 +24,9 @@ AradEx-Plan/                          REPO 1 — planul comun (= umbrela din kit
 │  ├─ PLAN.md                         T00–T19: task-uri medii, ordonate pe dependențe; fiecare cu Scop / BE / FE / Seed / Verificare (+ „Stare”)
 │  ├─ API.md                          contractul REST (endpoint-uri, DTO-uri, roluri, rute FE) — legea comună BE ↔ FE
 │  ├─ DATA-MODEL.md                   tabele, enum-uri, convenții de migrări Flyway, ce seed trebuie să existe
-│  ├─ FEATURES.md                     funcționalitățile pe roluri (reguli de business, stări, mobil vs web)
+│  ├─ FEATURES.md                     funcționalitățile pe roluri (reguli de business, stări, aplicație vs panouri web)
 │  ├─ DEMO.md                         fluxul de demo pas cu pas + pitch (orientativ; se clarifică la final)
-│  ├─ DEPLOY.md                       local + producție (Render Docker pentru BE, Netlify pentru FE, Neon/Render Postgres)
+│  ├─ DEPLOY.md                       local + producția pe AWS (https://aradexperience.site): componente, cum ajunge codul în producție, acces
 │  └─ ARAD-DATA.md                    datele reale despre Arad folosite în seed (surse, program, tarife) și ce e FICTIV
 └─ design/                            designul (se schimbă aici, prin PR în AradEx-Plan)
    ├─ final/                          DESIGNUL FINAL (sursa de adevăr): mobile.html + web.html funcționale, shared/ (date, tokens, linii de tramvai), screens/ (planșele)
@@ -46,8 +46,9 @@ AradEx-Backend/                       REPO 2 — backend (Spring Boot 3, Java 21
 ├─ settings.gradle                    include 'api', 'app' (+ foojay: descarcă JDK 21 dacă lipsește)
 ├─ build.gradle                       părinte: plugin-uri Spring Boot / dependency-management, Java 21, BOM, JUnit pentru ambele module
 ├─ gradle.properties · gradlew · gradle/wrapper/   wrapper Gradle 8.14 (nu trebuie Gradle instalat)
-├─ Dockerfile                         build multi-stage (gradle:8.14-jdk21 → :app:bootJar → temurin 21 jre), pentru Render
-├─ .env.example                       variabilele BE (POSTGRES_*, JWT_SECRET, OPENAI_API_KEY, CORS_ORIGINS); .env e ignorat de git
+├─ Dockerfile                         build multi-stage (gradle:8.14-jdk21 → :app:bootJar → temurin 21 jre); imaginea de producție (ECR aradex-api → ECS)
+├─ .github/workflows/deploy.yml       la merge pe main: ./gradlew test → imagine în ECR → deploy ECS (al lui P1; singurul workflow)
+├─ .env.example                       variabilele BE (POSTGRES_*, JWT_SECRET, ANTHROPIC_API_KEY, ANTHROPIC_MODEL, CORS_ORIGINS); .env e ignorat de git
 ├─ api/                               MODULUL `api` = CONTRACTUL REST (bibliotecă Java simplă; app depinde de ea)
 │  ├─ build.gradle                    java-library; spring-web (adnotări), jakarta.validation, swagger-annotations; test: JUnit, Jackson, validator
 │  └─ src/main/java/aradexperience/
@@ -77,7 +78,7 @@ AradEx-Backend/                       REPO 2 — backend (Spring Boot 3, Java 21
       └─ util/                        Codes (coduri AX-…), Geo (haversine), Pages (Page → PageResponse) — utilitare statice
       src/main/resources/
       ├─ application.yml              config din variabile de mediu cu valori implicite locale; Flyway, JPA validate, springdoc, actuator
-      ├─ application-prod.yml         profilul prod (Render)
+      ├─ application-prod.yml         profilul prod (AWS ECS)
       └─ db/migration/                V1 baseline · V2 users+businesses (+V2_1 seed conturi) · V3 places (+V3_1 12 locuri reale, 33 puncte de ghid) · V4 events (+V4_1 30 evenimente) — numerele următoare se iau în ordinea story-urilor din PLAN
       src/test/java/aradexperience/
       ├─ AppSmokeTest                 @SpringBootTest + Testcontainers Postgres: pornește tot, Flyway, /health, 401, login cu toate conturile demo, 409/403 (se sare fără Docker)
@@ -89,13 +90,16 @@ AradEx-Backend/                       REPO 2 — backend (Spring Boot 3, Java 21
       ├─ security/JwtServiceTest · util/CodesAndGeoTest
       └─ resources/requests/<feature>/*.json   cererile pentru testele de controller (requests/auth/register.json = exemplu)
 
-AradEx-Frontend/                      REPO 3 — frontend (Vue 3.5, Vite 8, TypeScript, Tailwind 4, PWA)
+AradEx-Frontend/                      REPO 3 — frontend (Vue 3.5, Vite 8, TypeScript, Tailwind 4, Capacitor): /m = aplicația mobilă (Android + iOS), /w = site de prezentare + panouri
 ├─ CLAUDE.md                          regulile FE: structura pe feature, stack aprobat, stări obligatorii, stil Clean Ink, „Nu”
 ├─ README.md                          comenzi + ce conține scheletul
 ├─ .githooks/ · .claude/settings.json  hook-ul fără co-autori; atribuirea Claude oprită
 ├─ package.json · vite.config.ts · tsconfig*.json · index.html · .env.example (VITE_API_URL, VITE_DEMO)
 ├─ capacitor.config.ts · android/     aplicația Android (Capacitor 6, T15): același build `dist`, pornește pe /m; `npm run android:run`
-├─ public/                            manifest + icon-uri PWA, fonturi locale (Inter, Material Symbols), _redirects (Netlify SPA), img/ (pozele din seed, copiate din design/assets)
+├─ public/                            manifest + icon-uri PWA, fonturi locale (Inter, Material Symbols), _redirects (nefolosit pe AWS), img/ (pozele din seed, copiate din design/assets)
+├─ deploy/                            Dockerfile + nginx.conf: imaginea web de producție (site de prezentare + panouri; fallback SPA, cache), ECR aradex-web → ECS
+├─ .dockerignore                      contextul imaginii: doar dist/ și deploy/
+├─ .github/workflows/deploy.yml       la merge pe main: npm run test + build → imagine nginx în ECR → deploy ECS (al lui P1; singurul workflow)
 └─ src/
    ├─ main.ts · App.vue · vite-env.d.ts
    ├─ router/index.ts                 toate rutele /m/* și /w/* (din API.md §Rute FE) cu meta {roles, title, screen, task}; `/` → /m sau /w după lățime; fiecare rută are view-ul ei (T02), panourile web au o rută pe secțiune; fișierul nu se mai modifică după T03
@@ -115,7 +119,12 @@ AradEx-Frontend/                      REPO 3 — frontend (Vue 3.5, Vite 8, Type
 ```
 AradEx-Infrastructure/                REPO 4 — infrastructură (doar P1)
 ├─ docker-compose.yml                 Postgres 16 local (arad/arad, db aradexperience, :5432, volum)
-├─ README.md · CLAUDE.md              comenzi locale; producția (Render, Netlify, Neon) — pașii în AradEx-Plan/docs/DEPLOY.md
+├─ README.md · CLAUDE.md              comenzi locale + runbook-ul AWS (de la zero la live, redeploy, ștergere)
+├─ terraform/                         producția pe AWS (eu-north-1), state în S3: root (variabile, provider-e, module) + bootstrap/ (bucket-ul de state)
+│  ├─ modules/                        network (VPC fără NAT) · data (RDS Postgres 16, secrete) · api (ALB public HTTPS + rutare, ECR + ECS API) · web (nginx: prezentare + panouri) · edge (zona DNS, certificat) · github_deploy (utilizatori IAM pentru GitHub Actions) · monitoring (alarme, buget)
+│  └─ tests/                          terraform test cu provider simulat (fără credențiale)
+├─ scripts/                           set-anthropic-key.sh · github-keys.sh (cheile de deploy direct în secretele GitHub) · redeploy.sh · destroy.sh
+├─ docs/superpowers/                  designul (specs/) și planul de implementare (plans/) al infrastructurii
 └─ .githooks/ · .claude/settings.json
 
 AradEx-Ops/                           REPO 5 — agenții Paperclip (doar P1)
