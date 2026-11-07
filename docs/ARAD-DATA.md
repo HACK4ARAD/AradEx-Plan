@@ -17,6 +17,26 @@ Surse principale: **visitarad.ro (CNIPT Arad, prin exportul Hack4Arad — vezi m
 - **Gastronomia reală NU e „firmă”:** cafenelele și restaurantele din visitarad sunt doar `places` (profil + hartă), **fără oferte, anunțuri sau cont**. Firmele cu oferte rămân cele FICTIVE de mai jos.
 - **Limitări (din sursă):** 90 de fișe fără descriere; unele texte fără diacritice sau cu greșeli; coordonatele neverificate individual (exemplu: Muzeul Viei și al Vinului e pe site la Ghioroc, cu 2 km greșit — l-am pus după OSM); unele unități pot fi închise între timp; doar română (site-ul are și EN/DE). Traseele n-au coordonate, doar o imagine cu harta → nu intră în DB (anexa B, pentru T08 / T13).
 
+## Alte date deschise despre Arad (încă neintegrate — de folosit la T08 / T13 / T11)
+Verificate pe 7 nov 2026; același autor ca exportul visitarad. Nimic de aici nu e încă în DB sau în cod.
+
+### Transport public CTP — linii, stații, vehicule live (T08, T13)
+- **Unde:** https://baditaflorin.github.io/arad-transport-open-data/ · ghid pentru integrare: [`llms-full.txt`](https://baditaflorin.github.io/arad-transport-open-data/llms-full.txt), [OpenAPI](https://baditaflorin.github.io/arad-transport-open-data/openapi.json), [JSON Schema](https://baditaflorin.github.io/arad-transport-open-data/schema.json), [manifest](https://baditaflorin.github.io/arad-transport-open-data/data/manifest.json).
+- **Static (snapshot 7 nov 2026):** 29 de linii (8 tramvai, 21 autobuz), 77 de variante, **299 de stații cu coordonate**, 805 opriri ordonate, geometria traseelor: [`stops.json`](https://baditaflorin.github.io/arad-transport-open-data/data/stops.json) (`id, name, code, latitude, longitude, patterns[]`), [`routes.json`](https://baditaflorin.github.io/arad-transport-open-data/data/routes.json) (`id, shortName` = „21”, `longName` = „Podgoria-Faleza Sud”, `mode` tram/bus, `color`), [`routeStops.json`](https://baditaflorin.github.io/arad-transport-open-data/data/routeStops.json), [`routes.geojson`](https://baditaflorin.github.io/arad-transport-open-data/data/routes.geojson) (atenție: `[lng, lat]`), CSV și [ZIP](https://baditaflorin.github.io/arad-transport-open-data/data/arad-transport.zip).
+- **Live — API-ul public Telelink** (cel folosit de portalul CTP), fără cheie, `https://www.telelink.city/api/v1/e39aa927-11c1-435f-92b9-57804f7bc1b4/transport/planner/…`:
+  - `/vehicles` — toate vehiculele: `routeId`, `latitude`, `longitude`, `heading`, `delaySeconds`, `nextStopArrival`, `stopId`, `lastUpdated` (UTC; mai vechi de 120 s = învechit);
+  - `/stops/{stopId}/times` — sosirile următoare într-o stație; `/routes`, `/stops`, `/vehicles/route/{routeId}`.
+  - CORS verificat pe 7 nov: răspunde pentru `https://aradexperience.site` și `http://localhost` (aplicația Android).
+- **Reguli de folosire (din ghid):** o singură citire `/vehicles` pentru toate vehiculele, cel mult la 30 s, fără cereri suprapuse, pauză când ecranul nu e vizibil, backoff 60 → 120 s la erori; nu lega `routeId` de `shortName`; indexurile de variantă pot fi negative.
+- **Recomandare pentru noi:** stațiile și liniile intră o dată în DB printr-o migrare de seed (ca la visitarad); datele live trec printr-un endpoint BE cu cache 20–30 s (`RestClient` din Spring, fără librării noi), nu direct din fiecare telefon: o singură sursă de cereri spre Telelink, reparat într-un loc dacă se schimbă ceva, și o rezervă cu datele statice dacă API-ul pică în demo.
+- **Limite:** fără orarul complet pe săptămână (doar sosirile următoare), fără GTFS, fără WebSocket; tenantul din URL poate să se schimbe. **Licență:** nicio licență explicită pe date (MIT acoperă doar codul proiectului); atribuire „Date: CTP Arad / Telelink”; proiect independent, neafiliat CTP / Primăria Arad.
+
+### Calendarul ridicării deșeurilor (opțional, T11 — localnici)
+- **Unde:** https://baditaflorin.github.io/calendar-ridicare-gunoi-arad/ (căutare după stradă / cartier, export ICS, pagină printabilă) · cod: https://github.com/baditaflorin/calendar-ridicare-gunoi-arad.
+- **Date:** JSON static — [`data/catalog.json`](https://baditaflorin.github.io/calendar-ridicare-gunoi-arad/data/catalog.json) (cartiere și străzi, cu nume normalizate pentru căutare) + `data/places/*.json` (programul pe fracții: menajer, reciclabile, campanii de voluminoase / biodeșeuri). Surse oficiale: RETIM (Zona 1, campaniile periodice) și primariaarad.ro (`docs/sources.md` din repo).
+- **Atenție:** snapshot-ul publicat e din **4 mai 2026** — programul de bază e stabil, dar campaniile de sezon pot fi depășite; verificați pe retim.ro înainte de a-l arăta.
+- **Unde s-ar potrivi:** un card pentru localnic în Comunitate („Pe strada ta: marți — reciclabile”, cu „Adaugă în calendar”), lângă acțiunile eco cu puncte. Pentru turiști nu e relevant; nu e în demo.
+
 ## Patru corecții față de prototip
 1. **Cetatea Aradului NU se vizitează în interior** — este unitate militară (Batalionul 191 Infanterie / fostul Batalion Mixt Româno-Ungar). Ghidul virtual se face **din exterior**: Monumentul celor 13 Generali (Piața 13 Martiri, Subcetate), valul și șanțul de apărare, Podul Traian/Faleza cu vedere spre ziduri. Porți deschise doar ocazional (Crosul Cetăților, mai). Turul „de seară la Cetate” din prototip devine „Cetatea văzută de pe Faleză” (FICTIV, exterior).
 2. **Turnul de Apă este închis publicului din 2024** (proprietate privată, fără perspectivă de redeschidere — Agerpres, iul. 2026). Rămâne obiectiv de exterior, cu ghid despre istorie.
@@ -83,6 +103,7 @@ Firme: Cafeneaua din Pasaj, Brutăria Veche, Crama Dealul Miniș, Producători d
 Acțiuni: plantare pe Faleza Mureșului (sâm. 7 nov), curățenie în Pădurea Ceala (dum. 8 nov), donare de sânge la Centrul de Transfuzie Sanguină Arad (mar. 10 nov) — organizator „Primăria Arad” (rol demo).
 
 ## Transport (pentru itinerar)
+- Linii, stații și vehicule live CTP: vezi §Alte date deschise (transport public) — pentru „Transport public” în T13 și stratul de hartă din T08.
 - Pe jos: centrul (Bd. Revoluției, de la Palatul Administrativ la Palatul Cultural) ≈ 1,2 km; Palatul Cultural → Cetate (peste Podul Traian) ≈ 1,5 km.
 - Mașină: parcări — Piața Avram Iancu / Teatru, zona Palatului Cultural (Bd. Dragalina), Subcetate (Piața 13 Martiri); Macea 25 km, Miniș 25 km, Moneasa 100 km.
 - Transport public: CTP Arad (tramvaie pe Bd. Revoluției/Calea Aurel Vlaicu); tramvaiul Arad–Ghioroc („Săgeata Verde”) pentru Podgorie; tren Arad–Curtici (15 min) pentru Macea.
@@ -91,6 +112,7 @@ Acțiuni: plantare pe Faleza Mureșului (sâm. 7 nov), curățenie în Pădurea 
 - Cetate: en.wikipedia.org/wiki/Fortress_of_Arad · aradcityguide.ro · prourbe.ro · planiada.ro (nu se vizitează)
 - Muzeu: museumarad.ro/program-de-vizitare · noapteamuzeelor.org
 - Filarmonica: filarmonicaarad.ro · criticarad.ro · aradculture.ro
+- Transport public: baditaflorin.github.io/arad-transport-open-data (API Telelink / CTP Arad) · deșeuri: baditaflorin.github.io/calendar-ridicare-gunoi-arad (RETIM, primariaarad.ro)
 - Locații, poze, trasee: visitarad.ro (CNIPT Arad) prin baditaflorin.github.io/hack4arad-turism-arad · coordonate verificate: openstreetmap.org (Nominatim / Overpass, 7 nov 2026)
 - Teatru: specialarad.ro/noiembrie-la-teatrul-clasic-ioan-slavici-fitn · teatrulclasic.ro · iabilet.ro · ticketstore.ro
 - Târgul de Crăciun: specialarad.ro/targul-de-craciun-2026-program-complet · aradon.ro (5 nov 2026)
