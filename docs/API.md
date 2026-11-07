@@ -181,7 +181,7 @@ DTO-uri (T14):
 - Contul dezactivat (`disabled`) primește **403 `Account disabled`** la `/auth/login` și la `/auth/otp/verify`; un token emis înainte rămâne valabil până expiră (`SecurityConfig`/`JwtAuthFilter` nu se schimbă în T14).
 
 ## Voluntari (T18)
-Rolul `VOLUNTEER` e în `Role` (BE + FE) și în `SecurityConfig` din T03 (`/vol/**` → VOLUNTEER, `POST /auth/volunteer` public prin `/auth/**`, `/city/**` → CITY_HALL/ADMIN). T18 adaugă migrarea **V15** (`users.role` acceptă VOLUNTEER; voluntarii n-au email / telefon în `users`) — nu V10, cum era rezervat: între timp au intrat V11 (T21), V12 (T22), V13 (T14) și V14 (SMS gateway), iar pe o bază nouă V10 ar fi rulat înaintea constrângerii „email sau telefon” din V11. Conturile le creează doar Primăria. Interfețele: `VolunteerApi` (aplicația) și `CityVolunteersApi` (panoul).
+Rolul `VOLUNTEER` e în `Role` (BE + FE) și în `SecurityConfig` din T03 (`/vol/**` → VOLUNTEER, `POST /auth/volunteer` public prin `/auth/**`, `/city/**` → CITY_HALL/ADMIN). T18 adaugă migrarea **V15** (`users.role` acceptă VOLUNTEER; voluntarii n-au email / telefon în `users`) — nu V10, cum era rezervat: între timp au intrat V11 (T21), V12 (T22), V13 (T14) și V14 (SMS gateway), iar pe o bază nouă V10 ar fi rulat înaintea constrângerii „email sau telefon” din V11. Conturile le creează doar Primăria. Interfețele: `VolunteerApi` (aplicația), `VolunteerChatApi` (chatul de grup) și `CityVolunteersApi` (panoul). **Mesaje:** fiecare acțiune are un chat de grup al voluntarilor alocați ei (text și poze), doar în aplicație; Primăria / Adminul / firmele nu au mesaje în panou (decizia lui Lukas, 7 nov).
 
 **Reguli.** Acțiunea alocată e `LOCKED` până cu 30 de minute înainte de start, `OPEN` de atunci până la miezul nopții zilei în care se termină (ora Aradului; întârziații se pot confirma și după ora de final), `ENDED` după (sau dacă e `DONE`). Scanarea merge doar `OPEN`. Contul de unică folosință expiră după ultima acțiune alocată (fără acțiuni nu expiră). Suspendat sau expirat: 401 la intrare, 403 pe `/vol/**` (și cu un token vechi); contul dezactivat de Admin (T14, `users.disabled_at`): 403 „Account disabled”, ca la celelalte conturi. Coduri greșite: după 10 în 15 minute de la aceeași adresă → 429 (`retryAfterSeconds`). Telefonul voluntarului stă în `volunteers`, nu în `users.phone`, ca să nu poată intra cu OTP-ul din T21.
 
@@ -190,15 +190,16 @@ Rolul `VOLUNTEER` e în `Role` (BE + FE) și în `SecurityConfig` din T03 (`/vol
 | GET | `/city/volunteers` | CITY_HALL, ADMIN | → `VolunteerDto[]` (cele mai noi întâi) |
 | POST | `/city/volunteers` | CITY_HALL, ADMIN | `VolunteerCreate` → `VolunteerDto` (201). Cod de 6 cifre unic, fără 0 la început, „trimis prin SMS” (simulat: îl arată panoul). Telefonul în orice format românesc → E.164. `coordinatorId` lipsă = cel care creează. 400: acțiune inexistentă / nepublicată, coordonator care nu e cont CITY_HALL / ADMIN, telefon invalid |
 | PATCH | `/city/volunteers/{id}` | CITY_HALL, ADMIN | `VolunteerUpdate` → `VolunteerDto` (câmpurile lipsă rămân; o acțiune deja alocată rămâne valabilă și după ce s-a încheiat; 404) |
-| GET | `/city/volunteers/{id}/messages` | CITY_HALL, ADMIN | → `VolunteerMessageDto[]` (vechi → noi); mesajele voluntarului devin citite |
-| POST | `/city/volunteers/{id}/messages` | CITY_HALL, ADMIN | `{ text }` (≤ 1000) → `VolunteerMessageDto` (201) |
 | GET | `/city/coordinators` | CITY_HALL, ADMIN | → `CoordinatorDto[]` (conturile CITY_HALL, după nume) |
 | POST | `/auth/volunteer` | pub | `{ code }` (6 cifre) → `AuthResponse { token, user }`; 401 cod greșit / suspendat / expirat; 429 |
 | GET | `/vol/me` | VOLUNTEER | → `VolunteerMeDto` (antetul „Acțiunile tale”) |
 | GET | `/vol/actions` | VOLUNTEER | → `VolunteerActionDto[]` alocate (publicate sau încheiate), după start |
 | POST | `/vol/scan` | VOLUNTEER | `{ code, actionId? }` → `ConfirmResultDto` — aceeași confirmare idempotentă ca `/city/registrations/confirm` (punctele o singură dată, `confirmedBy` = voluntarul). Ordinea erorilor: 404 cod necunoscut → 403 acțiune nealocată → 409 cod de la altă acțiune decât `actionId` („This code is for another action: <titlu>”) → 403 încă închisă / încheiată → 409 înscriere anulată |
 | GET | `/vol/scans` | VOLUNTEER | → `RegistrationDto[]` — ultimele 10 confirmări ale voluntarului („Scanări recente”) |
-| GET / POST | `/vol/messages` | VOLUNTEER | → `VolunteerMessageDto[]` (mesajele Primăriei devin citite) / `{ text }` → `VolunteerMessageDto` (201) |
+| GET | `/vol/chats` | VOLUNTEER | → `ChatSummaryDto[]` — un chat pe fiecare acțiune alocată (cu mesaje noi întâi, apoi după ultimul mesaj) |
+| GET | `/vol/actions/{id}/chat` | VOLUNTEER | → `ChatDto` (voluntarii acțiunii + ultimele 200 de mesaje, cronologic); chatul devine citit. 403 dacă acțiunea nu e a lui |
+| POST | `/vol/actions/{id}/chat` | VOLUNTEER | `{ text }` (≤ 1000) → `ChatMessageDto` (201); 403 |
+| POST | `/vol/actions/{id}/chat/photo` | VOLUNTEER | `multipart/form-data` `file` (+ `?text=` opțional) → `ChatMessageDto` (201). Poza: JPEG / PNG / WebP / GIF, max 10 MB, verificată după conținut, urcată în bucket-ul de poze (`/media/chat/<aleator>.jpg`, public dar imposibil de ghicit); 400 / 403 |
 
 ```ts
 type VolunteerStatus = 'ACTIVE' | 'SUSPENDED'
@@ -207,12 +208,13 @@ type VolunteerCreate = { name: string /*≤120*/; phone: string; email?: string;
 type VolunteerUpdate = { actionIds?: number[]; status?: VolunteerStatus; coordinatorId?: number }
 type VolunteerDto = { id: number /*= users.id*/; name: string; phone: string /*E.164*/; email?: string; loginCode: string; oneTime: boolean;
   status: VolunteerStatus; expired: boolean; coordinatorId: number; coordinatorName?: string; actionIds: number[];
-  scans: number /*confirmări făcute*/; unread: number /*mesaje ale lui necitite de Primărie*/; lastMessage?: VolunteerMessageDto;
-  createdAt: string; lastLoginAt?: string }
-type VolunteerMessageDto = { id: number; fromCity: boolean; authorName?: string; text: string; createdAt: string; readAt?: string }
+  scans: number /*confirmări făcute*/; createdAt: string; lastLoginAt?: string }
+type ChatMessageDto = { id: number; actionId: number; authorId: number; authorName?: string; mine: boolean; text?: string; imageUrl?: string; createdAt: string }
+type ChatSummaryDto = { actionId: number; title: string; startAt: string; members: number; lastMessage?: ChatMessageDto; unread: number }
+type ChatDto = { actionId: number; title: string; startAt: string; members: { id: number; name: string }[]; messages: ChatMessageDto[] }
 type CoordinatorDto = { id: number; name: string }
 type VolunteerMeDto = { id: number; name: string; coordinatorName?: string; oneTime: boolean; actions: number; scanned: number;
-  toScan: number /*neconfirmați în acțiunile neîncheiate*/; unreadMessages: number }
+  toScan: number /*neconfirmați în acțiunile neîncheiate*/; unreadMessages: number /*mesaje noi în chaturi*/ }
 type VolunteerActionDto = { id: number; title: string; category: ActionCategory; startAt: string; endAt: string; locationName: string;
   address?: string; lat: number; lng: number; pointsReward: number; imageUrl?: string; registered: number; confirmed: number;
   confirmedByMe: number; state: VolunteerActionState; opensAt: string /*start − 30 min*/ }
@@ -286,7 +288,7 @@ Pe web, linkurile vechi de panou `/w/…` duc la aceeași cale fără prefix; î
 | `/businesses/:id` | pagina firmei |
 | `/panel` | E5 / E7: firma și Primăria pe teren (validare + liste) |
 | `/transport` · `/transport/lines/:id/:dir` · `/transport/trip/:to` | T19 |
-| `/vol/login` · `/vol/actions` · `/vol/scan` · `/vol/messages` | T18 |
+| `/vol/login` · `/vol/actions` · `/vol/scan` · `/vol/messages` · `/vol/messages/:actionId` (chatul de grup) | T18 |
 
 Tab bar: Evenimente · Chat · Hartă · Bilete/Panou · Transport; voluntarul are Acțiuni · Scanează · Mesaje.
 
