@@ -93,6 +93,8 @@ Nu includeți: interiorul Cetății, interiorul Turnului de Apă, Muzeul de Art�
 
 **Muzee** — Complexul Muzeal Arad (Palatul Cultural): expoziții permanente „Tezaur 1848–1849”, Pinacoteca, Științele Naturii, sala imersivă; marți–duminică 09–17.
 
+**Ce e în seed (7 nov):** `V4_1__seed_events.sql` — 21 de evenimente reale de mai sus; `V4_4__seed_events_more.sql` — încă 5 care lipseau: Crăciunul la Filarmonică (10 dec), „Colindăm, colindăm iarna” cu Q Band (17 dec), concertele de colinde din weekend de la Târgul de Crăciun (22 și 28 nov, 18:00–20:00) și expozițiile permanente ale Complexului Muzeal (singurul eveniment EXHIBITION, afișat 3 nov – 20 dec, 13,5 lei/secție). **Nu sunt în seed** (lipsesc ora sau titlul confirmat): UTA – Universitatea Cluj (20 dec), spectacolul din repertoriu de la Teatru (29 nov), concertul de muzică populară din 1 dec.
+
 **Piața Producătorilor Arădeni** (CMC Arad, Piața Avram Iancu) — ultima ediție 26–27 sept 2026, 21 de producători; nu are ediție anunțată în noiembrie → în seed apare ca **FICTIV** („ediție de toamnă”) sau se înlocuiește cu standurile producătorilor de la Târgul de Crăciun.
 
 ## Bilete demo — FICTIV (T07)

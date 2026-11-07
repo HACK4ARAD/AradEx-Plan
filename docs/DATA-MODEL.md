@@ -40,7 +40,7 @@ UNIQUE (place_id, position).
 
 ### events (T06, V4)
 `id, title, description TEXT, category, organizer_type, organizer_business_id FK businesses NULL, organizer_name, place_id FK places NULL, location_name, address, lat, lng, start_at, end_at NULL, image_url NULL, ticket_type, price_from NUMERIC NULL, price_adult NUMERIC NULL, price_child NUMERIC NULL, external_url NULL, capacity INT NULL, participants_count INT DEFAULT 0, saves_count INT DEFAULT 0, status DEFAULT 'PUBLISHED', is_demo BOOL DEFAULT false (eveniment FICTIV pentru demo), created_by FK users NULL, created_at`
-Migrarea `V4__events.sql` + seed-ul `V4_1__seed_events.sql` (21 evenimente reale nov–dec 2026 + 9 demo) **există deja**.
+Migrarea `V4__events.sql` + seed-ul `V4_1__seed_events.sql` (21 evenimente reale nov–dec 2026 + 9 demo) **există deja**; `V4_4__seed_events_more.sql` (7 nov) adaugă 5 evenimente reale care lipseau (2 concerte ale Filarmonicii în decembrie, 2 concerte de colinde la Târgul de Crăciun, expozițiile permanente ale Complexului Muzeal — singurul EXHIBITION), id-uri din secvență, idempotent după titlu + început.
 Index: `(start_at)`, `(category, start_at)`, `(organizer_business_id)`.
 Derivat în DTO: `isHot = participants_count >= 50 OR saves_count >= 20`; `distanceKm` când se cere `near`.
 

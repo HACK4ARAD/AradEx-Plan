@@ -41,7 +41,8 @@ Plus 223 de locuri fără ghid (id 13+ din secvență): obiective și muzee din 
 
 Verifică coordonatele pe OpenStreetMap înainte de commit (cele 12 de mai sus sunt verificate pe OSM, 7 nov); mută pinul dacă e în clădirea greșită. `parking_hint`: „Parcarea Cetății, str. Cetății” / „Parcarea Teatrului, Piața Avram Iancu” etc.
 
-## Evenimente (T06) — deja în V4_1; de completat doar dacă lipsește ceva
+## Evenimente (T06) — deja în V4_1 + `V4_4__seed_events_more.sql` (cele 5 reale care lipseau); de completat doar dacă lipsește ceva
+Înainte de a adăuga un eveniment, verifică în `docs/ARAD-DATA.md` dacă e real și are oră + titlu confirmate; cele fără (UTA – U Cluj, spectacolul din 29 nov) nu intră. Fără recenzii inventate în `reviews` — tabela rămâne goală până vin recenzii reale din aplicație.
 Repetiție deschisă la Filarmonica (gratuit), concert simfonic (bilete), Teatrul Clasic — spectacol pentru copii sâmbătă 11:00 (adult 40 / copil 25), expoziție la Palatul Cultural (10 lei, zilnic), tur ghidat de seară la Cetate (gratuit, 19:30), Târgul producătorilor din județul Arad (piața Avram Iancu, sâmbătă), meci UTA Arad (extern, link), Festivalul Vinului Miniș (sâmbătă 17:00), alergare pe Faleză (sport, gratuit), atelier de ceramică (familie), expoziție foto „Aradul în 1900”, seară de jazz la o cafenea (organizator firmă), cros în Pădurea Ceala.
 Setează `participants_count` mare (≥ 50) la 2–3 evenimente ca să existe 🔥 Popular. Categoriile: vezi DATA-MODEL.
 
