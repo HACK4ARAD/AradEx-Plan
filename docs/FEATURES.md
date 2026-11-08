@@ -73,7 +73,7 @@ Reguli (T21): **Vizitatorul și Localnicul intră doar în aplicația mobilă, c
 ## 9. Recenzii (T06/T07, parte 2)
 - După ce un eveniment a trecut, un utilizator cu bilet/înscriere (sau orice utilizator logat, pentru evenimente gratuite) poate lăsa **1–5 stele + text scurt**; media și numărul apar pe detaliul evenimentului și pe pagina firmei (media firmei = media evenimentelor + ofertelor ei).
 - Reguli: o recenzie per utilizator per eveniment, editabilă; Admin poate ascunde.
-- **Google (opțional, T17):** pentru obiective și firme care au `googlePlaceId`, se afișează rating-ul și până la 5 recenzii Google (Places API, prin backend, cache 24 h, cu atribuire „Powered by Google”). Doar citire; fără sincronizare în sens invers (ar cere OAuth și nu merită la hackathon). Evenimentele din aplicație rămân doar în aplicație.
+- **Google (opțional, T17):** pentru obiective și firme care au `googlePlaceId`, se afișează rating-ul și până la 5 recenzii Google, cele mai bine notate primele (Places API, prin backend, cache 24 h, cu atribuire „Powered by Google”). Doar citire; fără sincronizare în sens invers (ar cere OAuth și nu merită la hackathon). Evenimentele din aplicație rămân doar în aplicație.
 - Ecrane: S3, W6, W15.
 
 ## 10. Firme (T09) — firmă ↔ public
