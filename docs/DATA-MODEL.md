@@ -66,7 +66,7 @@ Derivat în DTO: `isHot = participants_count >= 50 OR saves_count >= 20`; `dista
 `id, business_id FK, title, body TEXT, image_url NULL, status DEFAULT 'PUBLISHED', created_at`
 
 ### offers (T10, V7)
-`id, business_id FK, title VARCHAR(120), description TEXT, discount_label ('-20%','2+1','Gratuit','40 p'), category ('CAFE'|'RESTAURANT'|'LOCAL'|'EVENT'|'OTHER', DEFAULT 'OTHER'), local_product BOOL DEFAULT false, valid_from DATE DEFAULT azi, valid_until DATE NULL (= permanentă), points_price INT NULL (> 0), image_url NULL, status DEFAULT 'PUBLISHED', views_count INT DEFAULT 0, redemptions_count INT DEFAULT 0, used_count INT DEFAULT 0, created_at`
+`id, business_id FK, title VARCHAR(120), description TEXT, discount_label ('-20%','2+1','Gratuit','40 p'), category ('CAFE'|'RESTAURANT'|'LOCAL'|'EVENT'|'OTHER', DEFAULT 'OTHER'), local_product BOOL DEFAULT false, valid_from DATE DEFAULT azi, valid_until DATE NULL (= permanentă), points_price INT NULL (> 0), image_url NULL, status DEFAULT 'PUBLISHED', views_count INT DEFAULT 0, redemptions_count INT DEFAULT 0, used_count INT DEFAULT 0, created_at` · **`featured` BOOL DEFAULT false (V19):** ofertă promovată, prima în `GET /offers` (și la sortarea după distanță); doar din seed.
 `category` adăugat în T10 pentru cercurile din tab-ul Oferte (designul final); CHECK `valid_until >= valid_from`. Index: `(business_id)`, `(status, valid_until)`.
 
 ### offer_redemptions (T10, V7)
