@@ -21,6 +21,7 @@ Document de referință pentru implementare: fiecare funcționalitate are **cine
 | Publică oferte, evenimente, anunțuri; validează coduri | — | — | **da** | — | da (orice) |
 | Creează acțiuni, confirmă participanți, clasament | — | — | — | **da** | da |
 | Verifică firme, moderează conținut, utilizatori, obiective & ghiduri | — | — | — | — | **da** |
+**GDPR (8 nov):** orice cont creat de utilizator (personal cu telefon, firmă cu email) cere bifa „Am citit și accept Termenii și condițiile și Politica de confidențialitate” — fără ea butonul arată eroarea și BE răspunde 400; linkurile deschid textele într-o fereastră peste formular (nu se pierde ce ai scris). BE păstrează momentul și versiunea acceptată (`users.terms_accepted_at`, `terms_version`). Textele sunt publice pe web la `/terms` și `/privacy` (în subsolul site-ului).
 Reguli (T21): **Vizitatorul și Localnicul intră doar în aplicația mobilă, cu numărul de telefon și un cod de 6 cifre prin SMS** (numerele de demo `0799000xxx` primesc codul pe ecran); numărul nou cere apoi numele și rolul. Firma, Primăria și Adminul intră cu e-mail + parolă (min. 8). JWT 24 h; rolul se alege la înregistrare (Vizitator/Localnic/Firmă) și se schimbă doar de Admin; ADMIN are acces peste tot. Ecrane: S12 (mobil), W0 (web). Profil S11 / W14 cu limbă și deconectare.
 
 ## 2. Evenimente (T06) — vizitator, localnic
