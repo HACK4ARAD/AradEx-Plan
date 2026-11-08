@@ -53,7 +53,7 @@ Reguli (T21): **Vizitatorul și Localnicul intră doar în aplicația mobilă, c
 - Reguli: fără poziție GPS → centrul Aradului; fără OSRM → linie dreaptă + estimare.
 - **Poziția live (8 nov):** cât harta e deschisă GPS-ul precis se citește continuu (la 1–2 s, pe pauză în fundal); punctul albastru are săgeata direcției (GPS-ul în mers, busola pe loc). „Locația mea” te ține în centru până tragi de hartă (butonul devine albastru).
 - **Punct ales pe hartă (8 nov):** apăsare lungă pe hartă → steag + card „Punctul ales pe hartă” cu „Trasee până aici” (Transport, `?to=pt:lat,lng`) și „Arată traseul”; în Transport, sub sugestii, „Alege punctul pe hartă” (`/map?pick=1`, o atingere alege). Pentru locurile pe care căutarea nu le găsește.
-- Rotirea hărții: încă nu (Leaflet nu are rotire fără un plugin GPL; Google fără Map ID nu se rotește).
+- **Harta se rotește (8 nov):** în aplicație harta e MapLibre GL (BSD; aceleași dale Esri ca rezerva Leaflet): rotire cu două degete, busola readuce nordul sus, a doua atingere pe „Locația mea” = harta în direcția de mers. Ordinea hărților: Google (cu cheie, site-ul) → MapLibre (WebGL) → Leaflet.
 - Ecrane: S7, E4 · W1 (mini), W9.
 
 ## 6. Planificator de itinerar (T13) — vizitator
