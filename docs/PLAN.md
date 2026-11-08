@@ -308,7 +308,7 @@ CORS_ORIGINS=http://localhost:5173
 - **Android:** iconiță + splash, `versionCode`/`versionName`, APK de debug pentru demo + AAB semnat (cheia de semnare NU intră în git), URL-ul API de producție în build.
 - **iOS:** `npx cap add ios` (`ios/` în repo), `cap sync`, rulează pe simulator din Xcode (doar pe macOS), bundle id `ro.aradexperience.app`, iconiță/splash, permisiuni în `Info.plist` (cameră pentru QR, localizare pentru „Lângă mine”), `NSAppTransportSecurity` doar dacă e nevoie de HTTP în dev; build pe telefon cu un cont Apple de dezvoltator (TestFlight dacă există cont plătit).
 - **Specific nativ:** verificat pe ambele: TTS-ul ghidului (WebView-ul Android poate să nu aibă `speechSynthesis` → plugin `@capacitor-community/text-to-speech` sau `/ai/tts`), camera pentru QR (`html5-qrcode` sau plugin nativ), geolocația, link-urile externe (Google Maps, site organizator) deschise în browserul sistemului.
-- Fiecare culoar își traduce singur modulul (`i18n/en/<modul>.json`); T15 face EN pentru `common` și o listă cu cheile EN lipsă din celelalte module (o trimite culoarelor). HU doar dacă rămâne timp.
+- Fiecare culoar își traduce singur modulul (`i18n/en/<modul>.json`); T15 face EN pentru `common` și o listă cu cheile EN lipsă din celelalte module (o trimite culoarelor). HU: făcut (interfața tradusă integral, `i18n/hu/`; BE acceptă `hu` pentru cont, chat și itinerariu — FE #56, BE #33).
 - `android/`, `ios/` și `capacitor.config.ts` sunt ale lui T15; ceilalți nu le ating.
 
 **Verificare:** aplicația pornește pe emulatorul Android și pe simulatorul iOS, login cu conturile demo, ghidul audio pornește/oprește, scannerul QR și „Lângă mine” cer permisiunile și merg; APK-ul se instalează pe un telefon Android real.

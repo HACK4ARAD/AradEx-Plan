@@ -13,7 +13,7 @@ FE: tipurile TypeScript din `AradEx-Frontend/src/shared/types/<modul>.ts` oglind
 ## DTO-uri comune
 ```ts
 type Role = 'VISITOR'|'LOCAL'|'BUSINESS'|'CITY_HALL'|'ADMIN'|'VOLUNTEER'   // VOLUNTEER: creat de Primărie (T18; coloana users.role îl acceptă după V15)
-type UserDto = { id: number; email: string; displayName: string; role: Role; locale: 'ro'|'en'; pointsBalance: number; business?: BusinessSummary }
+type UserDto = { id: number; email: string; displayName: string; role: Role; locale: 'ro'|'en'|'hu'; pointsBalance: number; business?: BusinessSummary }
 type BusinessSummary = { id: number; name: string; category: string; verified: boolean; imageUrl?: string }
 type GeoPoint = { lat: number; lng: number }
 type PlaceType = 'ATTRACTION'|'MUSEUM'|'VENUE'|'WINERY'|'NATURE'|'PARK'|'RESTAURANT'|'CAFE'
@@ -49,7 +49,7 @@ type ItineraryDto = { id?: number; shareCode?: string; title: string; summary: s
 | POST | `/auth/otp/verify` | pub | T21 · `{ phone, code }` → `{ token, user }` dacă numărul are cont, altfel `{ signupToken }` (15 min). 401 „Invalid or expired code” (cod greșit, expirat după 5 min, folosit sau, la numerele reale, după 5 încercări greșite) |
 | POST | `/auth/otp/register` | pub | T21 · `{ signupToken, displayName, role: 'VISITOR'\|'LOCAL' }` → 201 `{ token, user }`; 401 token expirat, 409 numărul are deja cont, 400 alt rol |
 | GET | `/me` | auth | → `UserDto` (401 dacă tokenul e valid dar contul nu mai există) |
-| PATCH | `/me` | auth | `{ displayName?, locale? }` → `UserDto` |
+| PATCH | `/me` | auth | `{ displayName?, locale? }` → `UserDto` (`locale`: `ro`, `en` sau `hu`) |
 | GET | `/me/points` | auth | → `PointsDto` (T11) |
 
 JWT: HS256, claims `sub`=userId, `role`, `email` (lipsește la conturile cu telefon), `exp` = 24 h. Tokenul de înregistrare T21 (`purpose=signup`, `phone`) nu e acceptat ca autentificare. `UserDto` are și `phone` (E.164, conturile personale); `email` e opțional. Email-ul se normalizează (trim + lowercase) la register și login.
@@ -155,7 +155,7 @@ Cod înscriere: `AX-C{actionId}-{6}`. Punctele se scriu **doar** prin `PointsSer
 ## AI (T12, T13)
 | Metodă | Rută | Auth | Cerere → Răspuns |
 |---|---|---|---|
-| POST | `/ai/chat` | pub (rate-limit 20/min/IP) | `{ messages: { role: 'user'\|'assistant', content }[], locale }` → `{ reply, suggestedEventIds: number[], quickReplies: string[], offline: boolean }` |
+| POST | `/ai/chat` | pub (rate-limit 20/min/IP) | `{ messages: { role: 'user'\|'assistant', content }[], locale /*ro|en|hu: limba răspunsului*/ }` → `{ reply, suggestedEventIds: number[], quickReplies: string[], offline: boolean }` |
 | POST | `/ai/itinerary` | pub (rate-limit 20/min/IP) | `{ date, startTime?: '10:00', hours?: number, days?: 1\|2, transport, interests: string[], freeText?, start?: GeoPoint, locale? }` → `ItineraryDto` (nesalvat). Claude alege doar opririle (obiective, evenimentele zilei, cafenele/localuri); BE validează id-urile și calculează orele și drumurile (pe jos 4,5 km/h, mașină 25 km/h + parcare, transport public 14 km/h + așteptare). Fără Claude: program din obiectivele cu ghid, `offline: true`. O zi se termină cel târziu la 22:00; pentru azi, la o oră trecută, programul începe acum (rotunjit la sfertul următor); cu mai puțin de o oră rămasă → 400 `Too late to plan for today` |
 | POST | `/itineraries` | pub (userId dacă e logat; 20/min/IP → 429) | `ItineraryDto` → `ItineraryDto` cu `id`, `shareCode`. Opririle se refac din DB după `kind` + `refId` (nume, loc, coordonate, poză, ghid, parcare); din cerere rămân orele, duratele, drumurile și nota (≤ 300). O oprire necunoscută → 400 |
 | GET | `/itineraries/{shareCode}` | pub | → `ItineraryDto`. Codul `AX-I-XXXXXX` (fără diferență de majuscule) îl deschide oricine are linkul; după `id` numeric doar proprietarul (altfel 404: id-urile sunt consecutive) |
@@ -274,8 +274,8 @@ Codul e generat de API și ținut doar ca hash (`otp_codes.provider = GATEWAY`),
 Din Google Places API (New), **doar prin backend** (cheia `GOOGLE_PLACES_API_KEY` nu ajunge în aplicație), cache 24 h în memorie pe (Place ID, limbă). Doar citire: nimic nu se scrie spre Google. Se afișează cu `attribution` („Powered by Google”), numele autorului (cu link când există) și linkul `mapsUrl`.
 | Metodă | Rută | Cine | Ce face |
 |---|---|---|---|
-| GET | `/places/{id}/google?lang=ro|en` | pub | → `GoogleInfoDto`. Fără ID salvat, backend-ul **caută singur** locul pe Google (Text Search după nume + adresă, doar în ~±450 m în jurul coordonatelor, doar ID-ul) și îl leagă doar dacă **numele seamănă** și locul are păreri; ID-ul se salvează în `places.google_place_id`, „negăsit” se ține minte 24 h. 404: obiectiv inexistent, negăsit pe Google, fără păreri sau serverul n-are cheie; 503: Google nu răspunde (dacă există o copie veche, se dă copia) |
-| GET | `/businesses/{id}/google?lang=ro|en` | pub | → `GoogleInfoDto`, **doar dacă firma și-a legat** pagina de pe Google (firmele nu se caută automat: cele demo sunt fictive). 404 / 503 ca mai sus |
+| GET | `/places/{id}/google?lang=ro|en|hu` | pub | → `GoogleInfoDto`. Fără ID salvat, backend-ul **caută singur** locul pe Google (Text Search după nume + adresă, doar în ~±450 m în jurul coordonatelor, doar ID-ul) și îl leagă doar dacă **numele seamănă** și locul are păreri; ID-ul se salvează în `places.google_place_id`, „negăsit” se ține minte 24 h. 404: obiectiv inexistent, negăsit pe Google, fără păreri sau serverul n-are cheie; 503: Google nu răspunde (dacă există o copie veche, se dă copia) |
+| GET | `/businesses/{id}/google?lang=ro|en|hu` | pub | → `GoogleInfoDto`, **doar dacă firma și-a legat** pagina de pe Google (firmele nu se caută automat: cele demo sunt fictive). 404 / 503 ca mai sus |
 | GET | `/city/places/{id}/google` | CITY_HALL, ADMIN | → `GoogleLinkDto` (nu caută automat; erorile Google nu strică panoul: lipsește `info`, iar `problem` spune de ce — un ID pe care Google nu-l cunoaște (400/404 de la Google) nu se mai cere 24 h, iar public dă 404) |
 | PUT | `/city/places/{id}/google` | CITY_HALL, ADMIN | `{ googlePlaceId: string | null }` (gol = dezleagă; doar litere, cifre, `_`, `-`, max 255 → altfel 400) → `GoogleLinkDto` |
 | GET | `/business/me/google` | BUSINESS | → `GoogleLinkDto` al firmei mele; 404 dacă n-am firmă |
