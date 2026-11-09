@@ -41,7 +41,7 @@ gh auth login                         # o dată, pentru PR-uri
 (cd ../AradEx-Backend && cp .env.example .env && ./gradlew :app:bootRun)                # API :8080, Swagger /swagger-ui.html
 (cd ../AradEx-Frontend && cp .env.example .env && npm install && npm run dev)           # :5173 → web; aplicația mobilă: npm run dev:mobile (:5174)
 ```
-În `.env`-ul BE pune un `JWT_SECRET` random de minim 32 de caractere (`openssl rand -hex 32`) și lasă `ANTHROPIC_API_KEY` gol până la T12 (cheia Claude API o are P1). Conturi demo (e-mail + parolă `demo1234`): `visitor@demo.ro`, `local@demo.ro`, `firma@demo.ro`, `primaria@demo.ro`, `admin@demo.ro`; „Am uitat parola” local: fără `MAIL_FROM`, codul apare în logul BE (butoanele „Conturi demo” de pe login le completează). SMS real local: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_VERIFY_SERVICE_SID` în `.env`-ul BE (opțional).
+În `.env`-ul BE pune un `JWT_SECRET` random de minim 32 de caractere (`openssl rand -hex 32`) și lasă `ANTHROPIC_API_KEY` gol până la T12 (cheia Claude API o are P1). Conturi demo (e-mail + parolă `demo1234`): `visitor@demo.ro`, `local@demo.ro`, `firma@demo.ro`, `primaria@demo.ro`, `admin@demo.ro`; codul de recuperare apare o dată la „Cont nou”, iar o parolă temporară o dă Adminul din Admin › Utilizatori (butoanele „Conturi demo” de pe login le completează). SMS real local: `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_VERIFY_SERVICE_SID` în `.env`-ul BE (opțional).
 
 Aplicația Android pe emulator (pornește emulatorul din Android Studio întâi):
 ```
