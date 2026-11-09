@@ -25,7 +25,7 @@ cd AradEx-Plan && ./setup.sh                                          # cloneaz�
 (cd ../AradEx-Frontend && npm run android:run)                         # aplicația Android pe emulator (Capacitor)
 claude                                                                # Claude Code, din AradEx-Plan
 ```
-Conturi demo: Vizitator `0799 000 001`, Localnic `0799 000 002` (telefon + codul afișat în aplicație); `firma@demo.ro`, `primaria@demo.ro`, `admin@demo.ro` / `demo1234`.
+Conturi demo (e-mail + parolă `demo1234`): `visitor@demo.ro`, `local@demo.ro`, `firma@demo.ro`, `primaria@demo.ro`, `admin@demo.ro`.
 
 ## Unde e ce
 - `docs/STATUS.md` — **memoria proiectului**: ce e gata, decizii, probleme cunoscute · `docs/SETUP.md` — instalare + probleme de mediu
