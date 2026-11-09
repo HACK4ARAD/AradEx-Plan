@@ -38,3 +38,9 @@ Conturi demo (e-mail + parolă `demo1234`): `visitor@demo.ro`, `local@demo.ro`, 
 ## Cum lucrăm
 Un task din PLAN = un branch `feat/Txx-...` cu același nume în fiecare repo atins = câte un PR; merge în ordinea BE → FE → Plan (îl face QA & Demo). Începe cu `/task-workflow`, termină cu checklist-ul, `/review-pr` și descrierea PR-ului.
 Fără `Co-Authored-By` în commit-uri. `main` rulează mereu; fiecare PR lasă feature-ul lui funcțional.
+
+## Drepturi de autor
+
+© 2026 Echipa AradExperience (Hack4Arad 2026): ZOCZELI, LukasL2004, vaidaoctav, DamAndrei04. **Toate drepturile rezervate.** Codul e public doar ca să poată fi văzut; copierea, modificarea sau folosirea lui în alt proiect cer acordul nostru scris. Detalii în [LICENSE](LICENSE). Pozele (Wikimedia Commons), datele de transport (CTP Arad) și bibliotecile open source rămân sub licențele lor.
+
+*Copyright © 2026 the AradExperience team. All rights reserved — see [LICENSE](LICENSE).*
