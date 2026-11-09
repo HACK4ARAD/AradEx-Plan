@@ -3,7 +3,7 @@
 > Orientativ: dă o idee despre cum legăm feature-urile. Se clarifică exact la final. La un PR verificăm doar că feature-ul lui e funcțional, nu tot fluxul.
 
 Dispozitive: **telefon A** (aplicația instalată: vizitator → apoi localnic), **telefon B** (aplicația: primăria, pe teren), **laptop pe proiector** (site-ul de prezentare + panourile web; simulatorul iOS dacă nu avem iPhone).
-Conturi: Vizitator `0799 000 001` și Localnic `0799 000 002` (în aplicație: telefon → codul apare pe ecran, fără SMS); `firma@demo.ro`, `primaria@demo.ro` / `demo1234` (e-mail + parolă). Toate datele sunt din seed — nu improviza.
+Conturi (e-mail + parolă `demo1234`): `visitor@demo.ro` (sau „Intră ca vizitator”), `local@demo.ro`, `firma@demo.ro`, `primaria@demo.ro`. Toate datele sunt din seed — nu improviza.
 
 ## Fluxul (în ordinea în care se construiește și se demonstrează)
 1. **Vizitator ajunge în Arad** (telefon A, aplicația): Acasă → vede evenimentele de azi, 🔥 Popular. *(T06)*
