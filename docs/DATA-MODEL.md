@@ -124,3 +124,7 @@ transit_routes 1─n transit_patterns 1─n transit_pattern_stops n─1 transit_
 - 5 conturi demo (T03), 1 firmă verificată „Cafeneaua din Pasaj” + 2–3 firme extra (Brutăria Veche, Crama Dealul Miniș, Producători din județul Arad).
 - 12 locuri reale cu ghid (T05, există), 30 de evenimente pe 6 nov – 20 dec 2026 (T06, există), 5–8 oferte (T10), 3 acțiuni comunitare + înscriși + puncte (T11), 2 voluntari cu codurile `482913` (Andrei Popa, acțiunile 1–2) și `731508` (Maria Ionescu, acțiunea 3, unică folosință), coordonatoarea Ioana Marin (`ioana.marin@demo.ro`) și Radu Toma (`radu.toma@demo.ro`), parola `demo1234`, Maria alocată și la plantare, unde chatul de grup are deja 4 mesaje și o poză (T18, `V15_1`, FICTIV).
 - Imaginile: `AradEx-Frontend/public/img/<fișier>.jpg` (copiate din `design/assets/`), stocate în DB ca path relativ `/img/loc-pc.jpg`. Pozele obiectivelor și ale evenimentelor din aceleași săli se leagă în `V4_2__seed_images.sql` (există).
+
+### Activitate demo (V23, 11 nov)
+`V23__seed_demo_activity.sql`: date **inventate** pentru panouri cât timp aplicația e „doar demo” — 60 de utilizatori fictivi (`5001–5060`, `@demo.ro`, fără parolă), bilete la evenimentele cu bilet în aplicație (max. 70% din capacitate), coduri de ofertă, înscrieri și puncte, recenzii, evenimente salvate, 6 voluntari (`5101–5106`, telefoane `+40 700 000 1xx`) și 4 acțiuni comunitare viitoare („ACȚIUNE DEMO”). Legate de rândurile existente după tip / stare (nu după id), relative la momentul rulării; codurile au sufixul `-D<n>`.
+
